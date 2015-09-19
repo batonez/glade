@@ -1,0 +1,18 @@
+
+//== PROGRAM LINK STATUS = TRUE
+//== PROGRAM VALIDATE STATUS = TRUE
+/*== INFO LOG ==
+Fragment shader(s) linked.
+  == INFO LOG END ==*/
+
+//======================================================
+//   Fragment Shader 1
+//======================================================
+
+//== SHADER COMPILE STATUS = TRUE
+/*== INFO LOG ==
+Fragment shader was successfully compiled to run on hardware.
+  == INFO LOG END ==*/
+void main() {
+  gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+}

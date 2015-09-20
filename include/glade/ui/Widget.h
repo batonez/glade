@@ -1,6 +1,7 @@
 #pragma once
 
 #include <set>
+#include <list>
 
 #include "../GladeObject.h"
 #include "../Callable.h"
@@ -12,7 +13,7 @@ class Layout;
 class Widget : public GladeObject
 {
   public:
-    typedef std::set<Widget*>  Widgets;
+    typedef std::list<Widget*> Widgets;
     typedef Widgets::iterator  WidgetsI;
 
   protected:
@@ -136,11 +137,11 @@ class Widget : public GladeObject
     void setParent(Widget* widget)
     {
       if (parent != NULL) {
-        parent->getChildren()->erase(this);
+        parent->getChildren()->remove(this);
       }
       
       if (widget != NULL) {
-        widget->getChildren()->insert(this);
+        widget->getChildren()->push_back(this);
       }
       
       parent = widget;
@@ -169,6 +170,7 @@ class Widget : public GladeObject
      */
     bool focusNextDescendant()
     {
+      log("A");
       // снимаем флаг фокуса с текущего сфокусированного элемента (ищем его от корня)
       if (getParent() == NULL) {
         Widget* focusedElement = getFocusedElement();
@@ -177,13 +179,13 @@ class Widget : public GladeObject
           focusedElement->setFocused(false);
         }
       }
-      
+      log("B");
       bool result = true;
       
       // Если сфокусированный элемент - этот, то на этом шаге фокус просто убирается и родитель оповещается что в этой ветке элементы закончились
       if (breadCrumb == this) {
         breadCrumb = NULL;
-        
+        log("C");
         // если это корневой элемент - делаем еще одну итерацию (чтобы не случилось так что ни один элемент дерева не имеет фокус)
         if (getParent() == NULL) {
           focusNextDescendant();
@@ -198,19 +200,8 @@ class Widget : public GladeObject
         
         // пробуем переключить фокус у первого прямого потомка. Если потомок возвращает false (т.е. у него закончились его потомки), то пробуем следующего
         while (breadCrumb == NULL || !breadCrumb->focusNextDescendant()) {
-          Widget* newBreadCrumb = *focusIterator;
-          
-          if (breadCrumb != NULL && breadCrumb == newBreadCrumb) {
-            ++focusIterator;
-            
-            if (focusIterator != children.end()) {
-              newBreadCrumb = *focusIterator;
-            }
-          }
-          
-          breadCrumb = newBreadCrumb;
-            
           if (focusIterator == children.end()) {
+            log("H");
             if (!isFocusable()) { // если этот элемент не фокусируемый, то в этой ветке больше нечего фокусировать, оповещаем об этом вызвавшего родителя
               breadCrumb = NULL;
               
@@ -227,12 +218,28 @@ class Widget : public GladeObject
             break;
           }
           
+          log("F");
+          Widget* newBreadCrumb = *focusIterator;
+          log("F1");
+          if (breadCrumb != NULL && breadCrumb == newBreadCrumb) {
+            log("F2");
+            ++focusIterator;
+            
+            if (focusIterator != children.end()) {
+              log("F3");
+              newBreadCrumb = *focusIterator;
+            }
+          }
+          log("G");
+          breadCrumb = newBreadCrumb;
+          
           ++focusIterator;
         }
       }
-      
+      log("I");
       // Устанавливаем флаг фокуса на новый найденный элемент
       if (getParent() == NULL) {
+        log("J");
         Widget* focusedElement = getFocusedElement();
         
         if (focusedElement != NULL) {
@@ -267,24 +274,13 @@ class Widget : public GladeObject
         
         result = false;
       } else {
-        if (breadCrumb == NULL || focusIterator == children.end()) {
+        if (breadCrumb == NULL || focusIterator == children.begin()) {
           focusIterator = --children.end();
         }
         
         while (breadCrumb == NULL || !breadCrumb->focusPreviousDescendant()) {
-          Widget* newBreadCrumb = *focusIterator;
-          
-          if (breadCrumb != NULL && breadCrumb == newBreadCrumb) {
-            --focusIterator;
-            
-            if (focusIterator != children.end()) {
-              newBreadCrumb = *focusIterator;
-            }
-          }
-          
-          breadCrumb = newBreadCrumb;
-          
-          if (focusIterator == children.end()) {
+          if (focusIterator == children.begin()) {
+            log("END");
             if (!isFocusable()) {
               breadCrumb = NULL;
               
@@ -301,6 +297,20 @@ class Widget : public GladeObject
             break;
           }
           
+          log("X");
+          
+          Widget* newBreadCrumb = *focusIterator;
+          log("Y");
+          
+          if (breadCrumb != NULL && breadCrumb == newBreadCrumb) {
+            --focusIterator;
+            
+            if (focusIterator != children.begin()) {
+              newBreadCrumb = *focusIterator;
+            }
+          }
+          
+          breadCrumb = newBreadCrumb;
           --focusIterator;
         }
       }

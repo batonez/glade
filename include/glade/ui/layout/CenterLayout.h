@@ -10,6 +10,7 @@ class CenterLayout : public Layout
     
     virtual void calculateTransformsForChildrenOf(Widget* widget)
     {
+      log("Calculating Center Layout");
       rescaleChildrenOf(widget);
       
       Transform* parentTransform = widget->getTransform();
@@ -21,5 +22,7 @@ class CenterLayout : public Layout
         
         (*child)->getLayout()->calculateTransformsForChildrenOf(*child);
       }
+      
+      log("Calculating Center Layout finished");
     }
 };

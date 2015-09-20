@@ -12,6 +12,7 @@ class SequenceLayout : public Layout
     
     virtual void calculateTransformsForChildrenOf(Widget* widget)
     {
+      log("Calculating Sequence Layout");
       rescaleChildrenOf(widget);
       
       Transform* parentTransform = widget->getTransform();
@@ -37,5 +38,7 @@ class SequenceLayout : public Layout
         
         currentX += 2 * childScale->x;
       }
+      
+      log("Calculating Sequence Layout finished");
     }
 };

@@ -10,7 +10,7 @@ class DefaultShaderProgram : public ShaderProgram
      
     }
     
-    virtual void setUniformValues()
+    virtual void setUniformValues(Drawable *drawable)
     {
     }
     

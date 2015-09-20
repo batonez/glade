@@ -94,6 +94,7 @@ public:
 	 */
 	void processRequests(void) {
 		if (stopRequested) {
+      log("Context stop requested");
 			stopRequested = false;
 			clearNowFully();
       
@@ -108,29 +109,40 @@ public:
 		}
 		
 		if (requestedState.get() != nullptr) {
+      log("State switch requested");
 			switchState();
 			
 			return;
 		}
 		
 		if (clearRequested) {
+      log("Clear requested");
 			clearNowFully();
 		}
 				
 		bool gladeObjectsListsChanged = false;
 		
+    if (!objectsToAdd.empty()) {
+      log("Context: new objects will be loaded");
+      gladeObjectsListsChanged = true;
+    }
+        
 		while (!objectsToAdd.empty()) {
 			addNow(objectsToAdd.front());
 			objectsToAdd.pop();
-			gladeObjectsListsChanged = true;
 		}
 		
+    if (!widgetsToAdd.empty()) {
+      log("Context: new widgets will be loaded");
+      gladeObjectsListsChanged = true;
+    }
+    
 		while (!widgetsToAdd.empty()) {
 			addNow(widgetsToAdd.front());
 			widgetsToAdd.pop();
-			gladeObjectsListsChanged = true;
 		}
 		
+    log("Sorting drawables");
 		if (gladeObjectsListsChanged) {
 			renderer->sortDrawables();
 		}
@@ -162,23 +174,26 @@ private:
 	 * Should be called only from rendering thread
 	 */
 	void switchState(void) {
-		if (requestedState.get() == nullptr) {
-			log("You should request a state before activating it");
-      return;
-		}
-    
-    if (currentState.get() != nullptr) {
-      currentState->shutdown();
-    }
-    
-		currentState = std::move(requestedState);
-		
 		if (currentState.get() != nullptr) {
 			clearBeforeStateInit();
-			currentState->init();
-			clearAfterStateInit();
+      log("Shutting down current state");
+      currentState->shutdown();
+      log("Current state was shut down");
+      
+      if (requestedState.get() != nullptr) {
+        log("Initializing requested state");
+        currentState = std::move(requestedState);
+        currentState->init();
+      }
+			
+      clearAfterStateInit();
 		} else {
 			clearNowFully();
+      
+      if (requestedState.get() != nullptr) {
+        currentState = std::move(requestedState);
+        currentState->init();
+      }
 		}
 	}
 	

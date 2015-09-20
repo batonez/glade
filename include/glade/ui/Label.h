@@ -39,9 +39,8 @@ class Label : public Widget
     void setTextColor(float r, float g, float b)
     {
       for (DrawablesI di = drawables.begin(); di != drawables.end(); ++di) {
-        BasicTextShaderProgram *program = dynamic_cast<BasicTextShaderProgram*>((*di)->getShaderProgram());
-        program->replaceOriginalColor = true;
-        program->constantColor.set(r, g, b, 1.0f);
+        (*di)->shaderBoolUniforms["replaceOriginalColor"] = true;
+        (*di)->shaderVec4Uniforms["constantColor"] = Vector4f(r, g, b, 1.0f);
       }
     }
     

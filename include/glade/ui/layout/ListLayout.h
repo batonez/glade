@@ -11,6 +11,7 @@ class ListLayout : public Layout
     
     virtual void calculateTransformsForChildrenOf(Widget* widget)
     {
+      log("Calculating List Layout");
       rescaleChildrenOf(widget);
       
       Transform* parentTransform = widget->getTransform();
@@ -27,9 +28,6 @@ class ListLayout : public Layout
         Transform* childTransform = (*child)->getTransform();
         Transform::SharedVector childScale = childTransform->getScale();
         Transform::SharedVector parentScale = parentTransform->getScale();
-        
-        log("CHILD: %f, %f, %f", childScale->x, childScale->y, childScale->z);
-        log("PARENT: %f, %f, %f", parentScale->x, parentScale->y, parentScale->z);
         
         float horizontalAlignOffset = 0;
         float verticalAlignOffset = 0;
@@ -62,5 +60,7 @@ class ListLayout : public Layout
         
         currentY += 2 * childScale->y;
       }
+      
+      log("Calculating List Layout finished");
     }
 };

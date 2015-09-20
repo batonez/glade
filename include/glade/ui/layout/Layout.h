@@ -84,6 +84,7 @@ class Layout
     
     float getHorizontalSizePercent()
     {
+      log("Inside getHorizontalSizePercent");
       return horizontalSizePercent;
     }
     
@@ -110,7 +111,7 @@ class Layout
       
       if (sizeType == PERCENT_OF_SELF_HEIGHT && verticalSizeType == PERCENT_OF_SELF_WIDTH) {
         throw GladeException("Cannot specify horizontal size as percents of self height,"
-          " becouse height is already specified as percents of this horizontal size.");
+          " because height is already specified as percents of this horizontal size.");
       }
       
       this->horizontalSizeType = sizeType;
@@ -129,7 +130,7 @@ class Layout
       
       if (sizeType == PERCENT_OF_SELF_WIDTH && verticalSizeType == PERCENT_OF_SELF_HEIGHT) {
         throw GladeException("Cannot specify vertical size as percents of self width,"
-          " becouse width is already specified as percents of this vertical size.");
+          " because width is already specified as percents of this vertical size.");
       }
       
       this->verticalSizeType = sizeType;

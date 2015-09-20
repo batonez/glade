@@ -8,14 +8,15 @@
 class Button : public Widget
 {
 	private:
-    Label* label = NULL;
+    Label* label;
 	
 	public:
     Button() : Button(NULL, NULL)
     {
     }
       
-    Button(std::string *text, BitmapFont *font) : Widget(CenterLayout::INSTANCE)
+    Button(std::string *text, BitmapFont *font) : Widget(CenterLayout::INSTANCE),
+      label(NULL)
     {
       setFocusable(true);
       
@@ -28,7 +29,7 @@ class Button : public Widget
       }
     }
     
-    ~Button()
+    virtual ~Button()
     {
       if (label) {
         delete label;

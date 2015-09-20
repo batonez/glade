@@ -47,8 +47,9 @@ void GladeRenderer::clear(void)
 {
 	log("Clearing renderer");
 	removeAllObjectsFromVideoMemory();
+  
   GladeObject::Drawables* drawables;
-  vector<GladeObject*>::iterator oi = sceneObjects.begin(); // must be set
+  vector<GladeObject*>::iterator oi = sceneObjects.begin(); // must be a 'set'
   
   while (oi != sceneObjects.end()) {
   	drawables = (*oi)->getDrawables();
@@ -60,7 +61,7 @@ void GladeRenderer::clear(void)
 		oi = sceneObjects.erase(oi);
   }
   
-  vector<GladeObject*>::iterator wi = uiElements.begin(); // must be set
+  vector<GladeObject*>::iterator wi = uiElements.begin(); // must be a 'set'
   
   while (wi != uiElements.end()) {
   	drawables = (*wi)->getDrawables();
@@ -108,12 +109,12 @@ void GladeRenderer::onDrawFrame(void)
 	switchProjectionMode(sceneProjectionMode);
 	camera.getMatrix(viewMatrix);
   
-	drawAll(sceneObjects.begin(), sceneObjects.end());
+  drawAll(sceneObjects.begin(), sceneObjects.end());
 	
 	switchProjectionMode(ORTHO);
 	Matrix::setIdentityM(viewMatrix, 0);
 	
-	drawAll(uiElements.begin(), uiElements.end());
+  drawAll(uiElements.begin(), uiElements.end());
 	
   for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
 		(*hook)->onAfterDraw();
@@ -337,16 +338,16 @@ void GladeRenderer::moveIntoVideoMemory(Texture *texture)
 
 void GladeRenderer::removeFromVideoMemory(Drawable &drawable)
 {
-	Texture *texture = drawable.getTexture();
+  Texture *texture = drawable.getTexture();
   VertexObject *mesh = drawable.getVertexObject();
 	
 	if (NULL != texture && texture->hasVideoBufferHandle()) {
-      GLuint texIds[1];
-      texIds[0] = texture->getVideoBufferHandle();
-      glDeleteTextures(1, texIds);
-      texture->setVideoBufferHandle(-1);
+    GLuint texIds[1];
+    texIds[0] = texture->getVideoBufferHandle();
+    glDeleteTextures(1, texIds);
+    texture->setVideoBufferHandle(-1);
 	}
-		
+  
 	if (mesh->hasVideoBufferHandle()) {
 		GLuint vboIds[1];
 		vboIds[0] = mesh->vertexVboId;
@@ -376,11 +377,11 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
   vector<GladeObject*>::iterator wi = uiElements.begin();
 	
 	while (wi != uiElements.end()) {
-		GladeObject::Drawables* drawables = (*wi)->getDrawables();
+    GladeObject::Drawables* drawables = (*wi)->getDrawables();
 		GladeObject::DrawablesI di = drawables->begin();
 		
-		while (di != drawables->end()) {
-			removeFromVideoMemory(**di);
+    while (di != drawables->end()) {
+    	removeFromVideoMemory(**di);
       di++;
 		}
 		
@@ -457,7 +458,7 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
     }
   }
   
-  program->setUniformValues();
+  program->setUniformValues(*di);
   
 	glDrawElements(GL_TRIANGLES, (*di)->getVertexObject()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
 	

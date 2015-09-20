@@ -1,10 +1,14 @@
 #pragma once
 
+#include <string>
+#include <unordered_map>
+
 #include "meshes/VertexObject.h"
 #include "Texture.h"
 #include "TextureTransform.h"
 #include "Material.h"
 #include "ShaderProgram.h"
+#include "../math/Transform.h"
 
 class Drawable {
 public:
@@ -14,10 +18,21 @@ protected:
 	Transform transform;
 	VertexObject* vertexObject;
   Texture* texture;
-  ShaderProgram *shaderProgram;
   TextureTransform textureTransform;
+  ShaderProgram *shaderProgram;
   
 public:
+  typedef std::unordered_map<std::string, float>  ShaderFloatUniforms;
+  typedef std::unordered_map<std::string, bool>   ShaderBoolUniforms;
+  typedef std::unordered_map<std::string, int>    ShaderIntUniforms;
+  typedef std::unordered_map<std::string, Vector3f> ShaderVec3Uniforms;
+  typedef std::unordered_map<std::string, Vector4f> ShaderVec4Uniforms;
+  ShaderFloatUniforms shaderFloatUniforms;
+  ShaderBoolUniforms  shaderBoolUniforms;
+  ShaderIntUniforms   shaderIntUniforms;
+  ShaderVec3Uniforms  shaderVec3Uniforms;
+  ShaderVec4Uniforms  shaderVec4Uniforms;
+
   Drawable(VertexObject &vertObject, ShaderProgram &shaderProgram):
     vertexObject(&vertObject),
     shaderProgram(&shaderProgram),

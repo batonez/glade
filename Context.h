@@ -1,69 +1,65 @@
 #pragma once
 
+#include <queue>
+
+#include "system.h"
+
 class Context {
 public:
+  Timer timer;
 	GladeRenderer* renderer;
 	SoundPlayer* soundPlayer;
+  
+  // these are instantiated here becouse there's only one implementation now
 	Simulator simulator;
 	CollisionDetector collisionDetector;
 	AiContainer aiContainer;
-	bool enableSimulator, enableCollisionDetector, enableAiContainer, enableSoundPlayer;
 	
-protected:
-	SystemInterface* system;
-	
+  bool enableSimulator, enableCollisionDetector, enableAiContainer, enableSoundPlayer;
+
 private:
-	Timer timer;
 	State* currentState, requestedState;
-	bool stopRequested = false, clearRequested = false;
+	bool stopRequested, clearRequested;
 	VirtualController* controller;
-	Deque<GladeObject> objectsToAdd = new ArrayDeque<GladeObject>();
-	Deque<Widget> widgetsToAdd = new ArrayDeque<Widget>();
-	Deque<GladeObject> objectsToRemove = new ArrayDeque<GladeObject>();
-	Deque<Widget> widgetsToRemove = new ArrayDeque<Widget>();
+	queue<GladeObject*> objectsToAdd;
+	queue<Widget*> widgetsToAdd;
+	queue<GladeObject*> objectsToRemove;
+	queue<Widget*> widgetsToRemove;
 	
 public:
-	Context(SystemInterface &system, GladeRenderer &renderer, SoundPlayer &soundPlayer):
+	Context(GladeRenderer* renderer, SoundPlayer* soundPlayer):
+    renderer(renderer),
+    soundPlayer(soundPlayer),
 		enableSimulator(true),
 		enableCollisionDetector(true),
 		enableAiContainer(true),
-		enableSoundPlayer(true)
+		enableSoundPlayer(true),
+    stopRequested(false),
+    clearRequested(false)
 	{
-		this->system = &system;
-		this->renderer = &renderer;
-		this->soundPlayer = &soundPlayer;
-
-		controller = new VoidController();
 	}
-	
-	~Context(void) {
-		delete controller;
-		delete requestedState;
-		delete currentState;
-		// clear queues
-	}
-	
-	void requestStateChange(State &state) {
-		requestedState = &state;
+		
+	void requestStateChange(State* state) {
+		requestedState = state;
 	}
 
 	void requestStop(void) {
 		stopRequested = true;
 	}
 	
-	void add(GladeObject object) {
+	void add(GladeObject* object) {
 		objectsToAdd.addLast(object);
 	}
 	
-	void add(Widget widget) {
+	void add(Widget* widget) {
 		widgetsToAdd.addLast(widget);
 	}
 	
-	void remove(GladeObject object) 
+	void remove(GladeObject* object) 
 		objectsToRemove.add(object);
 	}
 	
-	void remove(Widget widget) 
+	void remove(Widget* widget) {
 		widgetsToRemove.add(widget);
 	}
 	
@@ -72,15 +68,15 @@ public:
 	}
 	
 	Simulator* getSimulator(void) {
-		return simulator;
+		return &simulator;
 	}
 	
 	CollisionDetector* getCollisionDetector(void) {
-		return collisionDetector;
+		return &collisionDetector;
 	}
 	
 	AiContainer* getAiContainer(void) {
-		return aiContainer;
+		return &aiContainer;
 	}
 	
 	/**
@@ -90,7 +86,7 @@ public:
 		if (stopRequested) {
 			stopRequested = false;
 			clearNowFully();
-			system.exit();
+			gladen::system::exit();
 			
 			return;
 		}
@@ -104,35 +100,24 @@ public:
 		if (clearRequested) {
 			clearNowFully();
 		}
-		
-		GladeObject object;
-		Widget widget;
-		
+				
 		bool gladeObjectsListsChanged = false;
 		
-		while ((object = objectsToAdd.peekFirst()) != NULL) {
-			addNow(object);
-			objectsToAdd.removeFirst();
+		while (!objectsToAdd.empty()) {
+			addNow(objectsToAdd.front());
+			objectsToAdd.pop();
 			gladeObjectsListsChanged = true;
 		}
 		
-		while ((widget = widgetsToAdd.peekFirst()) != NULL) {
-			addNow(widget);
-			widgetsToAdd.removeFirst();
+		while (!widgetsToAdd.empty()) {
+			addNow(widgetsToAdd.front());
+			widgetsToAdd.pop();
 			gladeObjectsListsChanged = true;
 		}
 		
 		if (gladeObjectsListsChanged) {
 			renderer.sortDrawables();
 		}
-	}
-	
-	double getDeltaTime(void) {
-		return timer.getDeltaTime();
-	}
-	
-	void resetTimer(void) {
-		timer.reset();
 	}
 	
 	GladeRenderer* getRenderer(void) {
@@ -147,9 +132,9 @@ public:
 		clearRequested = true;
 	}
 	
-	void setController(VirtualController &controller) {
+	void setController(VirtualController* controller) {
 		controller.init();
-		this->controller = &controller;
+		this->controller = controller;
 	}
 	
 	VirtualController* getController(void) {
@@ -157,7 +142,7 @@ public:
 	}
 	
 	void pollInput(void) {
-		system->pollInput();
+		gladen::system::pollInput();
 	}
 
 private:
@@ -166,10 +151,10 @@ private:
 	 */
 	void switchState(void) {
 		if (requestedState == NULL) {
-			//throw new RuntimeException("You should request a state before activating it");
+			log("You should request a state before activating it");
+      return;
 		}
 		
-		delete currentState;
 		currentState = requestedState;
 		requestedState = NULL;
 		
@@ -186,8 +171,8 @@ private:
 	 * Should be called only from rendering thread
 	 */
 	void addWidgetsRecursive(Widget &widget) {
-		renderer.add(widget);
-		Iterator<Widget> children = widget.getChildrenIterator();
+		renderer->add(widget);
+		Iterator<Widget> children = widget.getChildrenIterator(); // ? TODO (Implement ui first)
 		
 		while (children.hasNext()) {
 			addWidgetsRecursive(children.next());
@@ -214,7 +199,7 @@ private:
 			widget.getTransform().setComponentsTo(renderer.getTransformForRootWidget());
 		}
 		
-		widget.getLayout().calculateTransformsForChildrenOf(widget);
+		widget.getLayout()->calculateTransformsForChildrenOf(widget);
 		addWidgetsRecursive(widget);
 	}
 	
@@ -222,10 +207,10 @@ private:
 	 * Should be called only from rendering thread. Unconditionally force clear all resources
 	 */
 	void clearNowFully(void) {
-		System.out.println("Clearing fully");
+		log("Clearing fully");
 		
-		renderer.clear();
-		soundPlayer.clear(true);
+		renderer->clear();
+		soundPlayer->clear(true);
 		simulator.clear();
 		collisionDetector.clear();
 		aiContainer.clear();
@@ -237,14 +222,14 @@ private:
 	 * Should be called only from rendering thread. Invoke before state init to force clear some resources
 	 */
 	void clearBeforeStateInit(void) {
-		System.out.println("Clearing before state init");
+		log("Clearing before state init");
 		
-		renderer.clear();
+		renderer->clear();
 		simulator.clear();
 		collisionDetector.clear();
 		aiContainer.clear();
 		
-		soundPlayer.unholdAll();
+		soundPlayer->unholdAll();
 	}
 	
 	/**
@@ -252,7 +237,7 @@ private:
 	 * Invoke after State.init() to clear remaining resources that are were not requested to be held in State.init()
 	 */
 	void clearAfterStateInit(void) {
-		System.out.println("Clearing after state init");
-		soundPlayer.clear(false);
+		log("Clearing after state init");
+		soundPlayer->clear(false);
 	}
-}
+};

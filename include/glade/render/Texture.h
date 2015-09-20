@@ -1,9 +1,7 @@
 #pragma once
 
 #include <vector>
-
 #include "../exception/GladeException.h"
-#include "../log/log.h"
 
 class Texture {
 public:

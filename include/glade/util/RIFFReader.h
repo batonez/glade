@@ -3,6 +3,14 @@
 // FIXME get rid of windows.h here
 #include <windows.h>
 
+// Little endian
+#define fourccRIFF 'FFIR'
+#define fourccDATA 'atad'
+#define fourccFMT  ' tmf'
+#define fourccWAVE 'EVAW'
+#define fourccXWMA 'AMWX'
+#define fourccDPDS 'sdpd'
+
 class RIFFReader
 {
   public:

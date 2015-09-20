@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <algorithm>
 
 #include "glade/GladeObject.h"
 #include "CollisionShape.h"
@@ -11,9 +10,9 @@
 class CollisionDetector
 {
   private:
-    std::vector<GladeObject*> dynamicCollidableObjects;
-    std::vector<GladeObject*> staticCollidableObjects;
-    std::vector<CollisionEventListener*> listeners;
+    vector<GladeObject*> dynamicCollidableObjects;
+    vector<GladeObject*> staticCollidableObjects;
+    vector<CollisionEventListener*> listeners;
     bool paused;
 
   public:
@@ -43,8 +42,8 @@ class CollisionDetector
         return;
       }
 
-      std::vector<GladeObject*>::iterator di = dynamicCollidableObjects.begin();
-      std::vector<GladeObject*>::iterator si;
+      vector<GladeObject*>::iterator di = dynamicCollidableObjects.begin();
+      vector<GladeObject*>::iterator si;
 
       while (di != dynamicCollidableObjects.end()) {
         if ((*di)->isCollisionShapeEnabled()) {
@@ -55,7 +54,7 @@ class CollisionDetector
             ++si;
           }
 
-          std::vector<GladeObject*>::iterator di2 = di;
+          vector<GladeObject*>::iterator di2 = di;
           ++di2;
 
           while (di2 != dynamicCollidableObjects.end()) {
@@ -115,7 +114,7 @@ class CollisionDetector
 
         CollisionEvent collisionEvent(&object1, &object2, overlap);
 
-        std::vector<CollisionEventListener*>::iterator i = listeners.begin();
+        vector<CollisionEventListener*>::iterator i = listeners.begin();
 
         while (i != listeners.end()) {
           if ((*i)->onCollision(collisionEvent)) {

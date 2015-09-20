@@ -6,12 +6,10 @@
 #include "render/GladeRenderer.h"
 #include "State.h"
 #include "ui/layout/Layout.h"
-#include "ui/Widget.h"
 #include "controls/VirtualController.h"
 #include "physics/Simulator.h"
 #include "physics/CollisionDetector.h"
 #include "ai/AiContainer.h"
-#include "Timer.h"
 //#include "#audio/SoundPlayer.h"
 
 class Context {
@@ -31,10 +29,10 @@ private:
   std::unique_ptr<State> currentState, requestedState;
   bool stopRequested, clearRequested;
   VirtualController* controller;
-  std::queue<GladeObject*> objectsToAdd;
-  std::queue<Widget*> widgetsToAdd;
-  std::queue<GladeObject*> objectsToRemove;
-  std::queue<Widget*> widgetsToRemove;
+  queue<GladeObject*> objectsToAdd;
+  queue<Widget*> widgetsToAdd;
+  queue<GladeObject*> objectsToRemove;
+  queue<Widget*> widgetsToRemove;
 
 public:
   Context(GladeRenderer* renderer/*, SoundPlayer* soundPlayer*/):
@@ -215,8 +213,7 @@ private:
   void addNow(Widget* root) {
     // Consider this a root widget
     log("Adding root widget");
-    Transform rootWidgetTransform = renderer->getTransformForRootWidget();
-    root->getTransform()->set(rootWidgetTransform);
+    root->getTransform()->set(renderer->getTransformForRootWidget());
 
     class CalculateWidgetTransforms : public Widget::WalkFunctor {
       public:

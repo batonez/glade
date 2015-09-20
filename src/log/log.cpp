@@ -4,6 +4,7 @@
 
 #ifdef ANDROID
 #include <android/log.h>
+#define LOG_TAG "glade"
 #endif // ANDROID
 
 #include <stdio.h>
@@ -25,7 +26,7 @@ void log(const char* format, ...)
 #ifdef _WIN32    
     OutputDebugString(buf);
 #elif ANDROID
-    __android_log_print(ANDROID_LOG_INFO, "glade", "%s", buf);
+    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, buf);    
 #else
 #error "Glade logging is not implemented for this platform"
 #endif

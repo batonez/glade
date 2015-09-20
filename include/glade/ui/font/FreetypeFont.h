@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "Font.h"
 
 #include <ft2build.h>
@@ -10,14 +13,15 @@ class FreetypeFont: public Font
   private:
     static unsigned int instances;
     
-    std::vector<unsigned char> faceBuffer;
+    std::unique_ptr<std::vector<unsigned char> > faceBuffer;
     float minViewportDimension;
     FT_Face face;
     
     float stringScaleX, stringScaleY;
     
   public:  
-    FreetypeFont(Path &face_file_path, int viewport_width, int viewport_height);
+    FreetypeFont(std::unique_ptr<std::vector<unsigned char> > &face_buffer,
+      int viewport_width, int viewport_height);
     ~FreetypeFont();
     
     virtual void setFontSizePixels(unsigned int width, unsigned int height = 0);

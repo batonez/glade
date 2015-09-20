@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <memory>
 
+#include "glade/ui/font/Font.h"
 #include "glade/render/Texture.h"
 #include "glade/util/CSVReader.h"
 #include "glade/util/ResourceManager.h"
@@ -12,70 +13,74 @@
 #include "glade/render/meshes/Rectangle.h"
 #include "glade/render/Drawable.h"
 
-class BitmapFont
+class BitmapFont: public Font
 {
   private:
     std::shared_ptr<Texture> atlas;
-    std::shared_ptr<ShaderProgram> shaderProgram;
     int cellWidth, cellHeight;
     int firstGlyphAsciiCode;
     int glyphHeight;
+    std::vector<int> glyphWidths;
+    int numberOfGlyphsInARow;
+    float minViewportDimension;
 
      // Desired result font height in screen coordinates
     float fontSize;
     
   public:
-    //FIXME should be private
-    std::vector<int> glyphWidths;
-    int numberOfGlyphsInARow;
-    
-    BitmapFont(std::shared_ptr<Texture> &atlas, int cell_width, int cell_height):
-      fontSize(1),
-      atlas(atlas),
-      cellWidth(cell_width),
-      cellHeight(cell_height)
+    BitmapFont(std::shared_ptr<Texture> &atlas,
+      std::vector<std::vector<std::string> > &parsed_csv,
+      float viewport_width, float viewport_height):
+        fontSize(1),
+        atlas(atlas),
+        minViewportDimension(
+          (float) (viewport_width < viewport_height ? viewport_width : viewport_height)
+        )
     {
+      int declaredAtlasWidth  = ::atoi(parsed_csv[0][1].c_str());
+      
+      cellWidth            = ::atoi(parsed_csv[2][1].c_str());
+      cellHeight           = ::atoi(parsed_csv[3][1].c_str());
+      numberOfGlyphsInARow = declaredAtlasWidth / cellWidth;
+      glyphWidths.resize(256, cellWidth);
+      setFirstGlyphAsciiCode((unsigned char) ::atoi((parsed_csv[4][1].c_str())));
+      setGlyphHeight(::atoi(parsed_csv[6][1].c_str()));
+      
+      for (int i = 8; i < parsed_csv.size(); ++i) {
+        std::string paramName = parsed_csv[i][0];
+        std::transform(paramName.begin(), paramName.end(), paramName.begin(), ::tolower);
+        
+        if (paramName.compare(0, 4, "char") == 0) {
+          if (paramName.find("base width") != std::string::npos) {
+            unsigned char extractedAsciiCode = extractAsciiCode(paramName);
+            setGlyphWidth(extractedAsciiCode, ::atoi(parsed_csv[i][1].c_str()));
+          }
+        }
+      }
     }
 
-    void setShaderProgram(std::shared_ptr<ShaderProgram> &shader_program)
+    virtual void setFontSizePixels(unsigned int width, unsigned int height)
     {
-      shaderProgram = shader_program;
-    }
-    
-    unsigned getGlyphIndexForAsciiCode(unsigned char asciiCode) const
-    {
-      unsigned glyphIndex = asciiCode - firstGlyphAsciiCode;
+      width  = width  ? width  : height;
+      height = height ? height :  width;
       
-      if (glyphIndex < 0 || glyphIndex >= glyphWidths.size()) {
-        glyphIndex = glyphWidths.size() - 1;
-      }
-      
-      return glyphIndex;
-    }
-    
-    Vector2i getGlyphPositionForIndex(int glyphIndex) const
-    {
-      Vector2i position;
-      
-      if (glyphIndex < 0 || glyphIndex >= glyphWidths.size()) {
-        glyphIndex = glyphWidths.size() - 1;
-      }
-      
-      position.x = glyphIndex % numberOfGlyphsInARow;
-      position.y = glyphIndex / numberOfGlyphsInARow;
-      
-      return position;
+      fontSize = height / minViewportDimension;
     }
     
     // Should be manually freed after use
-    GladeObject::Drawables* createDrawablesForString(const std::string &string)
+    virtual GladeObject::Drawables* createDrawablesForString(const std::string &string)
     {
       GladeObject::Drawables* text = new GladeObject::Drawables(); 
       Drawable* rectangle = NULL;
       int glyphWidth;
       Vector2i glyphPosition;
       float nextOffsetX = 0;
-      float halfStringWidth = getStringWidth(string);
+      stringScaleX = 0;
+      stringScaleY = fontSize;
+      
+      for (size_t i = 0; i < string.length(); ++i) {      
+        stringScaleX += ((float) glyphWidths[string[i]] / (float) glyphHeight) * fontSize;
+      }
 
       for (size_t i = 0; i < string.length(); ++i) {
         glyphPosition = getGlyphPositionForIndex(getGlyphIndexForAsciiCode(string[i]));
@@ -86,7 +91,7 @@ class BitmapFont
         rectangle->getTransform()->getScale()->y = fontSize;
         
         nextOffsetX += rectangle->getTransform()->getScale()->x;
-        rectangle->getTransform()->getPosition()->x = nextOffsetX - halfStringWidth;
+        rectangle->getTransform()->getPosition()->x = nextOffsetX - stringScaleX;
         nextOffsetX += rectangle->getTransform()->getScale()->x;
 
         rectangle->setTexture(atlas);
@@ -102,17 +107,17 @@ class BitmapFont
       return text;
     }
     
-    float getStringWidth(const std::string &string) const
+    void setFontSize(float fontSize)
     {
-      float stringWidth = 0;
-      
-      for (size_t i = 0; i < string.length(); ++i) {      
-        stringWidth += ((float) glyphWidths[string[i]] / (float) glyphHeight) * fontSize;
-      }
-
-      return stringWidth;
+      this->fontSize = fontSize;
     }
-      
+    
+    float getFontSize() const
+    {
+      return fontSize;
+    }
+
+  private:
     std::shared_ptr<Texture> getAtlas()
     {
       return atlas;
@@ -143,17 +148,31 @@ class BitmapFont
       return glyphWidths.size();
     }
     
-    void setFontSize(float fontSize)
+    unsigned getGlyphIndexForAsciiCode(unsigned char asciiCode) const
     {
-      this->fontSize = fontSize;
+      unsigned glyphIndex = asciiCode - firstGlyphAsciiCode;
+      
+      if (glyphIndex < 0 || glyphIndex >= glyphWidths.size()) {
+        glyphIndex = glyphWidths.size() - 1;
+      }
+      
+      return glyphIndex;
     }
     
-    float getFontSize() const
+    Vector2i getGlyphPositionForIndex(int glyphIndex) const
     {
-      return fontSize;
+      Vector2i position;
+      
+      if (glyphIndex < 0 || glyphIndex >= glyphWidths.size()) {
+        glyphIndex = glyphWidths.size() - 1;
+      }
+      
+      position.x = glyphIndex % numberOfGlyphsInARow;
+      position.y = glyphIndex / numberOfGlyphsInARow;
+      
+      return position;
     }
-
-  //private: FIXME should be really private
+    
     unsigned char extractAsciiCode(const std::string &paramName) const
     {
       size_t start = paramName.find(' ');

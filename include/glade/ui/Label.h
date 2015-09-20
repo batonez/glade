@@ -13,7 +13,7 @@ class Label : public Widget
     std::string text;
     
   public:
-    Label(const std::string &string, std::shared_ptr<FreetypeFont> &font, float r = 0.0f, float g = 0.0f, float b = 0.0f): Widget()
+    Label(const std::string &string, std::shared_ptr<Font> &font, float r = 0.0f, float g = 0.0f, float b = 0.0f): Widget()
     {
       Layout::Unique layout(new CenterLayout());
       setLayout(layout);
@@ -34,7 +34,7 @@ class Label : public Widget
 
       text = string;
     }
-  
+  /*
     Label(const std::string &string, std::shared_ptr<BitmapFont> &font, float r = 0.0f, float g = 0.0f, float b = 0.0f): Widget()
     {
       Layout::Unique layout(new CenterLayout());
@@ -47,7 +47,7 @@ class Label : public Widget
 
       text = string;
     }
-    
+    */
     virtual ~Label()
     {
       // TODO delete drawables

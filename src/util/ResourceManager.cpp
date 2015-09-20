@@ -3,6 +3,7 @@
 #include <glade/render/ShaderProgram.h>
 #include <glade/render/Texture.h>
 #include <glade/ui/font/BitmapFont.h>
+#include <glade/ui/font/FreetypeFont.h>
 #include <glade/audio/Sound.h>
 #include <glade/exception/GladeException.h>
 #include <glade/opengl/drivers.h>
@@ -72,7 +73,7 @@ std::shared_ptr<Sound> Glade::ResourceManager::getSound(const Path &filename)
   return sound;
 }
 
-std::shared_ptr<BitmapFont> Glade::ResourceManager::getFont(const Path &atlas_filename, const Path &csv_filename)
+std::shared_ptr<Font> Glade::ResourceManager::getBitmapFont(const Path &atlas_filename, const Path &csv_filename, float viewport_width, float viewport_height)
 {
   Path key = atlas_filename + ";" + csv_filename;
   BitmapFontsI i = bitmapFonts.find(key);
@@ -81,9 +82,22 @@ std::shared_ptr<BitmapFont> Glade::ResourceManager::getFont(const Path &atlas_fi
     return i->second;
   }
   
-  std::shared_ptr<BitmapFont> bitmapFont = loadFont(atlas_filename, csv_filename);
+  std::shared_ptr<Font> bitmapFont = loadBitmapFont(atlas_filename, csv_filename, viewport_width, viewport_height);
   bitmapFonts[key] = bitmapFont;
   return bitmapFont;
+}
+
+std::shared_ptr<Font> Glade::ResourceManager::getDynamicFont(const Path &font_filename, float viewport_width, float viewport_height)
+{
+  DynamicFontsI i = dynamicFonts.find(font_filename);
+  
+  if (i != dynamicFonts.end()) {
+    return i->second;
+  }
+  
+  std::shared_ptr<Font> dynamicFont = loadDynamicFont(font_filename, viewport_width, viewport_height);
+  dynamicFonts[font_filename] = dynamicFont;
+  return dynamicFont;
 }
 
 std::shared_ptr<ShaderProgram> Glade::ResourceManager::loadShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename)
@@ -140,7 +154,7 @@ std::shared_ptr<Texture> Glade::ResourceManager::loadTexture(const Path &filenam
   ));
 }
 
-std::shared_ptr<BitmapFont> Glade::ResourceManager::loadFont(const Path &atlas_filename, const Path &csv_filename)
+std::shared_ptr<Font> Glade::ResourceManager::loadBitmapFont(const Path &atlas_filename, const Path &csv_filename, float viewport_width, float viewport_height)
 {
   std::vector<char> rawCsv;
   fileManager->getFileContents(csv_filename, rawCsv);
@@ -153,8 +167,7 @@ std::shared_ptr<BitmapFont> Glade::ResourceManager::loadFont(const Path &atlas_f
   int cellHeight          = ::atoi(parsedCsv[3][1].c_str());
   
   std::shared_ptr<Texture> atlas = getTexture(atlas_filename, cellWidth, cellHeight);
-  std::shared_ptr<BitmapFont> result(new BitmapFont(atlas, cellWidth, cellHeight));
-        
+          
   if (declaredAtlasWidth != atlas->textureWidth) {
     throw GladeException("CSV data doesn't match atlas data");
   }
@@ -167,25 +180,24 @@ std::shared_ptr<BitmapFont> Glade::ResourceManager::loadFont(const Path &atlas_f
     throw GladeException("Invalid values for BitmapFont constructor");
   }
   
-  result->numberOfGlyphsInARow    = declaredAtlasWidth / cellWidth;
-  result->glyphWidths.resize(256, cellWidth);
-  result->setFirstGlyphAsciiCode((unsigned char) ::atoi((parsedCsv[4][1].c_str())));
-  result->setGlyphHeight(::atoi(parsedCsv[6][1].c_str()));
-  
-  for (int i = 8; i < parsedCsv.size(); ++i) {
-    std::string paramName = parsedCsv[i][0];
-    std::transform(paramName.begin(), paramName.end(), paramName.begin(), ::tolower);
-    
-    if (paramName.compare(0, 4, "char") == 0) {
-      if (paramName.find("base width") != std::string::npos) {
-        unsigned char extractedAsciiCode = result->extractAsciiCode(paramName);
-        
-        result->setGlyphWidth(extractedAsciiCode, ::atoi(parsedCsv[i][1].c_str()));
-      }
-    }
-  }
+  std::shared_ptr<Font> result(new BitmapFont(atlas, parsedCsv, viewport_width, viewport_height));
   
   return result;
+}
+
+std::shared_ptr<Font> Glade::ResourceManager::loadDynamicFont(const Path &font_filename, float viewport_width, float viewport_height)
+{
+  std::vector<unsigned char> *faceBuffer = new std::vector<unsigned char>();
+  fileManager->getFileContents(font_filename, *faceBuffer, true);
+  std::unique_ptr<std::vector<unsigned char> > faceBufferPtr(faceBuffer);
+  
+  std::shared_ptr<FreetypeFont> font(new FreetypeFont(
+    faceBufferPtr,
+    viewport_width,
+    viewport_height
+  ));
+  
+  return font;
 }
 
 std::shared_ptr<Sound> Glade::ResourceManager::loadSound(const Path &filename)

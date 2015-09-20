@@ -162,7 +162,7 @@ static void measureString(const std::string &string, FT_Face &face,
 
 unsigned int FreetypeFont::instances = 0;
 
-FreetypeFont::FreetypeFont(Path &face_file_path, int viewport_width, int viewport_height):
+FreetypeFont::FreetypeFont(std::unique_ptr<std::vector<unsigned char> > &face_buffer, int viewport_width, int viewport_height):
   stringScaleX(0), stringScaleY(0),
   minViewportDimension(
     (float) (viewport_width < viewport_height ? viewport_width : viewport_height)
@@ -174,12 +174,13 @@ FreetypeFont::FreetypeFont(Path &face_file_path, int viewport_width, int viewpor
     checkFreeTypeError(error);
   }
   
-  file_manager->getFileContents(face_file_path, faceBuffer, true);
+  faceBuffer = std::move(face_buffer);
   
+  // faceBuffer should not be freed until a call to FT_Done_Face()
   error = FT_New_Memory_Face(
     freeType,
-    faceBuffer.data(),
-    faceBuffer.size(),
+    faceBuffer->data(),
+    faceBuffer->size(),
     0,
     &face
   );

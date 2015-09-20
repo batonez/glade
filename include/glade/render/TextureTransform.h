@@ -1,7 +1,10 @@
 #pragma once
 
-#include "../Timer.h"
-#include "../Callable.h"
+#include <vector>
+
+#include <glade/Timer.h>
+#include <glade/Callable.h>
+#include <glade/render/Texture.h>
 
 class TextureTransform {
   public:

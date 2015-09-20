@@ -60,7 +60,6 @@ void GladeRenderer::onSurfaceChanged(int width, int height)
 
 void GladeRenderer::add(GladeObject* pSceneObject)
 {
-  log("Adding object");
   if (this->initialized) {
     moveIntoVideoMemory(*pSceneObject);
   }

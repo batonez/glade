@@ -1,9 +1,9 @@
-%DEVTOOLS%\"Microsoft Visual Studio 12.0"\VC\bin\cl.exe ^
-/I"%DEVTOOLS%\Microsoft Visual Studio 12.0\VC\include" ^
-/I"%DEVTOOLS%\Microsoft SDKs\Windows\v7.1A\Include" ^
-/I%DEVTOOLS%\OpenGL\include ^
-/I%DEVTOOLS%\lodepng\include ^
-/I%CODESPACE%\Gladen\include ^
+%HATCHERY_TOOLS%\"Microsoft Visual Studio 12.0"\VC\bin\cl.exe ^
+/I"%HATCHERY_TOOLS%\Microsoft Visual Studio 12.0\VC\include" ^
+/I"%HATCHERY_TOOLS%\Microsoft SDKs\Windows\v7.1A\Include" ^
+/I%HATCHERY_TOOLS%\OpenGL\include ^
+/I%HATCHERY_TOOLS%\lodepng\include ^
+/I%HATCHERY_CODESPACE%\Gladen\include ^
 /EHsc ^
 main.cpp ^
 ..\src\render\GladeRenderer.cpp ^
@@ -14,9 +14,8 @@ main.cpp ^
 ..\src\math\Matrix.cpp ^
 ..\src\log\log.cpp ^
 ..\src\opengl\functions.cpp ^
-%DEVTOOLS%\lodepng\lodepng.cpp ^
-/D_USING_V110_SDK71_=1 ^
-/link /LIBPATH:"%DEVTOOLS%\Microsoft Visual Studio 12.0\VC\lib" ^
-/LIBPATH:"%DEVTOOLS%\Microsoft SDKs\Windows\v7.1A\Lib" ^
+%HATCHERY_TOOLS%\lodepng\lodepng.cpp ^
+/link /LIBPATH:"%HATCHERY_TOOLS%\Microsoft Visual Studio 12.0\VC\lib" ^
+/LIBPATH:"%HATCHERY_TOOLS%\Microsoft SDKs\Windows\v7.1A\Lib" ^
 /WX ^
 kernel32.lib user32.lib gdi32.lib Opengl32.lib

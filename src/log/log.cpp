@@ -1,20 +1,15 @@
-#ifdef _WIN32
-#include <windows.h>
+#if _WIN32
+#include "glade/os/windows-inc.h"
 #endif // _WIN32
 
-#ifdef ANDROID
-#include <android/log.h>
-#define LOG_TAG "glade"
-#endif // ANDROID
-
 #include <stdio.h>
-#include <stdarg.h>
 
 #include "glade/log/log.h"
 
 void log(const char* format, ...)
 {
-    static char buf[5000]; // OMG fix this
+
+    char buf[1024];
     
     va_list args;
     va_start(args, format);
@@ -25,10 +20,5 @@ void log(const char* format, ...)
     
 #ifdef _WIN32    
     OutputDebugString(buf);
-#elif ANDROID
-    __android_log_print(ANDROID_LOG_INFO, LOG_TAG, buf);    
-#else
-#error "Glade logging is not implemented for this platform"
 #endif
-
 }

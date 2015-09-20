@@ -1,7 +1,7 @@
 #pragma once
 
 #if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
-#include <windows.h>
+#include "../os/windows-inc.h"
 #endif
 
 #include <gl/GL.h>

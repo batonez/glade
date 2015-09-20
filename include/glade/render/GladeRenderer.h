@@ -1,14 +1,7 @@
 #pragma once
 
 #include <vector>
-
-#ifndef ANDROID
 #include "../opengl/functions.h"
-#else
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#endif
-
 #include "../math/globals.h"
 #include "../math/Vector.h"
 #include "../math/Transform.h"
@@ -16,8 +9,7 @@
 #include "../GladeObject.h"
 #include "../ui/Widget.h"
 #include "DrawFrameHook.h"
-#include "Shader.h"
-#include "ShaderProgram.h"
+#include "../render/Shader.h"
 
 using namespace std;
 
@@ -49,11 +41,16 @@ private:
 
 	// handles to shader uniforms
 	GLuint  uProjectionMatrix, uWorldViewMatrix,
+			uMaterialAmbient, uMaterialDiffuse, uMaterialSpecular, uMaterialShininess,
+			uReplaceColor, uColor, uLight, uLightDirection, uLightAmbient, uLightDiffuse, uLightSpecular, uLightHalfplane,
 			uSamplerNumber, uTexOffsetX, uTexOffsetY, uTexScaleX, uTexScaleY;
 	
 	// handles to shader attributes
     GLuint aPosition, aNormal, aTexCoord;
-  
+    
+	// directional light (hardcoded)
+    float lightDirection[3], lightAmbient[4], lightDiffuse[4], lightSpecular[4];
+	
 	unsigned short viewportWidth, viewportHeight;
 	float aspectRatio;
 	ProjectionMode currentProjectionMode, sceneProjectionMode;
@@ -73,12 +70,11 @@ public:
 	GladeRenderer(void);
   Transform camera;
   
-  void compileShaderProgram(ShaderProgram *program);
   void add(GladeObject *sceneObject);
 	void add(Widget *uiElement);
 	void sortDrawables(void);
 	void clear(void);
-	void onSurfaceCreated();
+	void onSurfaceCreated(Shader &vertexShader, Shader &fragmentShader);
 	void onSurfaceChanged(int width, int height);
 	void onDrawFrame(void);
 	void setSceneProjectionMode(ProjectionMode projectionMode);
@@ -108,7 +104,8 @@ private:
 	void bindBuffers(VertexObject &mesh);
 	void switchProjectionMode(ProjectionMode projectionMode, bool force);
 	void switchProjectionMode(ProjectionMode projectionMode);
-	void getShaderHandles(ShaderProgram &shaderProgram);
-	GLuint loadShader(GLuint type, Shader *shader);
+	void getShaderHandles(void);
+	void setLightUniforms(void);
+	GLuint loadShader(GLuint type, Shader &shader);
 	int checkGLError();
 };

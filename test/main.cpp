@@ -1,8 +1,8 @@
+#include "glade/os/windows-inc.h"
+
 #include <fstream>
 #include <stdio.h>
 #include <tchar.h>
-
-#include <windows.h>
 
 #include "glade/exception/GladeException.h"
 #include "glade/log/log.h"

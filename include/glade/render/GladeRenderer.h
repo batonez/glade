@@ -2,24 +2,18 @@
 
 #include <vector>
 #include <memory>
+#include <set>
 
-#ifndef ANDROID
-#include "glade/opengl/functions.h"
-#else
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#endif
-
-#include "glade/math/globals.h"
-#include "glade/math/Vector.h"
 #include "glade/math/Transform.h"
 #include "glade/GladeObject.h"
-#include "glade/ui/Widget.h"
-#include "DrawFrameHook.h"
-#include "Drawable.h"
-#include "ShaderProgram.h"
 
-using namespace std;
+class Vector3f;
+class DrawFrameHook;
+class ShaderProgram;
+class VertexObject;
+class Texture;
+class Widget;
+class Drawable;
 
 enum ProjectionMode {PERSPECTIVE, ORTHO};
 
@@ -43,6 +37,8 @@ public:
   typedef std::set<DrawFrameHook*> DrawFrameHooks;
   typedef DrawFrameHooks::iterator DrawFrameHooksI;
   
+  Transform camera;
+  
 private:
     // shader program handle
   GLuint program;
@@ -61,8 +57,8 @@ private:
   float projectionMatrix[16], viewMatrix[16], worldViewMatrix[16];
   Vector3f backgroundColor;
   
-  vector<GladeObject*> sceneObjects; // maybe set?
-  vector<GladeObject*> uiElements;   //  maybe set?
+  std::vector<GladeObject*> sceneObjects; // maybe set?
+  std::vector<GladeObject*> uiElements;   //  maybe set?
   
   DrawFrameHooks drawFrameHooks;
   std::unique_ptr<GladeObject::Comparator> drawingOrderComparator;
@@ -71,14 +67,12 @@ private:
 
 public:
   GladeRenderer(void);
-  Transform camera;
-  
+  void onSurfaceCreated();
+  void onSurfaceChanged(int width, int height);
   void add(GladeObject *sceneObject);
   void add(Widget *uiElement);
   void sortDrawables(void);
   void clear(void);
-  void onSurfaceCreated();
-  void onSurfaceChanged(int width, int height);
   void onDrawFrame(void);
   void setSceneProjectionMode(ProjectionMode projectionMode);
   void addDrawFrameHook(DrawFrameHook &hook);
@@ -97,19 +91,23 @@ public:
   void setDrawingOrderComparator(std::unique_ptr<GladeObject::Comparator> &comparator);
   
 private:
-  void drawAll(vector<GladeObject*>::iterator i, vector<GladeObject*>::iterator end);
   void moveAllObjectsIntoVideoMemory(void);
   void moveIntoVideoMemory(GladeObject &sceneObject);
+  
+  void compileShaderProgram(ShaderProgram *program);
+  void bindBuffers(VertexObject &mesh);
+  GLuint loadShader(GLuint type, std::vector<char> &shader_source);
   void moveIntoVideoMemory(VertexObject *mesh);
   void moveIntoVideoMemory(std::shared_ptr<Texture> texture);
+
+  int checkGLError();
+  
+  void drawAll(std::vector<GladeObject*>::iterator i, std::vector<GladeObject*>::iterator end);
   void removeFromVideoMemory(Drawable &drawable);
   void removeAllObjectsFromVideoMemory(void);
   void draw(GladeObject::DrawablesI di, Transform &transform);
-  void bindBuffers(VertexObject &mesh);
   void switchProjectionMode(ProjectionMode projectionMode, bool force);
   void switchProjectionMode(ProjectionMode projectionMode);
   void getShaderHandles(ShaderProgram &shaderProgram);
-  GLuint loadShader(GLuint type, std::vector<char> &shader_source);
-  void compileShaderProgram(ShaderProgram *program);
-  int checkGLError();
+
 };

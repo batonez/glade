@@ -9,7 +9,7 @@ class AiContainer
     bool paused;
 
   private:
-    vector<GladeObject*> smartObjects;
+    std::vector<GladeObject*> smartObjects;
 
   public:
     AiContainer(): paused(false) {}
@@ -20,7 +20,7 @@ class AiContainer
         return;
       }
 
-      vector<GladeObject*>::iterator i = smartObjects.begin();
+      std::vector<GladeObject*>::iterator i = smartObjects.begin();
 
       while (i != smartObjects.end()) {
         if ((*i)->getBehavior() != NULL && (*i)->isBehaviorEnabled()) {

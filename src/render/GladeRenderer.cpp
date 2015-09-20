@@ -1,8 +1,22 @@
+#include <math.h>
+#include <assert.h>
+
+#ifndef ANDROID
+#include "glade/opengl/functions.h"
+#else
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#endif
 
 #include "glade/log/log.h"
+#include "glade/math/globals.h"
 #include "glade/math/Matrix.h"
+#include "glade/ui/Widget.h"
 #include "glade/render/GladeRenderer.h"
-#include <math.h>
+#include "glade/render/Drawable.h"
+#include "glade/render/ShaderProgram.h"
+#include "glade/render/DrawFrameHook.h"
+#include "glade/math/Vector.h"
 
 const GLuint  GladeRenderer::POS_SIZE_FLOATS        = 3;
 const GLuint  GladeRenderer::NORMAL_SIZE_FLOATS     = 3;
@@ -23,6 +37,31 @@ GladeRenderer::GladeRenderer(void)
   sceneProjectionMode = PERSPECTIVE;
   initialized = false;
 }
+
+
+void GladeRenderer::onSurfaceCreated()
+{
+  glFrontFace(GL_CCW);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+  glEnable(GL_CULL_FACE);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  //moveAllObjectsIntoVideoMemory();
+  log("Initialized renderer");
+  initialized = true;
+}
+
+
+void GladeRenderer::onSurfaceChanged(int width, int height)
+{
+  viewportWidth = width;
+  viewportHeight = height;
+  aspectRatio = (float) viewportWidth / viewportHeight;
+  glViewport(0, 0, viewportWidth, viewportHeight);
+  
+  switchProjectionMode(sceneProjectionMode, true);
+}
+
 
 void GladeRenderer::add(GladeObject* pSceneObject)
 {
@@ -49,7 +88,7 @@ void GladeRenderer::clear(void)
   removeAllObjectsFromVideoMemory();
   
   GladeObject::Drawables* drawables;
-  vector<GladeObject*>::iterator oi = sceneObjects.begin(); // must be a 'set'
+  std::vector<GladeObject*>::iterator oi = sceneObjects.begin(); // must be a 'set'
   
   while (oi != sceneObjects.end()) {
     drawables = (*oi)->getDrawables();
@@ -61,7 +100,7 @@ void GladeRenderer::clear(void)
     oi = sceneObjects.erase(oi);
   }
   
-  vector<GladeObject*>::iterator wi = uiElements.begin(); // must be a 'set'
+  std::vector<GladeObject*>::iterator wi = uiElements.begin(); // must be a 'set'
   
   while (wi != uiElements.end()) {
     drawables = (*wi)->getDrawables();
@@ -74,28 +113,6 @@ void GladeRenderer::clear(void)
   }
   
   log("Done clearing renderer");
-}
-
-void GladeRenderer::onSurfaceCreated()
-{
-  glFrontFace(GL_CCW);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_BLEND);
-  glEnable(GL_CULL_FACE);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  moveAllObjectsIntoVideoMemory();
-  log("Initialized renderer");
-  initialized = true;
-}
-
-void GladeRenderer::onSurfaceChanged(int width, int height)
-{
-  viewportWidth = width;
-  viewportHeight = height;
-  aspectRatio = (float) viewportWidth / viewportHeight;
-  glViewport(0, 0, viewportWidth, viewportHeight);
-  
-  switchProjectionMode(sceneProjectionMode, true);
 }
 
 void GladeRenderer::onDrawFrame(void)
@@ -195,13 +212,13 @@ Vector2f GladeRenderer::getPointCoords(float screenX, float screenY)
   return result;
 }
 
-/*
-vector<GladeObject>::iterator GladeRenderer::getWidgets(void)
-{
-  return uiElements.begin();
-}*/
 
-void GladeRenderer::drawAll(vector<GladeObject*>::iterator i, vector<GladeObject*>::iterator end)
+//std::vector<GladeObject>::iterator GladeRenderer::getWidgets(void)
+//{
+//  return uiElements.begin();
+//}
+
+void GladeRenderer::drawAll(std::vector<GladeObject*>::iterator i, std::vector<GladeObject*>::iterator end)
 {
   Transform finalWorldTransformForDrawable;
   GladeObject::Drawables* drawables;
@@ -229,39 +246,9 @@ void GladeRenderer::drawAll(vector<GladeObject*>::iterator i, vector<GladeObject
   }
 }
 
-void GladeRenderer::moveAllObjectsIntoVideoMemory(void)
-{
-  vector<GladeObject*>::iterator i = sceneObjects.begin();
-  
-  while (i != sceneObjects.end()) {
-    moveIntoVideoMemory(**i);
-    i++;
-  }
-  
-  vector<GladeObject*>::iterator wi = uiElements.begin();
-  
-  while (wi != uiElements.end()) {
-    moveIntoVideoMemory(**wi);
-    wi++;
-  }
-}
-
-void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
-{
-  GladeObject::DrawablesI di = sceneObject.getDrawables()->begin();
-  
-  while (di != sceneObject.getDrawables()->end()) {
-    moveIntoVideoMemory((*di)->getVertexObject());
-    moveIntoVideoMemory((*di)->getTexture());
-    compileShaderProgram((*di)->getShaderProgram().get());
-    di++;
-  }
-  
-  glReleaseShaderCompiler();
-}
-
 void GladeRenderer::compileShaderProgram(ShaderProgram *program)
 {
+  
   if (program == nullptr || program == NULL) {
     log("Warning: tried to compile a shader program, but it's null");
   }
@@ -291,10 +278,43 @@ void GladeRenderer::compileShaderProgram(ShaderProgram *program)
   for (int i = 0; i < numberOfUniforms; ++i) {
     memset(buffer, '\0', 128);
     glGetActiveUniform(program->gpuHandle, i, 128, &nameLength, &uniformSize, &type, buffer);
+    
     int uniformHandle = glGetUniformLocation(program->gpuHandle, buffer);
     assert(uniformHandle >= 0);
-    program->saveUniformHandle(buffer, uniformHandle) ;
+    program->saveUniformHandle(buffer, uniformHandle); //!!!
   }
+}
+
+
+void GladeRenderer::moveAllObjectsIntoVideoMemory(void)
+{
+  std::vector<GladeObject*>::iterator i = sceneObjects.begin();
+  
+  while (i != sceneObjects.end()) {
+    moveIntoVideoMemory(**i);
+    i++;
+  }
+  
+  std::vector<GladeObject*>::iterator wi = uiElements.begin();
+  
+  while (wi != uiElements.end()) {
+    moveIntoVideoMemory(**wi);
+    wi++;
+  }
+}
+
+void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
+{
+  GladeObject::DrawablesI di = sceneObject.getDrawables()->begin();
+  
+  while (di != sceneObject.getDrawables()->end()) {
+    moveIntoVideoMemory((*di)->getVertexObject());
+    moveIntoVideoMemory((*di)->getTexture());
+    compileShaderProgram((*di)->getShaderProgram().get());
+    di++;
+  }
+  
+  glReleaseShaderCompiler();
 }
 
 void GladeRenderer::moveIntoVideoMemory(VertexObject *mesh)
@@ -392,7 +412,7 @@ void GladeRenderer::removeFromVideoMemory(Drawable &drawable)
 
 void GladeRenderer::removeAllObjectsFromVideoMemory(void)
 {
-  vector<GladeObject*>::iterator i = sceneObjects.begin();
+  std::vector<GladeObject*>::iterator i = sceneObjects.begin();
   
   while (i != sceneObjects.end()) {
     GladeObject::Drawables* drawables = (*i)->getDrawables();
@@ -406,7 +426,7 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
     i++;
   }
 
-  vector<GladeObject*>::iterator wi = uiElements.begin();
+  std::vector<GladeObject*>::iterator wi = uiElements.begin();
   
   while (wi != uiElements.end()) {
     GladeObject::Drawables* drawables = (*wi)->getDrawables();
@@ -424,6 +444,7 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
 void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
 {
   ShaderProgram *program = (*di)->getShaderProgram().get();
+  log("Drawing");
   
   if (nullptr == program) {
     log("Could not render a drawable: no GPU program");
@@ -660,8 +681,8 @@ void GladeRenderer::setDrawingOrderComparator(std::unique_ptr<GladeObject::Compa
 void GladeRenderer::sortDrawables()
 {
   log("Fixme: Sorting drawables not implemented");
-  /*
-  if (drawingOrderComparator != NULL) {
-    Collections.sort(sceneObjects, drawingOrderComparator);
-  }*/
+  
+  //if (drawingOrderComparator != NULL) {
+  //  Collections.sort(sceneObjects, drawingOrderComparator);
+  //}
 }

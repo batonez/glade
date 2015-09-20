@@ -77,6 +77,27 @@ void GladeRenderer::add(Widget* uiElement)
   uiElements.push_back(uiElement);
 }
 
+void GladeRenderer::remove(GladeObject *sceneObject)
+{
+  std::vector<GladeObject*>::iterator oi =
+    std::find(sceneObjects.begin(), sceneObjects.end(), sceneObject);
+    
+  if (oi == sceneObjects.end()) {
+    log("Warning: couldn't remove object, because it's not in the renderer");
+    return;
+  }
+  
+  GladeObject::Drawables *drawables = (*oi)->getDrawables();
+    
+  for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
+    removeFromVideoMemory(**di);
+    checkGLError();
+    (*di)->getTextureTransform()->removeAnimationCallbacks();
+  }
+  
+  sceneObjects.erase(oi);
+}
+
 void GladeRenderer::clear(void)
 {
   log("Clearing renderer");

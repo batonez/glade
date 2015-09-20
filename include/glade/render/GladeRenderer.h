@@ -78,6 +78,7 @@ public:
   void onSurfaceChanged(int width, int height);
   void add(GladeObject *sceneObject);
   void add(Widget *uiElement);
+  void remove(GladeObject *sceneObject);
   void sortDrawables(void);
   void clear(void);
   void onDrawFrame(void);

@@ -16,6 +16,11 @@ void Simulator::add(GladeObject* object)
   }
 }
 
+void Simulator::remove(GladeObject* object)
+{
+  dynamicObjects.erase(object);
+}
+
 void Simulator::stepSimulation(double deltaTime)
 {
   if (paused) {

@@ -19,6 +19,7 @@ class Simulator
     void clear();
     void stepSimulation(double deltaTime);
     void add(GladeObject* object);
+    void remove(GladeObject* object);
     
     void setPaused(bool paused)
     {

@@ -1,6 +1,7 @@
 #include <vector>
 #include <algorithm>
 
+#include <glade/debug/log.h>
 #include <glade/physics/CollisionDetector.h>
 #include <glade/physics/CollisionShape.h>
 #include <glade/physics/CollisionEvent.h>
@@ -65,6 +66,26 @@ void CollisionDetector::add(GladeObject* object)
       dynamicCollidableObjects.push_back(object);
     }
   }
+}
+
+void CollisionDetector::remove(GladeObject* object)
+{
+  std::vector<GladeObject*>::iterator oi =
+    std::find(dynamicCollidableObjects.begin(), dynamicCollidableObjects.end(), object);
+  
+  if (oi == dynamicCollidableObjects.end()) {
+    oi = std::find(staticCollidableObjects.begin(), staticCollidableObjects.end(), object);
+    
+    if (oi == staticCollidableObjects.end()) {
+      log("Warning: could not remove object becasuse it's not in the simulator");
+      return;
+    }
+    
+    staticCollidableObjects.erase(oi);
+    return;
+  }
+  
+  dynamicCollidableObjects.erase(oi);
 }
 
 void CollisionDetector::addListener(CollisionEventListener* listener)

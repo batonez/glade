@@ -1,14 +1,12 @@
 ﻿#pragma once
 
 #include <string>
-#include <unordered_map>
-
-class Drawable;
+#include <map>
 
 class ShaderProgram
 {
   private:
-    std::unordered_map<std::string, unsigned> uniformHandles;
+    std::map<std::string, unsigned> uniformHandles;
     
   public:
     int     gpuHandle;

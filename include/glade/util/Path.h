@@ -66,6 +66,11 @@ class Path
       return Path(pathString + DIRECTORY_SEPARATOR + std::string(string));
     }
     
+    bool operator<(const Path &other) const
+    {
+      return pathString < other.pathString;
+    }
+    
     std::string toString()
     {
       return pathString;

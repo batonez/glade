@@ -9,7 +9,7 @@ class Simulator
   public:
     Vector3f gravity;
   private:
-    set<GladeObject*> dynamicObjects;
+    std::set<GladeObject*> dynamicObjects;
     bool paused;
 
   public:
@@ -28,7 +28,7 @@ class Simulator
         return;
       }
 
-      set<GladeObject*>::iterator i = dynamicObjects.begin();
+      std::set<GladeObject*>::iterator i = dynamicObjects.begin();
 
       while (i != dynamicObjects.end()) {
         PhysicBody *body = (*i)->getPhysicBody();

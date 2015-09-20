@@ -2,7 +2,11 @@
 
 #include <string>
 
+#ifdef _WIN32
 #define DIRECTORY_SEPARATOR '\\'
+#else
+#define DIRECTORY_SEPARATOR '/'
+#endif // _WIN32
 
 class Path
 {
@@ -98,7 +102,7 @@ class Path
       std::string::iterator i = pathString.begin();
       
       while (i != pathString.end()) {
-        if (*i == '/') {
+        if (*i == '/' || *i == '\\') {
           *i = DIRECTORY_SEPARATOR;
         }
         

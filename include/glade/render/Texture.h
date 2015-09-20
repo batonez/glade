@@ -17,11 +17,11 @@ public:
     const float texCoordFrameHeight; // Высота кадра в координатах T
   
 private:
-  unsigned char* data;
+  char* data;
   int bufferId;
   
 public:
-    Texture(int texWidth, int texHeight, int numOfAnimations, int numOfFrames, std::vector<unsigned char> &textureData):
+    Texture(int texWidth, int texHeight, int numOfAnimations, int numOfFrames, std::vector<char> &textureData):
       data(NULL),
       bufferId(-1),
       textureWidth(texWidth),
@@ -37,7 +37,7 @@ public:
          throw GladeException("Texture::Texture(): Incorrect parameters for texture constructor method");
       }
         
-      data = new unsigned char[textureData.size()];
+      data = new char[textureData.size()];
       memcpy(data, &textureData[0], textureData.size());
     }
     
@@ -61,7 +61,7 @@ public:
       //}
     }
     
-    unsigned char* getData() {
+    char* getData() {
       return data;
     }
     

@@ -15,7 +15,7 @@ namespace Glade
   class ResourceManager
   {
     protected:
-      FileManager fileManager;
+      FileManager *fileManager;
       
     private:
       typedef std::map<Path, std::shared_ptr<Texture> >        Textures;
@@ -32,7 +32,7 @@ namespace Glade
       Sounds          sounds;
  
     public:
-      ResourceManager(const Path &base_path);
+      ResourceManager(FileManager *file_manager);
       std::shared_ptr<Texture> getTexture(const Path &filename, int frameWidth = 0, int frameHeight = 0);
       std::shared_ptr<ShaderProgram> getShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename);
       std::shared_ptr<Sound> getSound(const Path &filename);

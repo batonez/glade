@@ -46,7 +46,7 @@ void GladeRenderer::onSurfaceCreated()
   glEnable(GL_BLEND);
   glEnable(GL_CULL_FACE);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  //moveAllObjectsIntoVideoMemory();
+  moveAllObjectsIntoVideoMemory();
   log("Initialized renderer");
   initialized = true;
 }

@@ -7,7 +7,7 @@
 #include <fstream>
 #include <assert.h>
 
-void FileManager::getFileContents(const Path &relative_path, std::ifstream &result, bool binary_mode) const
+void DesktopFileManager::getFileContents(const Path &relative_path, std::ifstream &result, bool binary_mode) const
 {
   if (result.is_open()) {
     log("Warning: FileManager::getFileContents: provided input stream object is open. File manager will close it");
@@ -29,8 +29,7 @@ void FileManager::getFileContents(const Path &relative_path, std::ifstream &resu
   }
 }
 
-template <typename T>
-void FileManager::getFileContents(const Path &relative_path, std::vector<T> &result) const
+void DesktopFileManager::getFileContents(const Path &relative_path, std::vector<char> &result) const
 {
   std::ifstream input;
   getFileContents(relative_path, input, binary_mode);
@@ -40,7 +39,7 @@ void FileManager::getFileContents(const Path &relative_path, std::vector<T> &res
 
   if (binary_mode) {
     while (!input.eof()) {
-      input.read((char *) &val, sizeof(T));
+      input.read((char *) &val, sizeof(char));
       result.push_back(val);
     }
   } else {

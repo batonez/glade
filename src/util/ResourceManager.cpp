@@ -3,21 +3,21 @@
 #include <glade/render/ShaderProgram.h>
 #include <glade/render/Texture.h>
 #include <glade/audio/Sound.h>
-#include <glade/util/RIFFReader.h>
 #include <glade/exception/GladeException.h>
 
+#ifdef _WIN32 // FIXME these should be crossplatform
+#include <glade/util/RIFFReader.h>
 #include <lodepng.h>
+#endif
 
-Glade::ResourceManager::ResourceManager(const Path &base_path):
-  textures(0, Path::hasher),
-  shaderPrograms(0, Path::hasher)
+Glade::ResourceManager::ResourceManager(FileManager *file_manager):
+  fileManager(file_manager)
 {
-  fileManager.setBasePath(base_path);
 }
 
 // TODO frame width and frame height must be stored within the texture on the disk.
 // For now we enforce frame dimensions when the texture is initially loaded from disk
-std::shared_ptr<Texture> Glade::ResourceManager::getTexture(const Path &filename, int frameWidth = 0, int frameHeight = 0)
+std::shared_ptr<Texture> Glade::ResourceManager::getTexture(const Path &filename, int frameWidth, int frameHeight)
 {
   TexturesI i = textures.find(filename);
   
@@ -60,25 +60,27 @@ std::shared_ptr<Sound> Glade::ResourceManager::getSound(const Path &filename)
 std::shared_ptr<ShaderProgram> Glade::ResourceManager::loadShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename)
 {
   std::shared_ptr<ShaderProgram> shaderProgram(new ShaderProgram());
-  
-  fileManager.getFileContents<char>(vertex_shader_filename, shaderProgram.get()->vertexShaderSource);
-  fileManager.getFileContents<char>(fragment_shader_filename, shaderProgram.get()->fragmentShaderSource);
-  
+
+  fileManager->getFileContents(vertex_shader_filename, shaderProgram.get()->vertexShaderSource);
+  fileManager->getFileContents(fragment_shader_filename, shaderProgram.get()->fragmentShaderSource);
+
   return shaderProgram;
 }
 
-std::shared_ptr<Texture> Glade::ResourceManager::loadTexture(const Path &filename, int frameWidth = 0, int frameHeight = 0)
+std::shared_ptr<Texture> Glade::ResourceManager::loadTexture(const Path &filename, int frameWidth, int frameHeight)
 {
   if (frameWidth < 0 || frameHeight < 0) {
     throw GladeException("Provided frameWidth and frameHeight must not be less than zero");
   }
   
-  std::vector<unsigned char> pngData;
-  fileManager.getFileContents<unsigned char>(filename, pngData, true);
+  std::vector<char> pngData;
+  fileManager->getFileContents(filename, pngData, true);
   
-  std::vector<unsigned char> pixels;
+  std::vector<char> pixels;
   unsigned width, height;
 
+// FIXME (not crossplatform)
+#ifdef _WIN32
   unsigned error = lodepng::decode(pixels, width, height, pngData);
 
   if (error) {
@@ -87,7 +89,7 @@ std::shared_ptr<Texture> Glade::ResourceManager::loadTexture(const Path &filenam
     exceptionText += lodepng_error_text(error);
     throw GladeException(exceptionText.c_str());
   }
-  
+#endif  
   if (frameWidth == 0) {  // if the user doesn't know frame dimensions
     frameWidth = width;   // we assume the whole texture is one frame
   } 

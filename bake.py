@@ -32,5 +32,6 @@ os.path.join(os.environ['HATCHERY_SOURCES'], 'Gladen', 'src', 'util', 'ResourceM
 os.path.join(os.environ['HATCHERY_SOURCES'], 'Gladen', 'src', 'util', 'DesktopFileManager.cpp'),
 ]
 
+baker.parseCommandLine()
 baker.sanitizeBakeInput()    
 baker.compile()

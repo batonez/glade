@@ -4,6 +4,13 @@
 #include <memory>
 #include <set>
 
+#ifndef ANDROID
+#include "glade/opengl/functions.h"
+#else
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#endif
+
 #include "glade/math/Transform.h"
 #include "glade/GladeObject.h"
 

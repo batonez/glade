@@ -79,7 +79,7 @@ void GladeObject::setPhysicBody(PhysicBody &physicBody)
   this->physicBody = &physicBody;
 }
 
-PhysicBody* GladeObject::getPhysicBody(void)
+PhysicBody* GladeObject::getPhysicBody()
 {
   return physicBody;
 }

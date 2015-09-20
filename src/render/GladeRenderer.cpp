@@ -1,13 +1,6 @@
 #include <math.h>
 #include <assert.h>
 
-#ifndef ANDROID
-#include "glade/opengl/functions.h"
-#else
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#endif
-
 #include "glade/log/log.h"
 #include "glade/math/globals.h"
 #include "glade/math/Matrix.h"

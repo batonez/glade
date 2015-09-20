@@ -27,3 +27,25 @@ void AndroidFileManager::getFileContents(const Path &relative_path, std::vector<
 
   AAsset_close(asset);
 }
+
+void DesktopFileManager::getFileContents(const Path &relative_path, std::vector<unsigned char> &result, bool binary_mode) const
+{
+  std::ifstream input;
+  getFileContents(relative_path, input, binary_mode);
+  assert(input.good());
+
+  unsigned char val;
+
+  if (binary_mode) {
+    while (!input.eof()) {
+      input.read((unsigned char *) &val, sizeof(unsigned char));
+      result.push_back(val);
+    }
+  } else {
+    input >> std::noskipws;
+
+    while (input >> val, !input.eof()) {
+      result.push_back(val);
+    }
+  }
+}

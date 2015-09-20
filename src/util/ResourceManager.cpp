@@ -73,10 +73,10 @@ std::shared_ptr<Texture> Glade::ResourceManager::loadTexture(const Path &filenam
     throw GladeException("Provided frameWidth and frameHeight must not be less than zero");
   }
   
-  std::vector<char> pngData;
+  std::vector<unsigned char> pngData;
   fileManager->getFileContents(filename, pngData, true);
   
-  std::vector<char> pixels;
+  std::vector<unsigned char> pixels;
   unsigned width, height;
 
 // FIXME (not crossplatform)

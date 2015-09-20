@@ -1,4 +1,4 @@
-#include <glade/util/FileManager.h>
+#include <glade/util/DesktopFileManager.h>
 #include <glade/exception/GladeException.h>
 #include <glade/exception/GladeFileNotFoundException.h>
 #include <glade/log/log.h>
@@ -29,17 +29,39 @@ void DesktopFileManager::getFileContents(const Path &relative_path, std::ifstrea
   }
 }
 
-void DesktopFileManager::getFileContents(const Path &relative_path, std::vector<char> &result) const
+void DesktopFileManager::getFileContents(const Path &relative_path, std::vector<char> &result, bool binary_mode) const
 {
   std::ifstream input;
   getFileContents(relative_path, input, binary_mode);
   assert(input.good());
 
-  T val;
+  char val;
 
   if (binary_mode) {
     while (!input.eof()) {
       input.read((char *) &val, sizeof(char));
+      result.push_back(val);
+    }
+  } else {
+    input >> std::noskipws;
+
+    while (input >> val, !input.eof()) {
+      result.push_back(val);
+    }
+  }
+}
+
+void DesktopFileManager::getFileContents(const Path &relative_path, std::vector<unsigned char> &result, bool binary_mode) const
+{
+  std::ifstream input;
+  getFileContents(relative_path, input, binary_mode);
+  assert(input.good());
+
+  unsigned char val;
+
+  if (binary_mode) {
+    while (!input.eof()) {
+      input.read((char *) &val, sizeof(unsigned char));
       result.push_back(val);
     }
   } else {

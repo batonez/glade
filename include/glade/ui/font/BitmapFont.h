@@ -8,6 +8,7 @@
 #include "glade/render/Texture.h"
 #include "glade/util/CSVReader.h"
 #include "glade/util/ResourceManager.h"
+#include "glade/util/Path.h"
 #include "glade/GladeObject.h"
 #include "glade/render/meshes/Rectangle.h"
 #include "glade/render/Drawable.h"

@@ -38,37 +38,37 @@ private:
 
 public:
   GladeObject(void);
-  void setEnabled(bool enable);
-  bool isEnabled(void) const;
-  Behavior* getBehavior(void);
-  void setBehavior(Behavior *behavior);
-  void setTransform(Transform &transform);
-  Transform* getTransform(void);
+  virtual void setEnabled(bool enable);
+  virtual bool isEnabled(void) const;
+  virtual Behavior* getBehavior(void);
+  virtual void setBehavior(Behavior *behavior);
+  virtual void setTransform(Transform &transform);
+  virtual Transform* getTransform(void);
   // FIXME should be unique_ptr<Drawable>
   virtual void addDrawable(Drawable* view);
-  void addDrawables(Drawables &drawables);
-  Drawables* getDrawables(void);
+  virtual void addDrawables(Drawables &drawables);
+  virtual Drawables* getDrawables(void);
 
   /*
   void addSound(Sound sound);
   Collection<Sound> getSounds();
   */
 
-  void setPhysicBody(PhysicBody &physicBody);
-  PhysicBody* getPhysicBody(void);
-  CollisionShape* getCollisionShape(void);
-  void setCollisionShape(CollisionShape &collisionShape);
-  void toggleView(Drawable& view, bool enable);
-  void toggleView(bool enable);
-  void toggleCollisionShape(bool enable);
-  void toggleBehavior(bool enable);
-  void togglePhysicBody(bool enable);
-  bool isViewEnabled(Drawable *view) const;
-  bool isCollisionShapeEnabled() const;
-  bool isBehaviorEnabled() const;
-  bool isPhysicBodyEnabled() const;
+  virtual void setPhysicBody(PhysicBody &physicBody);
+  virtual PhysicBody* getPhysicBody();
+  virtual CollisionShape* getCollisionShape(void);
+  virtual void setCollisionShape(CollisionShape &collisionShape);
+  virtual void toggleView(Drawable& view, bool enable);
+  virtual void toggleView(bool enable);
+  virtual void toggleCollisionShape(bool enable);
+  virtual void toggleBehavior(bool enable);
+  virtual void togglePhysicBody(bool enable);
+  virtual bool isViewEnabled(Drawable *view) const;
+  virtual bool isCollisionShapeEnabled() const;
+  virtual bool isBehaviorEnabled() const;
+  virtual bool isPhysicBodyEnabled() const;
 
   /** This is for debugging purposes */
-  const std::string* getName(void) const;
-  void setName(const std::string &name);
+  virtual const std::string* getName(void) const;
+  virtual void setName(const std::string &name);
 };

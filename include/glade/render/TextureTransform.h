@@ -4,34 +4,38 @@
 #include "../Callable.h"
 
 class TextureTransform {
-  public:/*
+  public:
+    //FIXMEE!
     class AnimationCallback: public Callable
     {
       public:
         // Negative value means it never triggers
-        virtual int   getTriggeringFrame();
-        virtual float getTriggeringTime();
+        virtual int   getTriggeringFrame() = 0;
+        virtual float getTriggeringTime() = 0;
         
       protected:
-        std::unique_ptr<Callable> callable;
+        Callable *callable;
         
       public:
-        AnimationCallback() {}
+        AnimationCallback(Callable *callable_param = NULL):
+          callable(callable_param)
+        {}
         
-        AnimationCallback(std::unique_ptr<Callable> &callable_param)
+        ~AnimationCallback()
         {
-          //callable = std::move(callable_param);
+          if (callable) {
+            delete callable;
+            callable = NULL;
+          }
         }
         
         virtual void call()
         {
-          if (callable != nullptr) {
-            callable->call();
-          }
+          callable->call();
         }
         
         virtual void call(TextureTransform &textureTransform) { call(); }
-    };*/
+    };
   
     float animationTime;
     Timer timer;
@@ -39,13 +43,13 @@ class TextureTransform {
     float textureScaleX, textureScaleY;
   
   protected:
-    //typedef std::vector<std::unique_ptr<AnimationCallback> > Callbacks;
+    typedef std::vector<AnimationCallback*> Callbacks;
   
     unsigned int currentFrameWidthPixels, currentFrameHeightPixels;
     unsigned char currentAnimationNumber;
     unsigned char currentFrameNumber;
     bool repeat;
-    //Callbacks callbacks;
+    Callbacks callbacks;
 
   public:
     TextureTransform(void):
@@ -154,9 +158,9 @@ class TextureTransform {
         1;
     }
   
-    //void addAnimationCallback(std::unique_ptr<AnimationCallback> &callback) {
-      //callbacks.push_back(std::move(callback));
-    //}
+    void addAnimationCallback(AnimationCallback *callback) {
+      //callbacks.push_back(callback);
+    }
   
     //void removeAnimationCallback(AnimationCallback callback) {
      // callbacks.erase(callback);

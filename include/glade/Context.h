@@ -1,6 +1,7 @@
 #pragma once
 
 #include <queue>
+#include <assert.h>
 
 #include "system.h"
 #include "render/GladeRenderer.h"
@@ -218,14 +219,18 @@ private:
     Transform rootWidgetTransform = renderer->getTransformForRootWidget();
     root->getTransform()->set(rootWidgetTransform);
 
-    class CalculateWidgetTransforms : public Widget::WalkFunctor {
+    class CalculateWidgetTransforms : public Widget::WalkFunctor
+    {
       public:
-        virtual void operator()(Widget &widget) {
+        virtual void operator()(Widget &widget)
+        {
+          assert(widget.getLayout() != nullptr);
           widget.getLayout()->get()->calculateTransformsForDirectChildrenOf(&widget);
         }
     } calculateWidgetTransforms;
 
-    class AddWidgetsRecursive : public Widget::WalkFunctor {
+    class AddWidgetsRecursive : public Widget::WalkFunctor
+    {
       private:
         Context &context;
       public:

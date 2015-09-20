@@ -18,10 +18,10 @@ const GLuint  GladeRenderer::POS_OFFSET_FLOATS      = 0;
 const GLuint  GladeRenderer::NORMAL_OFFSET_FLOATS   = POS_SIZE_FLOATS;
 const GLuint  GladeRenderer::TEXCOORD_OFFSET_FLOATS = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS;
 const GLuint  GladeRenderer::VERTEX_STRIDE_FLOATS   = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
-const GLsizei GladeRenderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS      * sizeof(float);
-const GLsizei GladeRenderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS   * sizeof(float);
+const GLsizei GladeRenderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS * sizeof(float);
+const GLsizei GladeRenderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS * sizeof(float);
 const GLsizei GladeRenderer::TEXCOORD_OFFSET_BYTES  = TEXCOORD_OFFSET_FLOATS * sizeof(float);
-const GLsizei GladeRenderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS   * sizeof(float);
+const GLsizei GladeRenderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS * sizeof(float);
 
 GladeRenderer::GladeRenderer(void)
 {
@@ -436,8 +436,7 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
 
 void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
 {
-  ShaderProgram *program = (*di)->getShaderProgram().get();
-  log("Drawing");
+  std::shared_ptr<ShaderProgram> program = (*di)->getShaderProgram();
   
   if (nullptr == program) {
     log("Could not render a drawable: no GPU program");
@@ -536,7 +535,7 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
     glUniform3f(uniformHandle, v3i->second.x, v3i->second.y, v3i->second.z);
     ++v3i;
   }
-
+  
   Drawable::ShaderVec4UniformsCI v4i = (*di)->vec4UniformsBegin();
   
   while (v4i != (*di)->vec4UniformsEnd()) {
@@ -627,6 +626,7 @@ GLuint GladeRenderer::loadShader(GLuint shaderType, std::vector<char> &shader_so
             log("Shader compilation error:");
             log(buf);
             free(buf);
+            throw GladeException("Shader compilation error");
         }
         
         glDeleteShader(shaderHandle);

@@ -15,7 +15,7 @@ class GridLayout : public Layout
     {
     }
     
-    virtual void calculateTransformsForDirectChildrenOf(Widget *widget)
+    virtual void calculateTransformsForDirectChildrenOf(Widget *widget) const
     {
       rescaleChildrenOf(widget);
       
@@ -23,7 +23,7 @@ class GridLayout : public Layout
       cellWidth = cellHeight = 2 * widget->getTransform()->getScale()->x / rowLength;
       
       Transform *parentTransform = widget->getTransform();
-      Vector4f *padding = getPadding();
+      const Vector4f *padding = getPadding();
       
       float  homeX   = parentTransform->getPosition()->x + padding->w,
           currentX = homeX,

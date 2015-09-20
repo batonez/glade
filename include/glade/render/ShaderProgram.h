@@ -5,12 +5,12 @@
 class ShaderProgram
 {
   public:
-    Shader *vertexShader;
-    Shader *fragmentShader;
     int     gpuHandle;
 
     virtual void getUniformLocations() = 0;
     virtual void setUniformValues() = 0;
+    virtual Shader* getVertexShader() = 0;
+    virtual Shader* getFragmentShader() = 0;
     virtual void erase() = 0;
 
     bool hasGpuHandle()
@@ -20,8 +20,6 @@ class ShaderProgram
 
   protected:
     ShaderProgram():
-      vertexShader(NULL),
-      fragmentShader(NULL),
       gpuHandle(-1)
     {
     }

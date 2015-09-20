@@ -9,6 +9,7 @@
 #include "../../util/TextureLoader.h"
 #include "../../GladeObject.h"
 #include "../../render/meshes/Rectangle.h"
+#include "../../render/BasicTextShaderProgram.h"
 
 class BitmapFont
 {
@@ -115,7 +116,7 @@ class BitmapFont
         glyphPosition = getGlyphPositionForIndex(getGlyphIndexForAsciiCode(string[i]));
         glyphWidth = getGlyphWidth(string[i]);
         
-        rectangle = new Drawable(Rectangle::INSTANCE);
+        rectangle = new Drawable(Rectangle::INSTANCE, BasicTextShaderProgram::INSTANCE);
         rectangle->getTransform()->getScaleP()->x = ((float) glyphWidth / (float) glyphHeight) * fontSize;
         rectangle->getTransform()->getScaleP()->y = fontSize;
         

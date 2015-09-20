@@ -1,5 +1,5 @@
 #if _WIN32
-#include "glade/os/windows-inc.h"
+#include <windows.h>
 #endif // _WIN32
 
 #include <stdio.h>
@@ -8,8 +8,7 @@
 
 void log(const char* format, ...)
 {
-
-    char buf[1024];
+    static char buf[5000]; // OMG fix this
     
     va_list args;
     va_start(args, format);

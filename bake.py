@@ -31,5 +31,6 @@ os.path.join(os.environ['HATCHERY_SOURCES'], 'Gladen', 'src', 'ui', 'font', 'Fre
 os.path.join(os.environ['HATCHERY_SOURCES'], 'Gladen', 'src', 'util', 'ResourceManager.cpp'),
 os.path.join(os.environ['HATCHERY_SOURCES'], 'Gladen', 'src', 'util', 'DesktopFileManager.cpp'),
 ]
-    
+
+baker.sanitizeBakeInput()    
 baker.compile()

@@ -68,7 +68,7 @@ class MyState : public State
       BitmapFont font("fonts/exo.gigantic.png", "fonts/exo.gigantic.csv");
       font.setFontSize(0.3f);
      
-      wi = Label::forString(std::string("iuuuu"), font, layout, 0.0f, 1.0f, 0.0f);
+      wi = Label::forString(std::string("One Player"), font, layout, 0.0f, 1.0f, 0.0f);
       context->renderer->setBackgroundColor(0.05f, 0.4f, 0.2f);
       context->add(wi);
     }

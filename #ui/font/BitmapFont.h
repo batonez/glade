@@ -38,6 +38,8 @@ class BitmapFont
       cellWidth               = ::atoi(parsedCsv[2][1].c_str());
       cellHeight              = ::atoi(parsedCsv[3][1].c_str());
       
+      numberOfGlyphsInARow    = declaredAtlasWidth / cellWidth;
+      
       atlas = TextureLoader::loadTexture(atlasFilename, cellWidth, cellHeight);
             
       if (declaredAtlasWidth != atlas->textureWidth) {
@@ -52,13 +54,11 @@ class BitmapFont
         throw GladeException("Invalid values for BitmapFont constructor");
       }
       
-      glyphWidths.resize(
-        (atlas->textureWidth / cellWidth) *
-        (atlas->textureHeight / cellHeight),
-        cellWidth
-      );
+      glyphWidths.resize(256, cellWidth);
       
-      this->setFirstGlyphAsciiCode((char) ::atoi((parsedCsv[4][1].c_str())));
+      this->setFirstGlyphAsciiCode((unsigned char) ::atoi((parsedCsv[4][1].c_str())));
+      
+      log("First glyph ascii code: %d", firstGlyphAsciiCode);
       
       this->setGlyphHeight(::atoi(parsedCsv[6][1].c_str()));
       
@@ -68,12 +68,10 @@ class BitmapFont
         
         if (paramName.compare(0, 4, "char") == 0) {
           if (paramName.find("base width") != std::string::npos) {
-            log("Reading glyph %c width: %d", extractAsciiCode(paramName), ::atoi(parsedCsv[i][1].c_str()));
-          
-            this->setGlyphWidth(
-              this->getGlyphIndexForAsciiCode(extractAsciiCode(paramName)),
-              ::atoi(parsedCsv[i][1].c_str())
-            );
+            unsigned char extractedIndex = extractIndex(paramName);
+            log("Extracting \"%s\" => %d, width: %d", paramName.c_str(), extractedIndex, ::atoi(parsedCsv[i][1].c_str()));
+            
+            this->setGlyphWidth(extractedIndex, ::atoi(parsedCsv[i][1].c_str()));
           }
         }
       }
@@ -118,8 +116,7 @@ class BitmapFont
         glyphIndex = getGlyphIndexForAsciiCode(string[i]);
         glyphPosition = getGlyphPositionForIndex(glyphIndex);
         
-        log("GLYPH: %d", glyphIndex);
-        log ("GLYPH WIDTH: %d", getGlyphWidth(glyphIndex));
+        log("GLYPH: %c, GLYPH ASCII: %d, GLYPH INDEX: %d, GLYPH WIDTH: %d", string[i], string[i], glyphIndex, getGlyphWidth(glyphIndex));
         
         rectangle = new Drawable(Rectangle::INSTANCE);
         rectangle->getTransform()->getScaleP()->x = ((float)getGlyphWidth(glyphIndex) / (float)glyphHeight) * fontSize;
@@ -199,7 +196,7 @@ class BitmapFont
     }
 
   private:
-    unsigned char extractAsciiCode(const std::string &paramName)
+    unsigned char extractIndex(const std::string &paramName)
     {
       size_t start = paramName.find(' ');
       size_t end   = paramName.find(' ', start + 1);

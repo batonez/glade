@@ -9,10 +9,12 @@
 class Transform {
 public:
   typedef std::shared_ptr<Vector3f> SharedVector;
-private:
+  
   SharedVector position;
   SharedVector rotation;
   SharedVector scale;
+  
+private:
   char invertor;
   
 public:
@@ -40,7 +42,7 @@ public:
   
   void setPosition(float x, float y, float z) { position->set(x, y, z); }
   void setRotation(float x, float y, float z) { rotation->set(x, y, z); }
-  void setScale  (float x, float y, float z)   { scale->set   (x, y, z); }
+  void setScale   (float x, float y, float z) { scale   ->set(x, y, z); }
   
   void setPosition(const SharedVector &position) { this->position = position; }
   void setRotation(const SharedVector &rotation) { this->rotation = rotation; }

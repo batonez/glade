@@ -19,7 +19,7 @@
 class Context {
 public:
   Timer timer;
-  GladeRenderer* renderer;
+  Glade::Renderer* renderer;
   //SoundPlayer* soundPlayer;
 
   // these are instantiated here because there's only one implementation now
@@ -39,7 +39,7 @@ private:
   std::queue<Widget*> widgetsToRemove;
 
 public:
-  Context(GladeRenderer* renderer/*, SoundPlayer* soundPlayer*/):
+  Context(Glade::Renderer* renderer/*, SoundPlayer* soundPlayer*/):
     renderer(renderer),
     //soundPlayer(soundPlayer),
     enableSimulator(true),
@@ -162,7 +162,7 @@ public:
     }
   }
 
-  GladeRenderer* getRenderer(void) {
+  Glade::Renderer* getRenderer(void) {
     return renderer;
   }
 

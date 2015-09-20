@@ -13,6 +13,8 @@
 #include "glade/render/meshes/Rectangle.h"
 #include "glade/render/Drawable.h"
 
+extern Glade::ResourceManager *resource_manager;
+
 class BitmapFont: public Font
 {
   private:
@@ -86,7 +88,7 @@ class BitmapFont: public Font
         glyphPosition = getGlyphPositionForIndex(getGlyphIndexForAsciiCode(string[i]));
         glyphWidth = getGlyphWidth(string[i]);
         
-        rectangle = new Drawable(Rectangle::INSTANCE, shaderProgram);
+        rectangle = new Drawable(resource_manager->getMesh(Glade::ResourceManager::MESH_RECTANGLE), shaderProgram);
         rectangle->getTransform()->getScale()->x = ((float) glyphWidth / (float) glyphHeight) * fontSize;
         rectangle->getTransform()->getScale()->y = fontSize;
         

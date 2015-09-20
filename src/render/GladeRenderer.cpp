@@ -11,19 +11,19 @@
 #include "glade/render/DrawFrameHook.h"
 #include "glade/math/Vector.h"
 
-const GLuint  GladeRenderer::POS_SIZE_FLOATS        = 3;
-const GLuint  GladeRenderer::NORMAL_SIZE_FLOATS     = 3;
-const GLuint  GladeRenderer::TEXCOORD_SIZE_FLOATS   = 2;
-const GLuint  GladeRenderer::POS_OFFSET_FLOATS      = 0;
-const GLuint  GladeRenderer::NORMAL_OFFSET_FLOATS   = POS_SIZE_FLOATS;
-const GLuint  GladeRenderer::TEXCOORD_OFFSET_FLOATS = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS;
-const GLuint  GladeRenderer::VERTEX_STRIDE_FLOATS   = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
-const GLsizei GladeRenderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS      * sizeof(float);
-const GLsizei GladeRenderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS   * sizeof(float);
-const GLsizei GladeRenderer::TEXCOORD_OFFSET_BYTES  = TEXCOORD_OFFSET_FLOATS * sizeof(float);
-const GLsizei GladeRenderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS   * sizeof(float);
+const GLuint  Glade::Renderer::POS_SIZE_FLOATS        = 3;
+const GLuint  Glade::Renderer::NORMAL_SIZE_FLOATS     = 3;
+const GLuint  Glade::Renderer::TEXCOORD_SIZE_FLOATS   = 2;
+const GLuint  Glade::Renderer::POS_OFFSET_FLOATS      = 0;
+const GLuint  Glade::Renderer::NORMAL_OFFSET_FLOATS   = POS_SIZE_FLOATS;
+const GLuint  Glade::Renderer::TEXCOORD_OFFSET_FLOATS = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS;
+const GLuint  Glade::Renderer::VERTEX_STRIDE_FLOATS   = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
+const GLsizei Glade::Renderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS      * sizeof(float);
+const GLsizei Glade::Renderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS   * sizeof(float);
+const GLsizei Glade::Renderer::TEXCOORD_OFFSET_BYTES  = TEXCOORD_OFFSET_FLOATS * sizeof(float);
+const GLsizei Glade::Renderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS   * sizeof(float);
 
-GladeRenderer::GladeRenderer(void)
+Glade::Renderer::Renderer(void)
 {
   camera.invertTranslation(true);
     
@@ -32,7 +32,7 @@ GladeRenderer::GladeRenderer(void)
 }
 
 
-void GladeRenderer::onSurfaceCreated()
+void Glade::Renderer::onSurfaceCreated()
 {
   glFrontFace(GL_CCW);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -46,7 +46,7 @@ void GladeRenderer::onSurfaceCreated()
 }
 
 
-void GladeRenderer::onSurfaceChanged(int width, int height)
+void Glade::Renderer::onSurfaceChanged(int width, int height)
 {
   viewportWidth = width;
   viewportHeight = height;
@@ -58,7 +58,7 @@ void GladeRenderer::onSurfaceChanged(int width, int height)
 }
 
 
-void GladeRenderer::add(GladeObject* pSceneObject)
+void Glade::Renderer::add(GladeObject* pSceneObject)
 {
   if (this->initialized) {
     moveIntoVideoMemory(*pSceneObject);
@@ -67,7 +67,7 @@ void GladeRenderer::add(GladeObject* pSceneObject)
   sceneObjects.push_back(pSceneObject);
 }
 
-void GladeRenderer::add(Widget* uiElement)
+void Glade::Renderer::add(Widget* uiElement)
 {
   if (this->initialized) {
     moveIntoVideoMemory(*uiElement);
@@ -77,7 +77,7 @@ void GladeRenderer::add(Widget* uiElement)
   uiElements.push_back(uiElement);
 }
 
-void GladeRenderer::remove(GladeObject *sceneObject)
+void Glade::Renderer::remove(GladeObject *sceneObject)
 {
   std::vector<GladeObject*>::iterator oi =
     std::find(sceneObjects.begin(), sceneObjects.end(), sceneObject);
@@ -98,7 +98,7 @@ void GladeRenderer::remove(GladeObject *sceneObject)
   sceneObjects.erase(oi);
 }
 
-void GladeRenderer::clear(void)
+void Glade::Renderer::clear(void)
 {
   log("Clearing renderer");
   removeAllObjectsFromVideoMemory();
@@ -135,7 +135,7 @@ void GladeRenderer::clear(void)
   log("Done clearing renderer");
 }
 
-void GladeRenderer::onDrawFrame(void)
+void Glade::Renderer::onDrawFrame(void)
 {
   for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
     (*hook)->onBeforeDraw();
@@ -158,37 +158,37 @@ void GladeRenderer::onDrawFrame(void)
   }
 }
 
-void GladeRenderer::setSceneProjectionMode(ProjectionMode projectionMode)
+void Glade::Renderer::setSceneProjectionMode(ProjectionMode projectionMode)
 {
   this->sceneProjectionMode = projectionMode;
 }
 
-int GladeRenderer::getViewportWidth(void)
+int Glade::Renderer::getViewportWidth(void)
 {
   return viewportWidth;
 }
 
-int GladeRenderer::getViewportHeight(void)
+int Glade::Renderer::getViewportHeight(void)
 {
   return viewportHeight;
 }
 
-void GladeRenderer::setBackgroundColor(float r, float g, float b)
+void Glade::Renderer::setBackgroundColor(float r, float g, float b)
 {
   this->backgroundColor.set(r, g, b);
 }
 
-int GladeRenderer::percentToPixels(float percent)
+int Glade::Renderer::percentToPixels(float percent)
 {
   return (int)((viewportWidth < viewportHeight ? viewportWidth / 2 : viewportHeight / 2) * percent); 
 }
 
-float GladeRenderer::pixelsToPercent(float pixels)
+float Glade::Renderer::pixelsToPercent(float pixels)
 {
   return pixels / (viewportWidth < viewportHeight ? viewportWidth / 2 : viewportHeight / 2);
 }
 
-Transform GladeRenderer::getTransformForRootWidget(void)
+Transform Glade::Renderer::getTransformForRootWidget(void)
 {
   return Transform(
       0.0f, 0.0f, 0.0f,
@@ -197,32 +197,32 @@ Transform GladeRenderer::getTransformForRootWidget(void)
   );
 }
 
-void GladeRenderer::moveZeroToUpperLeftCorner(void)
+void Glade::Renderer::moveZeroToUpperLeftCorner(void)
 {
   camera.setPosition(getHalfViewportWidthCoords(),  getHalfViewportHeightCoords(), 0);
 }
 
-float GladeRenderer::getHalfViewportWidthCoords(void)
+float Glade::Renderer::getHalfViewportWidthCoords(void)
 {
   return aspectRatio > 1 ? aspectRatio : 1;
 }
 
-float GladeRenderer::getHalfViewportHeightCoords(void)
+float Glade::Renderer::getHalfViewportHeightCoords(void)
 {
   return aspectRatio > 1 ? 1 : aspectRatio;
 }
   
-float GladeRenderer::getViewportWidthCoords(void)
+float Glade::Renderer::getViewportWidthCoords(void)
 {
   return 2 * aspectRatio;
 }
 
-float GladeRenderer::getViewportHeightCoords(void)
+float Glade::Renderer::getViewportHeightCoords(void)
 {
   return 2;
 }
 
-Vector2f GladeRenderer::getPointCoords(float screenX, float screenY)
+Vector2f Glade::Renderer::getPointCoords(float screenX, float screenY)
 {
   Vector2f result;
   
@@ -233,12 +233,12 @@ Vector2f GladeRenderer::getPointCoords(float screenX, float screenY)
 }
 
 
-//std::vector<GladeObject>::iterator GladeRenderer::getWidgets(void)
+//std::vector<GladeObject>::iterator Glade::Renderer::getWidgets(void)
 //{
 //  return uiElements.begin();
 //}
 
-void GladeRenderer::drawAll(std::vector<GladeObject*>::iterator i, std::vector<GladeObject*>::iterator end)
+void Glade::Renderer::drawAll(std::vector<GladeObject*>::iterator i, std::vector<GladeObject*>::iterator end)
 {
   Transform finalWorldTransformForDrawable;
   GladeObject::Drawables* drawables;
@@ -266,7 +266,7 @@ void GladeRenderer::drawAll(std::vector<GladeObject*>::iterator i, std::vector<G
   }
 }
 
-void GladeRenderer::compileShaderProgram(ShaderProgram *program)
+void Glade::Renderer::compileShaderProgram(ShaderProgram *program)
 {
   
   if (program == nullptr || program == NULL) {
@@ -306,7 +306,7 @@ void GladeRenderer::compileShaderProgram(ShaderProgram *program)
 }
 
 
-void GladeRenderer::moveAllObjectsIntoVideoMemory(void)
+void Glade::Renderer::moveAllObjectsIntoVideoMemory(void)
 {
   std::vector<GladeObject*>::iterator i = sceneObjects.begin();
   
@@ -325,12 +325,12 @@ void GladeRenderer::moveAllObjectsIntoVideoMemory(void)
   checkGLError();
 }
 
-void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
+void Glade::Renderer::moveIntoVideoMemory(GladeObject &sceneObject)
 {
   GladeObject::DrawablesI di = sceneObject.getDrawables()->begin();
   
   while (di != sceneObject.getDrawables()->end()) {
-    moveIntoVideoMemory((*di)->getVertexObject());
+    moveIntoVideoMemory((*di)->getMesh());
     moveIntoVideoMemory((*di)->getTexture());
     compileShaderProgram((*di)->getShaderProgram().get());
     di++;
@@ -339,9 +339,9 @@ void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
   glReleaseShaderCompiler();
 }
 
-void GladeRenderer::moveIntoVideoMemory(VertexObject *mesh)
+void Glade::Renderer::moveIntoVideoMemory(std::shared_ptr<Mesh> mesh)
 {
-  if (NULL == mesh || mesh->hasVideoBufferHandle()) {
+  if (nullptr == mesh || mesh->hasVideoBufferHandle()) {
     return;
   }
   
@@ -359,7 +359,7 @@ void GladeRenderer::moveIntoVideoMemory(VertexObject *mesh)
   mesh->erase();
 }
 
-void GladeRenderer::moveIntoVideoMemory(std::shared_ptr<Texture> texturePtr)
+void Glade::Renderer::moveIntoVideoMemory(std::shared_ptr<Texture> texturePtr)
 {
   Texture *texture = texturePtr.get();
   
@@ -410,10 +410,10 @@ void GladeRenderer::moveIntoVideoMemory(std::shared_ptr<Texture> texturePtr)
   texture->erase();
 }
 
-void GladeRenderer::removeFromVideoMemory(Drawable &drawable)
+void Glade::Renderer::removeFromVideoMemory(Drawable &drawable)
 {
-  Texture *texture = drawable.getTexture().get();
-  VertexObject *mesh = drawable.getVertexObject();
+  std::shared_ptr<Texture> texture = drawable.getTexture();
+  std::shared_ptr<Mesh> mesh = drawable.getMesh();
   
   if (nullptr != texture && texture->hasVideoBufferHandle()) {
     GLuint texIds[1];
@@ -432,7 +432,7 @@ void GladeRenderer::removeFromVideoMemory(Drawable &drawable)
   }
 }
 
-void GladeRenderer::removeAllObjectsFromVideoMemory(void)
+void Glade::Renderer::removeAllObjectsFromVideoMemory(void)
 {
   std::vector<GladeObject*>::iterator i = sceneObjects.begin();
   
@@ -463,7 +463,7 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
   }
 }
 
-void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
+void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
 {
   static bool firstCycle = true;
 
@@ -503,7 +503,7 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
     checkGLError();
   }
   
-  bindBuffers(*(*di)->getVertexObject());
+  bindBuffers(*(*di)->getMesh());
   
   if (firstCycle) {
     checkGLError();
@@ -626,7 +626,7 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
     ++v4i;
   }
 
-  glDrawElements(GL_TRIANGLES, (*di)->getVertexObject()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
+  glDrawElements(GL_TRIANGLES, (*di)->getMesh()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
   
   glDisableVertexAttribArray(aPosition);
   glDisableVertexAttribArray(aNormal);
@@ -639,7 +639,7 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   firstCycle = false;
 }
 
-void GladeRenderer::bindBuffers(VertexObject &mesh)
+void Glade::Renderer::bindBuffers(Mesh &mesh)
 {
   if (!mesh.hasVideoBufferHandle()) {
     log("Render error: trying to use a mesh which was not loaded into video buffer");
@@ -649,7 +649,7 @@ void GladeRenderer::bindBuffers(VertexObject &mesh)
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.indexVboId);
 }
 
-void GladeRenderer::switchProjectionMode(ProjectionMode projectionMode, bool force)
+void Glade::Renderer::switchProjectionMode(ProjectionMode projectionMode, bool force)
 {
   if (force || projectionMode != currentProjectionMode) {
     switch (projectionMode) {
@@ -669,12 +669,12 @@ void GladeRenderer::switchProjectionMode(ProjectionMode projectionMode, bool for
   }
 }
 
-void GladeRenderer::switchProjectionMode(ProjectionMode projectionMode)
+void Glade::Renderer::switchProjectionMode(ProjectionMode projectionMode)
 {
   switchProjectionMode(projectionMode, false);
 }
 
-void GladeRenderer::getShaderHandles(ShaderProgram &program)
+void Glade::Renderer::getShaderHandles(ShaderProgram &program)
 {
   uProjectionMatrix   = glGetUniformLocation(program.gpuHandle, "uProjectionMatrix");
   uWorldViewMatrix  = glGetUniformLocation(program.gpuHandle, "uWorldViewMatrix");
@@ -690,7 +690,7 @@ void GladeRenderer::getShaderHandles(ShaderProgram &program)
   uTexOffsetY     = glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetY0");
 } 
 
-GLuint GladeRenderer::loadShader(GLuint shaderType, std::vector<char> &shader_source)
+GLuint Glade::Renderer::loadShader(GLuint shaderType, std::vector<char> &shader_source)
 {
   GLuint shaderHandle = glCreateShader(shaderType);
   
@@ -726,7 +726,7 @@ GLuint GladeRenderer::loadShader(GLuint shaderType, std::vector<char> &shader_so
   return shaderHandle;
 }
 
-int GladeRenderer::checkGLError(void)
+int Glade::Renderer::checkGLError(void)
 {
   int errorCode = glGetError();
   
@@ -751,18 +751,18 @@ int GladeRenderer::checkGLError(void)
   return errorCode;
 }
 
-void GladeRenderer::addDrawFrameHook(DrawFrameHook &hook)
+void Glade::Renderer::addDrawFrameHook(DrawFrameHook &hook)
 {
   drawFrameHooks.insert(&hook);
 }
 
 
-void GladeRenderer::setDrawingOrderComparator(std::unique_ptr<GladeObject::Comparator> &comparator)
+void Glade::Renderer::setDrawingOrderComparator(std::unique_ptr<GladeObject::Comparator> &comparator)
 {
   this->drawingOrderComparator = std::move(comparator);
 }
 
-void GladeRenderer::sortDrawables()
+void Glade::Renderer::sortDrawables()
 {
   log("Fixme: Sorting drawables not implemented");
   

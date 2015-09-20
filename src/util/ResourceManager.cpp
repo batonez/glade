@@ -2,6 +2,9 @@
 #include <glade/util/Path.h>
 #include <glade/render/ShaderProgram.h>
 #include <glade/render/Texture.h>
+#include <glade/render/meshes/Triangle.h>
+#include <glade/render/meshes/Rectangle.h>
+#include <glade/render/meshes/Cube.h>
 #include <glade/ui/font/BitmapFont.h>
 #include <glade/ui/font/FreetypeFont.h>
 #include <glade/audio/Sound.h>
@@ -32,6 +35,19 @@ std::shared_ptr<Texture> Glade::ResourceManager::getTexture(const Path &filename
   std::shared_ptr<Texture> texture = loadTexture(filename, frameWidth, frameHeight);
   textures[filename] = texture;
   return texture;
+}
+
+std::shared_ptr<Glade::Mesh> Glade::ResourceManager::getMesh(MeshType type)
+{
+  MeshesI i = meshes.find(type);
+  
+  if (i != meshes.end()) {
+    return i->second;
+  }
+  
+  std::shared_ptr<Mesh> mesh = loadMesh(type);
+  meshes[type] = mesh;
+  return mesh;
 }
 
 std::shared_ptr<ShaderProgram> Glade::ResourceManager::getShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename)
@@ -152,6 +168,20 @@ std::shared_ptr<Texture> Glade::ResourceManager::loadTexture(const Path &filenam
     numberOfFrames,
     pixels
   ));
+}
+
+std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMesh(MeshType type)
+{
+  switch (type) {
+    case MESH_TRIANGLE:
+      return std::shared_ptr<Mesh>(new Triangle());
+    case MESH_RECTANGLE:
+      return std::shared_ptr<Mesh>(new Rectangle());
+    case MESH_CUBE:
+      return std::shared_ptr<Mesh>(new Cube());
+    default:
+      throw GladeException("Unsupported mesh type requested");
+  }
 }
 
 std::shared_ptr<Font> Glade::ResourceManager::loadBitmapFont(const Path &atlas_filename, const Path &csv_filename, float viewport_width, float viewport_height)

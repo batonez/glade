@@ -2,6 +2,7 @@
 #include <memory>
 
 #include <glade/util/FileManager.h>
+#include <glade/util/ResourceManager.h>
 #include <glade/render/Drawable.h>
 #include <glade/render/Texture.h>
 #include <glade/render/meshes/Rectangle.h>
@@ -14,6 +15,7 @@
 #include FT_BBOX_H
 
 extern FileManager *file_manager;
+extern Glade::ResourceManager *resource_manager;
 
 static FT_Library freeType = NULL;
 static FT_Error   error    = FT_Err_Ok;
@@ -253,7 +255,7 @@ GladeObject::Drawables* FreetypeFont::createDrawablesForString(const std::string
       continue;
     }
   
-    Drawable *drawable = new Drawable(Rectangle::INSTANCE, shaderProgram);
+    Drawable *drawable = new Drawable(resource_manager->getMesh(Glade::ResourceManager::MESH_RECTANGLE), shaderProgram);
     drawable->getTransform()->setScale(
       (float) bit->bitmap.width / minViewportDimension,
       (float) bit->bitmap.rows  / minViewportDimension,

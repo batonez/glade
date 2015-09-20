@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "glade/math/Transform.h"
-#include "meshes/VertexObject.h"
+#include "meshes/Mesh.h"
 #include "Texture.h"
 #include "TextureTransform.h"
 #include "ShaderProgram.h"
@@ -28,7 +28,7 @@ public:
   
 protected:
   Transform transform;
-  VertexObject* vertexObject; // fixme shared ptr! (once you get rid of static singletones)
+  std::shared_ptr<Glade::Mesh> mesh;
   std::shared_ptr<Texture> texture;
   TextureTransform textureTransform;
   std::shared_ptr<ShaderProgram> shaderProgram;
@@ -41,8 +41,8 @@ private:
   ShaderVec4Uniforms  shaderVec4Uniforms;
   
 public:
-  Drawable(VertexObject &vertObject, std::shared_ptr<ShaderProgram> &shaderProgram):
-    vertexObject(&vertObject),
+  Drawable(std::shared_ptr<Glade::Mesh> &mesh, std::shared_ptr<ShaderProgram> &shaderProgram):
+    mesh(mesh),
     shaderProgram(shaderProgram),
     preservePosition(false),
     preserveRotation(false),
@@ -154,7 +154,7 @@ public:
     return &transform;
   }
   
-  VertexObject* getVertexObject(void) {
-    return vertexObject;
+  std::shared_ptr<Glade::Mesh> getMesh(void) {
+    return mesh;
   }
 };

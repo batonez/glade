@@ -42,6 +42,7 @@ void GladeRenderer::onSurfaceCreated()
   moveAllObjectsIntoVideoMemory();
   log("Initialized renderer");
   initialized = true;
+  checkGLError();
 }
 
 
@@ -53,6 +54,7 @@ void GladeRenderer::onSurfaceChanged(int width, int height)
   glViewport(0, 0, viewportWidth, viewportHeight);
   
   switchProjectionMode(sceneProjectionMode, true);
+  checkGLError();
 }
 
 
@@ -70,6 +72,7 @@ void GladeRenderer::add(Widget* uiElement)
 {
   if (this->initialized) {
     moveIntoVideoMemory(*uiElement);
+    checkGLError();
   }
   
   uiElements.push_back(uiElement);
@@ -92,6 +95,8 @@ void GladeRenderer::clear(void)
     
     oi = sceneObjects.erase(oi);
   }
+
+  checkGLError();
   
   std::vector<GladeObject*>::iterator wi = uiElements.begin(); // must be a 'set'
   
@@ -104,6 +109,8 @@ void GladeRenderer::clear(void)
     
     wi = uiElements.erase(wi);
   }
+
+  checkGLError();
   
   log("Done clearing renderer");
 }
@@ -294,6 +301,8 @@ void GladeRenderer::moveAllObjectsIntoVideoMemory(void)
     moveIntoVideoMemory(**wi);
     wi++;
   }
+
+  checkGLError();
 }
 
 void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
@@ -436,6 +445,13 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
 
 void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
 {
+  static bool firstCycle = true;
+
+  if (firstCycle) {
+    log("Started drawing");
+    checkGLError();
+  }
+  
   std::shared_ptr<ShaderProgram> program = (*di)->getShaderProgram();
   
   if (nullptr == program) {
@@ -450,16 +466,28 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   
   glUseProgram(program->gpuHandle);
   getShaderHandles(*program);
+
+  if (firstCycle) {
+    checkGLError();
+  }
   
   static float worldMatrix[16];
   
   transform.getMatrix(worldMatrix);
   Matrix::multiplyMM(worldViewMatrix, 0, viewMatrix, 0, worldMatrix, 0);
   
-  glUniformMatrix4fv(uProjectionMatrix, 4, GL_FALSE, projectionMatrix);
-  glUniformMatrix4fv(uWorldViewMatrix, 4, GL_FALSE, worldViewMatrix);
+  glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, projectionMatrix);// WHY it worked with 4 in GL?
+  glUniformMatrix4fv(uWorldViewMatrix, 1, GL_FALSE, worldViewMatrix);
+  
+  if (firstCycle) {
+    checkGLError();
+  }
   
   bindBuffers(*(*di)->getVertexObject());
+  
+  if (firstCycle) {
+    checkGLError();
+  }
   
   glVertexAttribPointer(
     aPosition, POS_SIZE_FLOATS,
@@ -469,13 +497,23 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   
   glEnableVertexAttribArray(aPosition);
   
-  glVertexAttribPointer(
-    aNormal, NORMAL_SIZE_FLOATS,
-    GL_FLOAT, GL_FALSE,
-    VERTEX_STRIDE_BYTES, (const GLvoid *)NORMAL_OFFSET_BYTES
-  );
+  if (firstCycle) {
+    checkGLError();
+  }
   
-  glEnableVertexAttribArray(aNormal);
+  if (aNormal >= 0) {
+    glVertexAttribPointer(
+      aNormal, NORMAL_SIZE_FLOATS,
+      GL_FLOAT, GL_FALSE,
+      VERTEX_STRIDE_BYTES, (const GLvoid *)NORMAL_OFFSET_BYTES
+    );
+    
+    glEnableVertexAttribArray(aNormal);
+  }
+  
+  if (firstCycle) {
+    checkGLError();
+  }
   
   Texture *texture = (*di)->getTexture().get();
   
@@ -484,6 +522,10 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, texture->getVideoBufferHandle());
 
+      if (firstCycle) {
+        checkGLError();
+      }
+      
       TextureTransform* texTransform = (*di)->getTextureTransform();
       texTransform->executeCallbacks();
       
@@ -492,12 +534,22 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
       glUniform1f(uTexScaleY, texTransform->textureScaleY  / (float) texture->numberOfAnimations * texTransform->getTextureScaleYModifierForFrame(*texture));
       glUniform1f(uTexOffsetX, texTransform->getCurrentFrameNumber(*texture) * texture->texCoordFrameWidth);
       glUniform1f(uTexOffsetY, texTransform->getCurrentAnimationNumber(*texture) * texture->texCoordFrameHeight);
+
+      if (firstCycle) {
+        checkGLError();
+      }
+      
       
       glVertexAttribPointer(
         aTexCoord, TEXCOORD_SIZE_FLOATS,
         GL_FLOAT, GL_FALSE,
         VERTEX_STRIDE_BYTES, (const GLvoid*)TEXCOORD_OFFSET_BYTES
       );
+
+      if (firstCycle) {
+        checkGLError();
+      }
+      
             
       glEnableVertexAttribArray(aTexCoord);
     }
@@ -512,12 +564,20 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
     ++fi;
   }
   
+  if (firstCycle) {
+    checkGLError();
+  }
+  
   Drawable::ShaderBoolUniformsCI bi = (*di)->boolUniformsBegin();
   
   while (bi != (*di)->boolUniformsEnd()) {
     uniformHandle = program->getUniformHandle(bi->first);
     glUniform1i(uniformHandle, bi->second ? 1 : 0);
     ++bi;
+  }
+  
+  if (firstCycle) {
+    checkGLError();
   }
   
   Drawable::ShaderIntUniformsCI ii = (*di)->intUniformsBegin();
@@ -529,6 +589,10 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   }
 
   Drawable::ShaderVec3UniformsCI v3i = (*di)->vec3UniformsBegin();
+  
+  if (firstCycle) {
+    checkGLError();
+  }
   
   while (v3i != (*di)->vec3UniformsEnd()) {
     uniformHandle = program->getUniformHandle(v3i->first);
@@ -543,12 +607,18 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
     glUniform4f(uniformHandle, v4i->second.x, v4i->second.y, v4i->second.z, v4i->second.w);
     ++v4i;
   }
-  
+
   glDrawElements(GL_TRIANGLES, (*di)->getVertexObject()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
   
   glDisableVertexAttribArray(aPosition);
   glDisableVertexAttribArray(aNormal);
   glDisableVertexAttribArray(aTexCoord);
+
+  if (firstCycle) {
+    checkGLError();
+  }
+  
+  firstCycle = false;
 }
 
 void GladeRenderer::bindBuffers(VertexObject &mesh)
@@ -654,6 +724,9 @@ int GladeRenderer::checkGLError(void)
       break;
     case GL_OUT_OF_MEMORY:
       log("GL_OUT_OF_MEMORY: There is insufficient memory to execute this command. The state of the OpenGL pipeline is undefined after this point.");
+      break;
+    default:
+      log("No OpenGL error at this point");
       break;
   }
   

@@ -215,7 +215,7 @@ private:
    */
   void addNow(Widget* root) {
     // Consider this a root widget
-    log("Adding root widget");
+    log("Adding root widget '%s'", root->getName()->c_str());
     Transform rootWidgetTransform = renderer->getTransformForRootWidget();
     root->getTransform()->set(rootWidgetTransform);
 

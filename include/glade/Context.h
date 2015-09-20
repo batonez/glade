@@ -124,25 +124,36 @@ public:
     }
 
     bool gladeObjectsListsChanged = false;
-
+  
+    if (!objectsToRemove.empty()) {
+      log("Context: some objects will be deleted");
+      gladeObjectsListsChanged = true;
+      
+      while (!objectsToRemove.empty()) {
+        removeNow(objectsToRemove.front());
+        objectsToRemove.pop();
+      }
+    }
+    
     if (!objectsToAdd.empty()) {
       log("Context: new objects will be loaded");
+      
+      while (!objectsToAdd.empty()) {
+        addNow(objectsToAdd.front());
+        objectsToAdd.pop();
+      }
+      
       gladeObjectsListsChanged = true;
-    }
-
-    while (!objectsToAdd.empty()) {
-      addNow(objectsToAdd.front());
-      objectsToAdd.pop();
     }
 
     if (!widgetsToAdd.empty()) {
       log("Context: new widgets will be loaded");
       gladeObjectsListsChanged = true;
-    }
-
-    while (!widgetsToAdd.empty()) {
-      addNow(widgetsToAdd.front());
-      widgetsToAdd.pop();
+      
+      while (!widgetsToAdd.empty()) {
+        addNow(widgetsToAdd.front());
+        widgetsToAdd.pop();
+      }
     }
 
     if (gladeObjectsListsChanged) {
@@ -201,7 +212,18 @@ private:
   }
 
   /**
-   * Should be called only from rendering thread
+   * Should not be called when containers are iterating
+   */
+  void removeNow(GladeObject* object) {
+    renderer->remove(object);
+    simulator.remove(object);
+    collisionDetector.remove(object);
+    //aiContainer->remove(object);
+    //soundPlayer->remove(object.getSounds());
+  }
+  
+  /**
+   * Should not be called when containers are iterating
    */
   void addNow(GladeObject* object) {
     renderer->add(object);
@@ -213,6 +235,7 @@ private:
 
   /**
    * Should be called only from rendering thread
+   * and not when containers are iterating
    */
   void addNow(Widget* root) {
     // Consider this a root widget

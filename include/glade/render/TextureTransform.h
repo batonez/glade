@@ -10,8 +10,8 @@ class TextureTransform {
     {
       public:
         // Negative value means it never triggers
-        virtual int   getTriggeringFrame() = 0;
-        virtual float getTriggeringTime() = 0;
+        virtual int   getTriggeringFrame() { return -1;    }
+        virtual float getTriggeringTime()  { return -1.0f; }
         
       protected:
         Callable *callable;

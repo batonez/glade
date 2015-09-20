@@ -4,32 +4,33 @@
 #include "Texture.h"
 #include "TextureTransform.h"
 #include "Material.h"
+#include "ShaderProgram.h"
 
 class Drawable {
 public:
 	bool preservePosition, preserveRotation, preserveScale;
-	bool replaceOriginalColor;
-//    bool initialized;
 	
 protected:
 	Transform transform;
 	VertexObject* vertexObject;
   Texture* texture;
+  ShaderProgram *shaderProgram;
   TextureTransform textureTransform;
-  Material material;
-  Vector4f constantColor;
-  bool lit;
-    
+  
 public:
-  Drawable(VertexObject &vertObject):
+  Drawable(VertexObject &vertObject, ShaderProgram &shaderProgram):
     vertexObject(&vertObject),
+    shaderProgram(&shaderProgram),
     preservePosition(false),
     preserveRotation(false),
     preserveScale(false),
-    replaceOriginalColor(false),
-    lit(false),
     texture(NULL)
   {
+  }
+  
+  ShaderProgram* getShaderProgram()
+  {
+    return shaderProgram;
   }
   
   void setTexture(Texture* texture) {
@@ -55,34 +56,6 @@ public:
   Transform* getTransform(void) {
     return &transform;
   }
-  
-  void setConstantColor(float r, float g, float b) {
-    constantColor.set(r, g, b, 1.0f);
-  }
-  
-  void setConstantColor(float r, float g, float b, float a) {
-    constantColor.set(r, g, b, a);
-  }
-  
-  Vector4f* getConstantColor(void) {
-    return &constantColor;
-  }
-    
-	bool isLit(void) {
-		return lit;
-	}
-	
-	void setLit(bool lit) {
-		this->lit = lit;
-	}
-	
-	Material* getMaterial(void) {
-		return &material;
-	}
-	
-	void setMaterial(const Material &material) {
-		this->material = material;
-	}
 	
 	VertexObject* getVertexObject(void) {
 		return vertexObject;

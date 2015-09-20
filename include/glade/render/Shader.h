@@ -1,6 +1,7 @@
 #pragma once
 
 #include <istream>
+#include <vector>
 
 class Shader
 {
@@ -16,6 +17,8 @@ class Shader
       while (input >> ch, !input.eof()) {
         source.push_back(ch);
       }
+      
+      source.push_back('\0');
     }
     
     const char* getSource()

@@ -144,9 +144,9 @@ class Layout
   protected:
     void rescaleChildrenOf(Widget* widget)
     {
-      Widget::Widgets* children = widget->getChildren();
+      Widget::Children* children = widget->getChildren();
       
-      for (Widget::WidgetsI child = children->begin(); child != children->end(); ++child) {
+      for (Widget::ChildrenI child = children->begin(); child != children->end(); ++child) {
         if (!rescaleX(*child, widget)) {
           rescaleY(*child, widget);
         }

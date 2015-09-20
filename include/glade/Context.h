@@ -60,7 +60,7 @@ public:
 	}
 	
 	void add(Widget* widget) {
-    log("adding widget");
+    log("Setting UI");
 		widgetsToAdd.push(widget);
 	}
 	
@@ -200,18 +200,6 @@ private:
 	/**
 	 * Should be called only from rendering thread
 	 */
-  void addWidgetsRecursive(Widget* widget) {
-    renderer->add(widget);
-    Widget::Widgets* children = widget->getChildren(); 
-
-    for (Widget::WidgetsI child = children->begin(); child != children->end(); ++child) {
-      addWidgetsRecursive(*child);
-    }
-  }
-	
-	/**
-	 * Should be called only from rendering thread
-	 */
 	void addNow(GladeObject* object) {
     renderer->add(object);
     //simulator->add(object);
@@ -224,13 +212,24 @@ private:
 	/**
 	 * Should be called only from rendering thread
 	 */
-	void addNow(Widget* widget) {
-		if (widget->getParent() == NULL) {
-			widget->getTransform()->set(renderer->getTransformForRootWidget());
-		}
-		
-		widget->getLayout()->calculateTransformsForChildrenOf(widget);
-		addWidgetsRecursive(widget);
+	void addNow(Widget* root) {
+		// Consider this a root widget
+    log("Adding root widget");
+		root->getTransform()->set(renderer->getTransformForRootWidget());
+		root->getLayout()->calculateTransformsForChildrenOf(root); // TODO this should not be a recursive call. Instead pack this into the walker
+    
+    class AddWidgetsRecursive : public Widget::WalkFunctor {
+      private:
+        Context &context;
+      public:
+        AddWidgetsRecursive(Context &context): context(context) {}
+        
+        virtual void operator()(Widget &widget) {
+          context.renderer->add(&widget);
+        }
+    } addWidgetsRecursive(*this);
+    
+    Widget::walkDepthFirstPostfix(*root, addWidgetsRecursive);
 	}
 	
 	/**

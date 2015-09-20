@@ -14,9 +14,9 @@ class CenterLayout : public Layout
       rescaleChildrenOf(widget);
       
       Transform* parentTransform = widget->getTransform();
-      Widget::Widgets* children = widget->getChildren();
+      Widget::Children* children = widget->getChildren();
       
-      for (Widget::WidgetsI child = children->begin(); child != children->end(); ++child) {
+      for (Widget::ChildrenI child = children->begin(); child != children->end(); ++child) {
         (*child)->getTransform()->getPosition()->x = parentTransform->getPosition()->x;
         (*child)->getTransform()->getPosition()->y = parentTransform->getPosition()->y;
         

@@ -25,7 +25,7 @@ class Button : public Widget
         
         getTransform()->getScale()->x = label->getTransform()->getScale()->x;
         getTransform()->getScale()->y = label->getTransform()->getScale()->y;
-        label->setParent(this);
+        addChild(label);
       }
     }
     

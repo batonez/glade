@@ -12,9 +12,37 @@ class Layout;
 // TODO Бесконечная рекурсия при попытке смены фокуса, когда focusable элементов вообще нет
 class Widget : public GladeObject
 {
+// Tree functions
   public:
-    typedef std::list<Widget*> Widgets;
-    typedef Widgets::iterator  WidgetsI;
+    typedef std::list<Widget*> Children;
+    typedef Children::iterator ChildrenI;
+
+    class WalkFunctor
+    {
+      public:
+        virtual void operator()(Widget &widget) = 0;
+    };
+    
+    static void walkDepthFirstPostfix(Widget &widget, WalkFunctor &func)
+    {
+      ChildrenI child = widget.getChildren()->begin();
+          
+      while (child != widget.getChildren()->end()) {
+        walkDepthFirstPostfix(**child, func);
+        ++child;
+      }
+      
+      func(widget);
+    }
+    
+  private:
+    Children  children;
+ 
+  public:
+    void addChild(Widget *child) { children.push_back(child); }
+    Children* getChildren() { return &children; }
+// End of tree functions
+
 
   protected:
     bool focusable;
@@ -22,11 +50,7 @@ class Widget : public GladeObject
   private:
     typedef GladeObject super;
     
-    Widgets children;
-	  Widget* parent;
 	  Layout &layout;
-	  WidgetsI focusIterator;
-	  Widget* breadCrumb;
 	  Drawables unfocusedViews;
 	  Drawables focusedViews;
 	  bool focused;
@@ -38,19 +62,8 @@ class Widget : public GladeObject
     Widget(Layout &layout):
       focused(false),
       focusable(true),
-      layout(layout),
-      parent(NULL),
-      breadCrumb(NULL)
+      layout(layout)
     {
-    }
-    
-    void setEnabled(bool enable)
-    {
-      super::setEnabled(enable);
-      
-      for (WidgetsI child = children.begin(); child != children.end(); ++child) {
-        (*child)->setEnabled(enable);
-      }
     }
     
     void addFocusedView(Drawable* view)
@@ -84,7 +97,7 @@ class Widget : public GladeObject
     Widget* getWidgetAtPoint(float x, float y)
     {
       if (isPointInside(x, y)) {
-        WidgetsI child = children.begin();
+        ChildrenI child = children.begin();
         Widget* result;
         
         while (child != children.end()) { // FIXME Если виджеты наслаиваются друг на друга, то порядок обхода может быть неверным
@@ -107,7 +120,6 @@ class Widget : public GladeObject
     
     void setFocused(bool focused)
     {
-      
       for (DrawablesI drawable = focusedViews.begin(); drawable != focusedViews.end(); ++drawable) {
         toggleView(**drawable, focused);
       }
@@ -134,203 +146,6 @@ class Widget : public GladeObject
       return &layout;
     }
     
-    void setParent(Widget* widget)
-    {
-      if (parent != NULL) {
-        parent->getChildren()->remove(this);
-      }
-      
-      if (widget != NULL) {
-        widget->getChildren()->push_back(this);
-      }
-      
-      parent = widget;
-    }
-    
-    Widget* getParent()
-    {
-      return parent;
-    }
-    
-    Widget* getFocusedElement()
-    {
-      if (breadCrumb == NULL) {
-        return NULL;
-      }
-      
-      if (breadCrumb == this) {
-        return this;
-      }
-      
-      return breadCrumb->getFocusedElement();
-    }
-    
-    /**
-     * Если пройдены все потомки - breadCrumb ставится в null, и возвращается false
-     */
-    bool focusNextDescendant()
-    {
-      log("A");
-      // снимаем флаг фокуса с текущего сфокусированного элемента (ищем его от корня)
-      if (getParent() == NULL) {
-        Widget* focusedElement = getFocusedElement();
-        
-        if (focusedElement != NULL) {
-          focusedElement->setFocused(false);
-        }
-      }
-      log("B");
-      bool result = true;
-      
-      // Если сфокусированный элемент - этот, то на этом шаге фокус просто убирается и родитель оповещается что в этой ветке элементы закончились
-      if (breadCrumb == this) {
-        breadCrumb = NULL;
-        log("C");
-        // если это корневой элемент - делаем еще одну итерацию (чтобы не случилось так что ни один элемент дерева не имеет фокус)
-        if (getParent() == NULL) {
-          focusNextDescendant();
-        }
-        
-        result = false;
-      } else {
-        // Если фокус был не в нашей ветке, значит нужно создать новый итератор для обхода нашей ветки
-        if (breadCrumb == NULL || focusIterator == children.end()) {
-          focusIterator = children.begin();
-        }
-        
-        // пробуем переключить фокус у первого прямого потомка. Если потомок возвращает false (т.е. у него закончились его потомки), то пробуем следующего
-        while (breadCrumb == NULL || !breadCrumb->focusNextDescendant()) {
-          if (focusIterator == children.end()) {
-            log("H");
-            if (!isFocusable()) { // если этот элемент не фокусируемый, то в этой ветке больше нечего фокусировать, оповещаем об этом вызвавшего родителя
-              breadCrumb = NULL;
-              
-              if (getParent() == NULL) {
-                focusNextDescendant();
-              }
-              
-              result = false;
-            } else { // если этот элемент фокусируемый - фокусируем его
-              breadCrumb = this;
-              result = true;
-            }
-            
-            break;
-          }
-          
-          log("F");
-          Widget* newBreadCrumb = *focusIterator;
-          log("F1");
-          if (breadCrumb != NULL && breadCrumb == newBreadCrumb) {
-            log("F2");
-            ++focusIterator;
-            
-            if (focusIterator != children.end()) {
-              log("F3");
-              newBreadCrumb = *focusIterator;
-            }
-          }
-          log("G");
-          breadCrumb = newBreadCrumb;
-          
-          ++focusIterator;
-        }
-      }
-      log("I");
-      // Устанавливаем флаг фокуса на новый найденный элемент
-      if (getParent() == NULL) {
-        log("J");
-        Widget* focusedElement = getFocusedElement();
-        
-        if (focusedElement != NULL) {
-          focusedElement->setFocused(true);
-        }
-      }
-      
-      return result;
-    }
-    
-    /**
-     * Если пройдены все потомки - breadCrumb ставится в null, и возвращается false
-     */
-    bool focusPreviousDescendant()
-    {
-      if (getParent() == NULL) {
-        Widget* focusedElement = getFocusedElement();
-        
-        if (focusedElement != NULL) {
-          focusedElement->setFocused(false);
-        }
-      }
-      
-      bool result = true;
-      
-      if (breadCrumb == this) {
-        breadCrumb = NULL;
-        
-        if (getParent() == NULL) {
-          focusPreviousDescendant();
-        }
-        
-        result = false;
-      } else {
-        if (breadCrumb == NULL || focusIterator == children.begin()) {
-          focusIterator = --children.end();
-        }
-        
-        while (breadCrumb == NULL || !breadCrumb->focusPreviousDescendant()) {
-          if (focusIterator == children.begin()) {
-            log("END");
-            if (!isFocusable()) {
-              breadCrumb = NULL;
-              
-              if (getParent() == NULL) {
-                focusPreviousDescendant();
-              }
-              
-              result = false;
-            } else {
-              breadCrumb = this;
-              result = true;
-            }
-            
-            break;
-          }
-          
-          log("X");
-          
-          Widget* newBreadCrumb = *focusIterator;
-          log("Y");
-          
-          if (breadCrumb != NULL && breadCrumb == newBreadCrumb) {
-            --focusIterator;
-            
-            if (focusIterator != children.begin()) {
-              newBreadCrumb = *focusIterator;
-            }
-          }
-          
-          breadCrumb = newBreadCrumb;
-          --focusIterator;
-        }
-      }
-      
-      if (getParent() == NULL) {
-        Widget* focusedElement = getFocusedElement();
-        
-        if (focusedElement != NULL) {
-          getFocusedElement()->setFocused(true);
-        }
-      }
-      
-      return result;
-    }
-    
-    bool hasChildren()
-    {
-      return !getChildren()->empty();
-    }
-    
     bool isFocusable()
     {
       return focusable;
@@ -339,11 +154,6 @@ class Widget : public GladeObject
     void setFocusable(bool focusable)
     {
       this->focusable = focusable;
-    }
-    
-    Widgets* getChildren()
-    {
-      return &children;
     }
     
     void addOnFocusListener(Callable* listener)

@@ -22,9 +22,9 @@ class SequenceLayout : public Layout
         currentY = parentTransform->getPosition()->y + padding.x,
         currentZ = parentTransform->getPosition()->z;
       
-      Widget::Widgets* children = widget->getChildren();
+      Widget::Children* children = widget->getChildren();
       
-      for (Widget::WidgetsI child = children->begin(); child != children->end(); ++child) {
+      for (Widget::ChildrenI child = children->begin(); child != children->end(); ++child) {
         Transform* childTransform = (*child)->getTransform();
         Transform::SharedVector childScale = childTransform->getScale();
         Transform::SharedVector childPosition = childTransform->getPosition();

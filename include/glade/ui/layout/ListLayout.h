@@ -22,9 +22,9 @@ class ListLayout : public Layout
         currentY = parentPosition->y,
         currentZ = parentPosition->z;
       
-      Widget::Widgets* children = widget->getChildren();
+      Widget::Children* children = widget->getChildren();
       
-      for (Widget::WidgetsI child = children->begin(); child != children->end(); ++child) {
+      for (Widget::ChildrenI child = children->begin(); child != children->end(); ++child) {
         Transform* childTransform = (*child)->getTransform();
         Transform::SharedVector childScale = childTransform->getScale();
         Transform::SharedVector parentScale = parentTransform->getScale();

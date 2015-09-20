@@ -37,7 +37,7 @@ class GridLayout : public Layout
       
       int numberInARow = 0;
       
-      Widget::WidgetsI child = widget->getChildren()->begin();
+      Widget::ChildrenI child = widget->getChildren()->begin();
       
       while (child != widget->getChildren()->end()) {
         ++numberInARow;

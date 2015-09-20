@@ -1,7 +1,14 @@
 #pragma once
 
 #include <vector>
+
+#ifndef ANDROID
 #include "../opengl/functions.h"
+#else
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#endif
+
 #include "../math/globals.h"
 #include "../math/Vector.h"
 #include "../math/Transform.h"

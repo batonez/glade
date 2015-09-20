@@ -14,10 +14,17 @@ private:
 	
 public:
 	static float constrainAngle(float angle) { return angle < 360.0f ? angle : fmod(angle, 360.0f); }
-	Transform(void) : Transform(0, 0, 0, 0, 0, 0, 1, 1, 1) {}
+	
+  Transform(void):
+    invertor(1)
+  {
+    position.set(0, 0, 0);
+    rotation.set(0, 0, 0);
+    scale.set(1, 1, 1);
+  }
 	
 	Transform(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ) :
-  invertor(1)
+    invertor(1)
   {
 		position.set(posX, posY, posZ);
 		rotation.set(rotX, rotY, rotZ);

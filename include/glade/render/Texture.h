@@ -15,11 +15,12 @@ public:
     const float texCoordFrameHeight; // Высота кадра в координатах T
 	
 private:
-	unsigned char* data = NULL;
+	unsigned char* data;
 	int bufferId;
 	
 public:
     Texture(int texWidth, int texHeight, int numOfAnimations, int numOfFrames, std::vector<unsigned char> &textureData):
+      data(NULL),
       bufferId(-1),
       textureWidth(texWidth),
       textureHeight(texHeight),
@@ -35,7 +36,7 @@ public:
       }
         
       data = new unsigned char[textureData.size()];
-      memcpy(data, textureData.data(), textureData.size());
+      memcpy(data, &textureData[0], textureData.size());
     }
     
     ~Texture(void) {
@@ -62,10 +63,6 @@ public:
     }
     
     void setVideoBufferHandle(int bufferId) {
-      if (bufferId < 0) {
-        throw GladeException("Texture::setVideoBufferHandle(): buffer ID must be positive integer");
-      }
-		
       this->bufferId = bufferId;
     }
     

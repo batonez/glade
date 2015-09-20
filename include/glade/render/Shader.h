@@ -23,6 +23,6 @@ class Shader
     
     const char* getSource()
     {
-      return source.data();
+      return &source[0];
     }
 };

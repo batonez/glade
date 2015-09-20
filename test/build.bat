@@ -15,6 +15,7 @@ main.cpp ^
 ..\src\log\log.cpp ^
 ..\src\opengl\functions.cpp ^
 %HATCHERY_TOOLS%\lodepng\lodepng.cpp ^
+/D_USING_V110_SDK71_=1 ^
 /link /LIBPATH:"%HATCHERY_TOOLS%\Microsoft Visual Studio 12.0\VC\lib" ^
 /LIBPATH:"%HATCHERY_TOOLS%\Microsoft SDKs\Windows\v7.1A\Lib" ^
 /WX ^

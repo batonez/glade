@@ -2,9 +2,19 @@
 
 #include "../math/Vector.h"
 
-struct PhysicBody
+class PhysicBody
 {
-  Vector3f velocity;
-  Vector3f acceleration;
-  bool affectedByGravity;
+  public:
+    Vector3f velocity;
+    Vector3f maxSpeed;
+    Vector3f minSpeed;
+    
+    Vector3f acceleration;
+    Vector3f slowDown;
+    
+    bool affectedByGravity;
+    
+    PhysicBody():
+      affectedByGravity(false)
+    {}
 };

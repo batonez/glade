@@ -6,10 +6,10 @@
 
 #include "math/Transform.h"
 
-class  Behavior;
-struct PhysicBody;
-class  CollisionShape;
-class  Drawable;
+class Behavior;
+class PhysicBody;
+class CollisionShape;
+class Drawable;
 
 class GladeObject {
 public:

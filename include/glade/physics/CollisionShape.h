@@ -13,25 +13,25 @@ public:
 
 protected:
   CollisionType collisionType;
-  bool skipResolve;
   Transform transform;
 
 public:
   CollisionShape(CollisionType collisionType) :
-  collisionType(STATIC),
-  skipResolve(false) // should be in gladeobject
+    collisionType(STATIC)
   {}
 
-  virtual Vector3f testCollisionWith(
+  virtual bool testCollisionWith(
     const CollisionShape* targetShape,
     const Transform* selfTransform,
-    const Transform* targetTransform
+    const Transform* targetTransform,
+    Vector3f &overlap /*out*/
   ) const = 0;
 
-  virtual Vector3f testCollisionWith(
+  virtual bool testCollisionWith(
     const RectangleCollisionShape* targetShape,
     const Transform* selfTransform,
-    const Transform* targetTransform
+    const Transform* targetTransform,
+    Vector3f &overlap /*out*/
   ) const = 0;
 
   CollisionType getType() const

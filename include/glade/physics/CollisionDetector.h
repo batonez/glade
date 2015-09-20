@@ -16,7 +16,7 @@ class CollisionDetector
     void clear();
     void clearObjects();
     void clearListeners();
-    void detectCollisions(double deltaTime);
+    void detectCollisions(long deltaTime);
     void add(GladeObject* object);
     void remove(GladeObject* object);
     void addListener(CollisionEventListener* listener);

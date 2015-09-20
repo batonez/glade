@@ -26,7 +26,7 @@ void CollisionDetector::clearListeners()
   listeners.clear();
 }
 
-void CollisionDetector::detectCollisions(double deltaTime)
+void CollisionDetector::detectCollisions(long deltaTime)
 {
   if (paused) {
     return;
@@ -104,23 +104,30 @@ void CollisionDetector::removeListener(CollisionEventListener* listener)
 
 void CollisionDetector::detectAndDispatch(GladeObject &object1, GladeObject &object2)
 {
+  Vector3f overlap;
+  
   if (object2.isCollisionShapeEnabled()) {
-    Vector3f overlap = object1.getCollisionShape()->testCollisionWith(
+     bool collided = object1.getCollisionShape()->testCollisionWith(
       object2.getCollisionShape(),
       object1.getTransform(),
-      object2.getTransform()
+      object2.getTransform(),
+      overlap
     );
+    
+    if (collided) {
+      CollisionEvent collisionEvent(&object1, &object2, overlap);
+    
+      log("COLLISION DETECTED: overlap is (%3.3f, %3.3f, %3.3f)", overlap.x, overlap.y, overlap.z);
 
-    CollisionEvent collisionEvent(&object1, &object2, overlap);
+      std::vector<CollisionEventListener*>::iterator i = listeners.begin();
 
-    std::vector<CollisionEventListener*>::iterator i = listeners.begin();
+      while (i != listeners.end()) {
+        if ((*i)->onCollision(collisionEvent)) {
+          break;
+        }
 
-    while (i != listeners.end()) {
-      if ((*i)->onCollision(collisionEvent)) {
-        break;
+        ++i;
       }
-
-      ++i;
     }
   }
 }

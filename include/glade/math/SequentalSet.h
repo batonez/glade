@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <algorithm>
-#include <glade/log/log.h>
+#include <glade/debug/log.h>
 
 template <class ValueType>
 class SequentalSet

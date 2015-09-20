@@ -75,7 +75,7 @@ class Path
       return pathString < other.pathString;
     }
     
-    std::string toString()
+    std::string toString() const
     {
       return pathString;
     }

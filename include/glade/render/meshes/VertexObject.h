@@ -1,7 +1,7 @@
 #pragma once
 
 #include <assert.h>
-#include "glade/log/log.h"
+#include "glade/debug/log.h"
 
 class VertexObject {
   public:

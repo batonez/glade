@@ -1,7 +1,7 @@
 #include <math.h>
 #include <assert.h>
 
-#include "glade/log/log.h"
+#include "glade/debug/log.h"
 #include "glade/math/util.h"
 #include "glade/math/Matrix.h"
 #include "glade/ui/Widget.h"

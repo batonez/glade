@@ -1,5 +1,5 @@
 #include <glade/GladeObject.h>
-#include <glade/log/log.h>
+#include <glade/debug/log.h>
 #include <glade/exception/GladeException.h>
 
 GladeObject::GladeObject(void):

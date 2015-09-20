@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-#include <glade/log/log.h>
+#include <glade/debug/log.h>
 #include <glade/exception/GladeException.h>
 
 class ShaderProgram

@@ -1,5 +1,5 @@
 #include <glade/util/AndroidFileManager.h>
-#include <glade/log/log.h>
+#include <glade/debug/log.h>
 #include <glade/util/Path.h>
 #include <glade/exception/GladeFileNotFoundException.h>
 
@@ -17,7 +17,6 @@ void AndroidFileManager::getFileContents(const Path &relative_path, std::ifstrea
 
 void AndroidFileManager::getFileContents(const Path &relative_path, std::vector<char> &result, bool binary_mode) const
 {
-  log("READING.. %s", relative_path.cString());
   AAsset* asset = AAssetManager_open(androidAssetManager, relative_path.cString(), AASSET_MODE_STREAMING);
 
   if (asset == NULL) {
@@ -36,7 +35,6 @@ void AndroidFileManager::getFileContents(const Path &relative_path, std::vector<
 
 void AndroidFileManager::getFileContents(const Path &relative_path, std::vector<unsigned char> &result, bool binary_mode) const
 {
-  log("READING.. %s", relative_path.cString());
   AAsset* asset = AAssetManager_open(androidAssetManager, relative_path.cString(), AASSET_MODE_STREAMING);
   
   if (asset == NULL) {

@@ -13,6 +13,7 @@
 #include "physics/CollisionDetector.h"
 #include "ai/AiContainer.h"
 #include "Timer.h"
+#include "debug/log.h"
 //#include "#audio/SoundPlayer.h"
 
 class Context {

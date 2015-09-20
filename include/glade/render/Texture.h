@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "../exception/GladeException.h"
-#include "../log/log.h"
+#include "../debug/log.h"
 
 class Texture {
 public:

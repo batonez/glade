@@ -133,16 +133,10 @@ class TextureTransform {
       return currentAnimationNumber;
     }
     
-    void flipTextureHorizontally(void) {
-       if (!isFlippedHorizontally()) {
+    void flipTextureHorizontally(bool flip_param) {
+       if (isFlippedHorizontally() != flip_param) {
          textureScaleX = -textureScaleX;
        }
-    }
-    
-    void unflipTextureHorizontally(void) {
-      if (isFlippedHorizontally()) {
-        textureScaleX = -textureScaleX;
-      }
     }
     
     bool isFlippedHorizontally(void) {

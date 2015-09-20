@@ -1,7 +1,7 @@
 #include <glade/util/DesktopFileManager.h>
 #include <glade/exception/GladeException.h>
 #include <glade/exception/GladeFileNotFoundException.h>
-#include <glade/log/log.h>
+#include <glade/debug/log.h>
 
 #include <string>
 #include <fstream>
@@ -24,7 +24,6 @@ void DesktopFileManager::getFileContents(const Path &relative_path, std::ifstrea
 
   if (!result.good()) {
     // TODO make GladeException to recieve varargs just like log
-    log("Error: FileManager::getFileContents: Could not open file %s", absolutePath.cString());
     throw GladeFileNotFoundException("Error: FileManager::getFileContents: Could not open file");
   }
 }

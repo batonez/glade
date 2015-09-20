@@ -96,6 +96,18 @@ class Path
       }
     }
     
+    void append(Path &other)
+    {
+      pathString.append(1, DIRECTORY_SEPARATOR);
+      pathString.append(other.cString());
+    }
+    
+    void append(const char *string)
+    {
+      pathString.append(1, DIRECTORY_SEPARATOR);
+      pathString.append(string);
+    }
+    
   private:
     void normalize()
     {

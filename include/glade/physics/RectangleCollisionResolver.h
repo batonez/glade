@@ -27,9 +27,6 @@ class RectangleCollisionResolver: public CollisionEventListener
       
       determinePushDirections(collisionEvent);
       
-      log(">> FIRST OBJECT IS %s", collisionEvent.firstObject->getName()->c_str());
-      log(">> FIRST OBJECT IS %s", collisionEvent.secondObject->getName()->c_str());
-      
       if (axis == HORIZONTAL) {
         if (firstColShape->getType() == CollisionShape::STATIC) {
           secondCorrection.x = distance * direction;

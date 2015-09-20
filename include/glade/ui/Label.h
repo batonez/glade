@@ -2,7 +2,6 @@
 
 #include "Widget.h"
 #include "font/BitmapFont.h"
-#include "font/FreetypeFont.h"
 #include "layout/CenterLayout.h"
 
 extern Glade::ResourceManager *resource_manager;

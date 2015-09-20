@@ -515,7 +515,7 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
     checkGLError();
   }
   
-  Texture *texture = (*di)->getTexture().get();
+  std::shared_ptr<Texture> texture = (*di)->getTexture();
   
   if (texture != nullptr) {
     if (texture->hasVideoBufferHandle()) {
@@ -539,7 +539,6 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
         checkGLError();
       }
       
-      
       glVertexAttribPointer(
         aTexCoord, TEXCOORD_SIZE_FLOATS,
         GL_FLOAT, GL_FALSE,
@@ -550,7 +549,6 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
         checkGLError();
       }
       
-            
       glEnableVertexAttribArray(aTexCoord);
     }
   }

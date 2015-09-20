@@ -5,7 +5,7 @@
 
 class TextureTransform {
   public:
-    //FIXMEE!
+    // FIXME do we really need this decorator architecture?
     class AnimationCallback: public Callable
     {
       public:
@@ -31,7 +31,9 @@ class TextureTransform {
         
         virtual void call()
         {
-          callable->call();
+          if (callable) {
+            callable->call();
+          }
         }
         
         virtual void call(TextureTransform &textureTransform) { call(); }
@@ -65,24 +67,28 @@ class TextureTransform {
     {}
   
     void executeCallbacks(void)
-    {/*
+    {
       // Executing frame and time hooked callbacks 
-      for (Callbacks::iterator i = callbacks.begin(); i != callbacks.end(); ++i) {
+      Callbacks::iterator i = callbacks.begin();
+      
+      while (i != callbacks.end()) {
         if ((*i)->getTriggeringFrame() == currentFrameNumber) {
           (*i)->call(*this);
+          delete *i;
           callbacks.erase(i);
-        }
-        
-        if (timer.getDeltaTime() == (*i)->getTriggeringTime()) {
+        } else if (timer.getDeltaTime() == (*i)->getTriggeringTime()) {
           (*i)->call(*this);
+          delete *i;
           callbacks.erase(i);
+        } else {
+          ++i;
         }
-      }*/
+      }
     }
   
-    void animate(int numberOfAnimation, float animationTime, bool repeat, bool forceZeroFrame = false)
+    void animate(int numberOfAnimation, float animationTime, bool repeat, bool forceStartFromZeroFrame = false)
     {
-      if (currentAnimationNumber != numberOfAnimation || forceZeroFrame) {
+      if (currentAnimationNumber != numberOfAnimation || forceStartFromZeroFrame) {
         setCurrentAnimationNumber(numberOfAnimation);
         setCurrentFrameNumber(0);
       }
@@ -90,6 +96,7 @@ class TextureTransform {
       this->animationTime = animationTime;
       this->repeat = repeat;
       animating = true;
+      timer.reset();
       timer.unpause();
     }
     
@@ -98,6 +105,7 @@ class TextureTransform {
       if (freeze) {
         timer.pause();
       } else {
+        timer.reset();
         timer.unpause();
       }
     }
@@ -159,21 +167,21 @@ class TextureTransform {
     }
   
     void addAnimationCallback(AnimationCallback *callback) {
-      //callbacks.push_back(callback);
+      callbacks.push_back(callback);
     }
   
-    //void removeAnimationCallback(AnimationCallback callback) {
-     // callbacks.erase(callback);
+    //void removeAnimationCallback(AnimationCallback *callback) {
+    //  callbacks.erase(callback);
     //}
     
     void removeAnimationCallbacks(void) {
-     // callbacks.clear();
+      callbacks.clear();
     }
     
 protected:
   void changeTextureFrames(Texture &texture) {
-      if (timer.getDeltaTime() > animationTime / texture.numberOfFrames) {
-      if (currentFrameNumber >= texture.numberOfFrames - 1) {
+      if (timer.getDeltaTime() > animationTime / (float) texture.numberOfFrames) {
+        if (currentFrameNumber >= texture.numberOfFrames - 1) {
           if (repeat) {
             currentFrameNumber = 0;
           } else {

@@ -3,11 +3,14 @@
 #include <string>
 #include <map>
 
+#include <glade/log/log.h>
+#include <glade/exception/GladeException.h>
+
 class ShaderProgram
 {
   private:
     std::map<std::string, unsigned> uniformHandles;
-    
+
   public:
     int     gpuHandle;
     
@@ -21,7 +24,12 @@ class ShaderProgram
     
     unsigned getUniformHandle(const std::string &name) const
     {
-      return uniformHandles.at(name);
+      try {
+        unsigned handle = uniformHandles.at(name);
+      } catch (std::out_of_range &e) {
+        log("There is no uniform '%s' in the shader", name.c_str());
+        throw GladeException("There is no uniform in the shader");
+      }
     }
     
     void saveUniformHandle(const std::string &name, unsigned handle)
@@ -40,3 +48,4 @@ class ShaderProgram
       return gpuHandle >= 0;
     }
 };
+

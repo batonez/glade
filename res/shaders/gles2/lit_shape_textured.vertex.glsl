@@ -17,6 +17,7 @@ attribute vec4  aPosition;
 attribute vec3  aNormal;
 attribute vec2  aTexCoord0;
 
+varying vec2    vTexCoord0;
 varying vec4    vColor;
 
 vec4 calculateLight(vec3 normal) {
@@ -39,8 +40,9 @@ vec4 calculateLight(vec3 normal) {
 
 void main(void) {
   gl_Position = uProjectionMatrix * uWorldViewMatrix * aPosition;
+  vTexCoord0 = aTexCoord0;
 
-  vec4 rotatedNormal = normalize(uWorldViewMatrix * vec4(aNormal.xyz, ZERO));
+  vec4 rotatedNormal = normalize(uWorldViewMatrix * vec4(aNormal, 0));
   vColor = calculateLight(rotatedNormal.xyz);
 }
 

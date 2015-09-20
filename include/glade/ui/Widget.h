@@ -48,7 +48,10 @@ class Widget : public GladeObject
   
   public:
     Widget(Layout::Unique &layout);
+    Widget();
     
+    void setLayout(Layout::Unique &layout);
+
     void addFocusedView(Drawable* view) {
       addDrawable(view);
       toggleView(*view, focused);

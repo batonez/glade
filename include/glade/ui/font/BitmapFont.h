@@ -12,8 +12,6 @@
 #include "glade/render/meshes/Rectangle.h"
 #include "glade/render/Drawable.h"
 
-extern Glade::ResourceManager *resource_manager;
-
 class BitmapFont
 {
   private:
@@ -98,7 +96,7 @@ class BitmapFont
         rectangle->getTextureTransform()->setCurrentFrameWidth(glyphWidth);
         rectangle->getTextureTransform()->setCurrentFrameHeight(glyphHeight);
         
-        text->insert(rectangle);
+        text->push_back(rectangle);
       }
 
       return text;

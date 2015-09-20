@@ -52,10 +52,10 @@ std::shared_ptr<ShaderProgram> Glade::ResourceManager::getShaderProgram(const Pa
 Path Glade::ResourceManager::getShadersSubfolder() const
 {
   switch (GLADE_VIDEO_DRIVER) {
-    case VIDEO_DRIVER_OPENGL3:
-      return Path("shaders/gl");
     case VIDEO_DRIVER_OPENGLES2:
       return Path("shaders/gles2");
+    default: // VIDEO_DRIVER_OPENGL3
+      return Path("shaders/gl");
   }
 }
 

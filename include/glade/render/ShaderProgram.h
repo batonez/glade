@@ -24,12 +24,16 @@ class ShaderProgram
     
     unsigned getUniformHandle(const std::string &name) const
     {
+      unsigned handle = 0;
+      
       try {
-        unsigned handle = uniformHandles.at(name);
+        handle = uniformHandles.at(name);
       } catch (std::out_of_range &e) {
         log("There is no uniform '%s' in the shader", name.c_str());
         throw GladeException("There is no uniform in the shader");
       }
+      
+      return handle;
     }
     
     void saveUniformHandle(const std::string &name, unsigned handle)

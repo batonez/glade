@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string.h>
-#include <set>
+#include <vector>
 #include <map>
 
 #include "math/Transform.h"
@@ -13,7 +13,7 @@ class Drawable;
 
 class GladeObject {
 public:
-  typedef std::set<Drawable*>    Drawables;
+  typedef std::vector<Drawable*>    Drawables;
   typedef Drawables::iterator    DrawablesI;
 
   class Comparator

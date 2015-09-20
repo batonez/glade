@@ -55,13 +55,13 @@ class Widget : public GladeObject
     void addFocusedView(Drawable* view) {
       addDrawable(view);
       toggleView(*view, focused);
-      focusedViews.insert(view);
+      focusedViews.push_back(view);
     }
     
     void addUnfocusedView(Drawable* view) {
       addDrawable(view);
       toggleView(*view, !focused);
-      unfocusedViews.insert(view);
+      unfocusedViews.push_back(view);
     }
 
     Layout::Unique* getLayout() { return &layout; }

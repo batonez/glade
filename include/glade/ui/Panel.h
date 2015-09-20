@@ -8,14 +8,12 @@ class Layout;
 class Panel : public Widget
 {
   public:  
-    Panel(Layout::Unique &layout): Widget(layout)
+    Panel(Layout::Unique &layout) : Widget(layout)
     {
       setFocusable(false);
     }
   
-    Panel(): Widget()
+    Panel() : Panel(Layout::Unique(new CenterLayout()))
     {
-      Layout::Unique layout(new CenterLayout());
-      setLayout(layout);
     }
 };

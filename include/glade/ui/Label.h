@@ -10,14 +10,12 @@ class Label : public Widget
     std::string text;
     
   public:
-    Label(const std::string &string, std::shared_ptr<BitmapFont> &font, float r = 0.0f, float g = 0.0f, float b = 0.0f): Widget()
+    Label(std::string &string, BitmapFont &font, float r = 0.0f, float g = 0.0f, float b = 0.0f) : Widget(Layout::Unique(new CenterLayout()))
     {
-      Layout::Unique layout(new CenterLayout());
-      setLayout(layout);
-      
       setFocusable(false);
-      addDrawables(*font->createDrawablesForString(string));
-      getTransform()->getScale()->set(font->getStringWidth(string), font->getFontSize(), 1);
+
+      addDrawables(*font.createDrawablesForString(string));
+      getTransform()->getScale()->set(font.getStringWidth(string), font.getFontSize(), 1);
       setTextColor(r, g, b);
 
       text = string;

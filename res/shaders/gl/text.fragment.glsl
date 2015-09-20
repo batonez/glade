@@ -7,5 +7,4 @@ void main(void)
 {
   vec4 texColor = texture2D(uTextureSampler0, vTexCoord0);
   gl_FragColor = vec4(uColor.rgb, texColor.a);
-}
-
+};

@@ -11,21 +11,22 @@ class Button : public Widget
     Label* label;
   
   public:
-    Button(): Widget(),
-      label(NULL)
+    Button() : Button(NULL, NULL)
     {
-      initialize();
     }
-
-    Button(const std::string &text, std::shared_ptr<BitmapFont> &font): Widget(),
+      
+    Button(std::string *text, BitmapFont *font) : Widget(Layout::Unique(new CenterLayout())),
       label(NULL)
     {
-      initialize();
-      label = new Label(text, font);
+      setFocusable(true);
       
-      getTransform()->getScale()->x = label->getTransform()->getScale()->x;
-      getTransform()->getScale()->y = label->getTransform()->getScale()->y;
-      addChild(label);
+      if (font != NULL) {
+        label = new Label(*text, *font);
+        
+        getTransform()->getScale()->x = label->getTransform()->getScale()->x;
+        getTransform()->getScale()->y = label->getTransform()->getScale()->y;
+        addChild(label);
+      }
     }
     
     virtual ~Button()
@@ -38,14 +39,5 @@ class Button : public Widget
     Label* getLabel()
     {
       return label;
-    }
-
-  private:
-    void initialize()
-    {
-      Layout::Unique layout(new CenterLayout());
-      setLayout(layout);
-
-      setFocusable(true);
     }
 };

@@ -1,8 +1,7 @@
-#include <assert.h>
 #include "glade/ui/layout/Layout.h"
 #include "glade/ui/Widget.h"
 
-void Layout::rescaleChildrenOf(Widget* widget) const
+void Layout::rescaleChildrenOf(Widget* widget)
 {
   Widget::Children* children = widget->getChildren();
   
@@ -14,10 +13,8 @@ void Layout::rescaleChildrenOf(Widget* widget) const
 }
 
 /** Возвращает true если в результате были расчитаны оба размера X и Y. Если был расчитан только X - возвращает false */
-bool Layout::rescaleX(Widget* widget, Widget* hisParent) const
+bool Layout::rescaleX(Widget* widget, Widget* hisParent)
 {
-  assert(widget->getLayout() != nullptr);
-
   float horizontalSize = widget->getLayout()->get()->getHorizontalSizePercent();
   bool result = false;
   
@@ -38,10 +35,8 @@ bool Layout::rescaleX(Widget* widget, Widget* hisParent) const
 }
 
 /** Возвращает true если в результате были расчитаны оба размера X и Y. Если был расчитан только Y - возвращает false */
-bool Layout::rescaleY(Widget* widget, Widget* hisParent) const
+bool Layout::rescaleY(Widget* widget, Widget* hisParent)
 {
-  assert(widget->getLayout() != nullptr);
-
   float verticalSize = widget->getLayout()->get()->getVerticalSizePercent();
   bool result = false;
   

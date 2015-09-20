@@ -51,7 +51,7 @@ class Layout
     {
     }
 
-    virtual void calculateTransformsForDirectChildrenOf(Widget* widget) const  = 0;
+    virtual void calculateTransformsForDirectChildrenOf(Widget* widget) = 0;
 
     void setVerticalAlign(VerticalAlign verticalAlign)
     {
@@ -63,7 +63,7 @@ class Layout
       this->horizontalAlign = horizontalAlign;
     }
 
-    const Vector4f* getPadding() const
+    Vector4f* getPadding()
     {
       return &padding;
     }
@@ -73,7 +73,7 @@ class Layout
       padding.set(top, right, bottom, left);
     }
 
-    const Vector4f* getMargin() const
+    Vector4f* getMargin()
     {
       return &margin;
     }
@@ -83,7 +83,7 @@ class Layout
       margin.set(top, right, bottom, left);
     }
 
-    float getHorizontalSizePercent() const
+    float getHorizontalSizePercent()
     {
       return horizontalSizePercent;
     }
@@ -93,7 +93,7 @@ class Layout
       this->horizontalSizePercent = horizontalSize;
     }
 
-    float getVerticalSizePercent() const
+    float getVerticalSizePercent()
     {
       return verticalSizePercent;
     }
@@ -136,17 +136,17 @@ class Layout
       this->verticalSizeType = sizeType;
     }
 
-    SizeType getVerticalSizeType() const
+    SizeType getVerticalSizeType()
     {
       return verticalSizeType;
     }
 
   protected:
-    void rescaleChildrenOf(Widget* widget) const;
+    void rescaleChildrenOf(Widget* widget);
 
     /** Возвращает true если в результате были расчитаны оба размера X и Y. Если был расчитан только X - возвращает false */
-    bool rescaleX(Widget* widget, Widget* hisParent) const;
+    bool rescaleX(Widget* widget, Widget* hisParent);
 
     /** Возвращает true если в результате были расчитаны оба размера X и Y. Если был расчитан только Y - возвращает false */
-    bool rescaleY(Widget* widget, Widget* hisParent) const;
+    bool rescaleY(Widget* widget, Widget* hisParent);
 };

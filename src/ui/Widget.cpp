@@ -39,24 +39,12 @@ Widget::Widget(Layout::Unique &layout): GladeObject(),
   focused(false),
   focusable(true)
 {
-  setLayout(layout);
-}
-
-Widget::Widget(): GladeObject(),
-  focused(false),
-  focusable(true)
-{}
-
-
-void Widget::setLayout(Layout::Unique &layout)
-{
   if (layout.get() == nullptr) {
     throw GladeException("Layout for widget cannot be null");
   }
   
   this->layout = std::move(layout);
 }
-
 
 bool Widget::isPointInside(float x, float y)
 {

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <algorithm>
+#include <fstream> // crap, move to resourcemanager
 #include <memory>
 
 #include "glade/render/Texture.h"
@@ -22,29 +23,69 @@ class BitmapFont
     int cellWidth, cellHeight;
     int firstGlyphAsciiCode;
     int glyphHeight;
+    std::vector<int> glyphWidths;
+    int numberOfGlyphsInARow;
 
      // Desired result font height in screen coordinates
     float fontSize;
     
   public:
-    //FIXME should be private
-    std::vector<int> glyphWidths;
-    int numberOfGlyphsInARow;
-    
-    BitmapFont(std::shared_ptr<Texture> &atlas, int cell_width, int cell_height):
-      fontSize(1),
-      atlas(atlas),
-      cellWidth(cell_width),
-      cellHeight(cell_height)
+    // TODO move loading into resource manager
+    BitmapFont(const char* atlas_filename, const char* csv_filename, std::shared_ptr<ShaderProgram> &shader_program):
+      fontSize(1)
     {
-    }
-
-    void setShaderProgram(std::shared_ptr<ShaderProgram> &shader_program)
-    {
+      if (atlas_filename == NULL || csv_filename == NULL || shader_program.get() == nullptr) {
+        throw GladeException("Provided atlas data or CSV data is NULL");
+      }
+      
       shaderProgram = shader_program;
+      
+      std::ifstream csvInput(csv_filename);
+      std::vector<std::vector<std::string> > parsedCsv;
+      CSVReader::read(csvInput, parsedCsv);
+      
+      int declaredAtlasWidth  = ::atoi(parsedCsv[0][1].c_str());
+      int declaredAtlasHeight = ::atoi(parsedCsv[1][1].c_str());
+      cellWidth               = ::atoi(parsedCsv[2][1].c_str());
+      cellHeight              = ::atoi(parsedCsv[3][1].c_str());
+      
+      numberOfGlyphsInARow    = declaredAtlasWidth / cellWidth;
+      
+      atlas = resource_manager->getTexture(atlas_filename, cellWidth, cellHeight);
+            
+      if (declaredAtlasWidth != atlas->textureWidth) {
+        throw GladeException("CSV data doesn't match atlas data");
+      }
+      
+      if (declaredAtlasHeight != atlas->textureHeight) {
+        throw GladeException("CSV data doesn't match atlas data");
+      }
+      
+      if (cellWidth == 0 || cellHeight == 0 || atlas == NULL || cellWidth > atlas->textureWidth || cellHeight > atlas->textureHeight) {
+        throw GladeException("Invalid values for BitmapFont constructor");
+      }
+      
+      glyphWidths.resize(256, cellWidth);
+      
+      this->setFirstGlyphAsciiCode((unsigned char) ::atoi((parsedCsv[4][1].c_str())));
+      
+      this->setGlyphHeight(::atoi(parsedCsv[6][1].c_str()));
+      
+      for (int i = 8; i < parsedCsv.size(); ++i) {
+        std::string paramName = parsedCsv[i][0];
+        std::transform(paramName.begin(), paramName.end(), paramName.begin(), ::tolower);
+        
+        if (paramName.compare(0, 4, "char") == 0) {
+          if (paramName.find("base width") != std::string::npos) {
+            unsigned char extractedAsciiCode = extractAsciiCode(paramName);
+            
+            this->setGlyphWidth(extractedAsciiCode, ::atoi(parsedCsv[i][1].c_str()));
+          }
+        }
+      }
     }
     
-    unsigned getGlyphIndexForAsciiCode(unsigned char asciiCode) const
+    unsigned getGlyphIndexForAsciiCode(unsigned char asciiCode)
     {
       unsigned glyphIndex = asciiCode - firstGlyphAsciiCode;
       
@@ -55,7 +96,7 @@ class BitmapFont
       return glyphIndex;
     }
     
-    Vector2i getGlyphPositionForIndex(int glyphIndex) const
+    Vector2i getGlyphPositionForIndex(int glyphIndex)
     {
       Vector2i position;
       
@@ -70,7 +111,7 @@ class BitmapFont
     }
     
     // Should be manually freed after use
-    GladeObject::Drawables* createDrawablesForString(const std::string &string)
+    GladeObject::Drawables* createDrawablesForString(std::string &string)
     {
       GladeObject::Drawables* text = new GladeObject::Drawables(); 
       Drawable* rectangle = NULL;
@@ -104,7 +145,7 @@ class BitmapFont
       return text;
     }
     
-    float getStringWidth(const std::string &string) const
+    float getStringWidth(const std::string &string)
     {
       float stringWidth = 0;
       
@@ -120,27 +161,27 @@ class BitmapFont
       return atlas;
     }
     
-    int getCellWidth() const
+    int getCellWidth()
     {
       return cellWidth;
     }
     
-    int getCellHeight() const
+    int getCellHeight()
     {
       return cellHeight;
     }
     
-    int getGlyphWidth(unsigned char asciiCode) const
+    int getGlyphWidth(unsigned char asciiCode)
     {
       return glyphWidths[asciiCode];
     }
     
-    int getGlyphHeight() const
+    int getGlyphHeight()
     {
       return glyphHeight;
     }
     
-    int getNumberOfChars() const
+    int getNumberOfChars()
     {
       return glyphWidths.size();
     }
@@ -150,13 +191,13 @@ class BitmapFont
       this->fontSize = fontSize;
     }
     
-    float getFontSize() const
+    float getFontSize()
     {
       return fontSize;
     }
 
-  //private: FIXME should be really private
-    unsigned char extractAsciiCode(const std::string &paramName) const
+  private:
+    unsigned char extractAsciiCode(const std::string &paramName)
     {
       size_t start = paramName.find(' ');
       size_t end   = paramName.find(' ', start + 1);

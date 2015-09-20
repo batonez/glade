@@ -8,7 +8,7 @@
 class SequenceLayout : public Layout
 {
   public:
-    virtual void calculateTransformsForDirectChildrenOf(Widget* widget) const
+    virtual void calculateTransformsForDirectChildrenOf(Widget* widget)
     {
       rescaleChildrenOf(widget);
       

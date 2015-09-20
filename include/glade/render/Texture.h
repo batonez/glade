@@ -36,11 +36,29 @@ public:
       if (texWidth <= 0 || texHeight <= 0 || numberOfAnimations <= 0 || numberOfFrames <= 0) {
          throw GladeException("Texture::Texture(): Incorrect parameters for texture constructor method");
       }
-        
-      data = new unsigned char[textureData.size()];
-      memcpy(data, &textureData[0], textureData.size());
+      
+      setData(&textureData[0], textureData.size());
     }
     
+    Texture(int texWidth, int texHeight, int numOfAnimations, int numOfFrames, unsigned char *textureData, unsigned int size):
+      data(NULL),
+      bufferId(-1),
+      textureWidth(texWidth),
+      textureHeight(texHeight),
+      numberOfFrames(numOfFrames),
+      numberOfAnimations(numOfAnimations),
+      frameWidth((float) textureWidth / (float) numberOfFrames),
+      frameHeight((float) textureHeight / (float) numberOfAnimations),
+      texCoordFrameWidth(1 / (float) numberOfFrames),
+      texCoordFrameHeight(1 / (float) numberOfAnimations)
+    {
+      if (texWidth <= 0 || texHeight <= 0 || numberOfAnimations <= 0 || numberOfFrames <= 0) {
+         throw GladeException("Texture::Texture(): Incorrect parameters for texture constructor");
+      }
+      
+      setData(textureData, size);
+    }
+        
     ~Texture(void) {
       erase();
     }
@@ -54,7 +72,7 @@ public:
     }
     
     void erase() {
-      log("Not erasing texture for debug purposes");
+      log("Not erasing texture for debug purposes (THIS IS MEMORY LEAK!)"); // FIXME
       //if (data != NULL) {
       //  delete [] data;
       //  data = NULL;
@@ -76,5 +94,12 @@ public:
 private:
   bool isPowerOfTwo(int x) {
       return (x <= 0) ? false : (x & (x - 1)) == 0;    
+  }
+  
+  void setData(const unsigned char * input_data, unsigned int size)
+  {
+    erase();
+    data = new unsigned char[size];
+    memcpy(data, input_data, size);
   }
 };

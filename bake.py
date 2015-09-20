@@ -8,7 +8,7 @@ os.path.join(os.environ['HATCHERY_TOOLS'], 'OpenGL', 'include'),
 os.path.join(os.environ['HATCHERY_TOOLS'], 'freetype-2.5.5', 'include', 'freetype2'),
 os.path.join(os.environ['HATCHERY_TOOLS'], 'freetype-2.5.5', 'include'),
 os.path.join(os.environ['HATCHERY_SOURCES'], 'Gladen', 'include'),
-os.path.join(os.environ['HATCHERY_SOURCES'], 'lodepng', 'include'),
+os.path.join(os.environ['HATCHERY_SOURCES'], 'lodepng'),
 ])
 
 baker.compilerSources = [

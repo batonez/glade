@@ -17,7 +17,7 @@ protected:
 
 public:
   CollisionShape(CollisionType collisionType) :
-    collisionType(STATIC)
+    collisionType(collisionType)
   {}
 
   virtual bool testCollisionWith(

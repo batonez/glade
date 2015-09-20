@@ -1,11 +1,14 @@
 #pragma once
 
-#include "CollisionShape::h"
-#include "RectangleCollisionShape::h"
+#include "CollisionShape.h"
+#include "RectangleCollisionShape.h"
 #include "CollisionEvent.h"
 #include "CollisionEventListener.h"
+#include "PhysicBody.h"
+#include <glade/math/vector.h>
+#include <glade/debug/log.h>
 
-class RectangleCollisionResolver : CollisionEventListener
+class RectangleCollisionResolver: public CollisionEventListener
 {
   private:
     static const char HORIZONTAL = 0, VERTICAL = 1;
@@ -24,18 +27,21 @@ class RectangleCollisionResolver : CollisionEventListener
       
       determinePushDirections(collisionEvent);
       
+      log(">> FIRST OBJECT IS %s", collisionEvent.firstObject->getName()->c_str());
+      log(">> FIRST OBJECT IS %s", collisionEvent.secondObject->getName()->c_str());
+      
       if (axis == HORIZONTAL) {
         if (firstColShape->getType() == CollisionShape::STATIC) {
           secondCorrection.x = distance * direction;
           
-          if (secondObject.getPhysicBody()->velocity->x < 0) {
-            secondObject.getPhysicBody()->velocity->x = 0;
+          if (collisionEvent.secondObject->getPhysicBody()->velocity.x < 0) {
+            collisionEvent.secondObject->getPhysicBody()->velocity.x = 0;
           }
         } else if (secondColShape->getType() == CollisionShape::STATIC) {
           firstCorrection.x = - distance * direction;
           
-          if (firstObject.getPhysicBody()->velocity->x > 0) {
-            firstObject.getPhysicBody()->velocity->x = 0;
+          if (collisionEvent.firstObject->getPhysicBody()->velocity.x > 0) {
+            collisionEvent.firstObject->getPhysicBody()->velocity.x = 0;
           }
         } else {
           firstCorrection.x = - distance * direction / 2;
@@ -45,14 +51,14 @@ class RectangleCollisionResolver : CollisionEventListener
         if (firstColShape->getType() == CollisionShape::STATIC) {
           secondCorrection.y = distance * direction;
           
-          if (collisionEvent.secondObject->getPhysicBody()->velocity->y < 0) {
-            collisionEvent.secondObject->getPhysicBody()->velocity->y = 0;
+          if (collisionEvent.secondObject->getPhysicBody()->velocity.y < 0) {
+            collisionEvent.secondObject->getPhysicBody()->velocity.y = 0;
           }
         } else if (secondColShape->getType() == CollisionShape::STATIC) {
           firstCorrection.y = - distance * direction;
     
-          if (collisionEvent.firstObject->getPhysicBody()->velocity->y > 0) {
-            collisionEvent.firstObject->getPhysicBody()->velocity->y = 0;
+          if (collisionEvent.firstObject->getPhysicBody()->velocity.y > 0) {
+            collisionEvent.firstObject->getPhysicBody()->velocity.y = 0;
           }
           
         } else {

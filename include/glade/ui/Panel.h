@@ -7,7 +7,7 @@ class Layout;
 
 class Panel : public Widget
 {
-	public:  
+  public:  
     Panel(Layout::Unique &layout) : Widget(layout)
     {
       setFocusable(false);

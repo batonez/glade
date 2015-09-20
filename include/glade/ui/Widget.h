@@ -38,13 +38,13 @@ class Widget : public GladeObject
   private:
     typedef GladeObject super;
     
-	  Layout::Unique layout;
-	  Drawables unfocusedViews;
-	  Drawables focusedViews;
-	  bool focused;
-	  Callable::Callables onFocusListeners;
-	  Callable::Callables onBlurListeners;
-	  Callable::AutoDispose action;
+    Layout::Unique layout;
+    Drawables unfocusedViews;
+    Drawables focusedViews;
+    bool focused;
+    Callable::Callables onFocusListeners;
+    Callable::Callables onBlurListeners;
+    Callable::AutoDispose action;
   
   public:
     Widget(Layout::Unique &layout);

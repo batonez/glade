@@ -6,7 +6,7 @@
 
 class ListLayout : public Layout
 {
-	public:
+  public:
     virtual void calculateTransformsForDirectChildrenOf(Widget* widget)
     {
       rescaleChildrenOf(widget);

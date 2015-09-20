@@ -13,8 +13,8 @@ public:
   
 private:
   GraphNodes nodes;
-	GraphNode::GraphEdges edges;
-	
+  GraphNode::GraphEdges edges;
+  
 public:
   ~Graph()
   {
@@ -28,14 +28,14 @@ public:
   }
   
   GraphNodes* getNodes(void)
-	{
-		return &nodes;
-	}
-	
-	GraphNode::GraphEdges* getEdges(void)
-	{
-		return &edges;
-	}
+  {
+    return &nodes;
+  }
+  
+  GraphNode::GraphEdges* getEdges(void)
+  {
+    return &edges;
+  }
   
   GraphNode* newNode(void)
   {

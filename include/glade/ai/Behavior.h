@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../State.h"
-#include "../GladeObject.h"
+#include "glade/State.h"
+#include "glade/GladeObject.h"
 
 class Behavior
 {

@@ -20,16 +20,16 @@ void main(void)
    vec4 texColor = texture2D(uTextureSampler0, vTexCoord0);
    
    if (uReplaceColor == 1) {
-		gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, texColor.a);
-	} else {
-		gl_FragColor = texColor;
-	}
-	
-	gl_FragColor = blendColors(gl_FragColor, vColor);
-	
-	if (uReplaceColor == 0) {
-		gl_FragColor = blendColors(gl_FragColor, uColor);
-	}
+    gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, texColor.a);
+  } else {
+    gl_FragColor = texColor;
+  }
+  
+  gl_FragColor = blendColors(gl_FragColor, vColor);
+  
+  if (uReplaceColor == 0) {
+    gl_FragColor = blendColors(gl_FragColor, uColor);
+  }
          
    if (gl_FragColor.a < 0.1) {
       discard;

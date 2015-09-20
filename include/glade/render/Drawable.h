@@ -24,11 +24,11 @@ public:
   typedef ShaderVec3Uniforms::const_iterator ShaderVec3UniformsCI;
   typedef ShaderVec4Uniforms::const_iterator ShaderVec4UniformsCI;
   
-	bool preservePosition, preserveRotation, preserveScale;
-	
+  bool preservePosition, preserveRotation, preserveScale;
+  
 protected:
-	Transform transform;
-	VertexObject* vertexObject; // fixme shared ptr!
+  Transform transform;
+  VertexObject* vertexObject; // fixme shared ptr!
   std::shared_ptr<Texture> texture;
   TextureTransform textureTransform;
   std::shared_ptr<ShaderProgram> shaderProgram;
@@ -153,8 +153,8 @@ public:
   Transform* getTransform(void) {
     return &transform;
   }
-	
-	VertexObject* getVertexObject(void) {
-		return vertexObject;
-	}
+  
+  VertexObject* getVertexObject(void) {
+    return vertexObject;
+  }
 };

@@ -6,7 +6,7 @@
 
 class GridLayout : public Layout
 {
-	private:
+  private:
     int rowLength;
     
   public:  
@@ -25,7 +25,7 @@ class GridLayout : public Layout
       Transform *parentTransform = widget->getTransform();
       Vector4f *padding = getPadding();
       
-      float	homeX	 = parentTransform->getPosition()->x + padding->w,
+      float  homeX   = parentTransform->getPosition()->x + padding->w,
           currentX = homeX,
           currentY = parentTransform->getPosition()->y + padding->x,
           currentZ = parentTransform->getPosition()->z;

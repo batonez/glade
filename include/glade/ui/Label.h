@@ -9,7 +9,7 @@ class Label : public Widget
   private:
     std::string text;
     
-	public:
+  public:
     Label(std::string &string, BitmapFont &font, float r = 0.0f, float g = 0.0f, float b = 0.0f) : Widget(Layout::Unique(new CenterLayout()))
     {
       setFocusable(false);

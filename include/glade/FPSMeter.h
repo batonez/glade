@@ -2,9 +2,9 @@
 
 class FPSMeter
 {
-	private:
+  private:
     float fps;
-	
+  
   public:
     /**
      * 
@@ -14,7 +14,7 @@ class FPSMeter
     {
       if (deltaTime <= 0) {
         fps = -1;
-      } else {	
+      } else {  
         fps = (float) (1000.0 / deltaTime);
       }
     }

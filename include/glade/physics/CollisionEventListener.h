@@ -4,5 +4,6 @@
 
 class CollisionEventListener
 {
-	virtual bool onCollision(CollisionEvent &collisionEvent) = 0;
+  public:
+    virtual bool onCollision(CollisionEvent &collisionEvent) = 0;
 };

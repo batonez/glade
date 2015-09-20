@@ -3,24 +3,23 @@
 #include "../GladeObject.h"
 #include "../math/Vector.h"
 
-class CollisionEvent const
+class CollisionEvent
 {
-	public:
-    GladeObject* firstObject, secondObject;
-    Vector3f overlap; 
+  public:
+    GladeObject *firstObject, *secondObject;
+    Vector3f overlap;
     bool firstIsAtTop;
     bool firstIsAtLeft;
-	
-	CollisionEvent(GladeObject* kinematicObject, GladeObject* staticObject, Vector3f &overlap)
-	{
-		this->firstObject = kinematicObject;
-		this->secondObject = staticObject;
-		this->overlap = overlap;
-		
-		Transform kinematicColShapeTransform = kinematicObject->getTransform();
-		Transform staticColShapeTransform = staticObject->getTransform();
-		
-		firstIsAtTop = kinematicColShapeTransform.getPosition()->y < staticColShapeTransform.getPosition()->y;
-		firstIsAtLeft = kinematicColShapeTransform.getPosition()->x < staticColShapeTransform.getPosition()->x;
-	}
+
+  CollisionEvent(GladeObject* kinematicObject, GladeObject* staticObject, Vector3f &overlap):
+    firstObject(kinematicObject),
+    secondObject(staticObject),
+    overlap(overlap)
+  {
+    Transform *kinematicColShapeTransform = kinematicObject->getTransform();
+    Transform *staticColShapeTransform = staticObject->getTransform();
+
+    firstIsAtTop = kinematicColShapeTransform->getPosition()->y < staticColShapeTransform->getPosition()->y;
+    firstIsAtLeft = kinematicColShapeTransform->getPosition()->x < staticColShapeTransform->getPosition()->x;
+  }
 };

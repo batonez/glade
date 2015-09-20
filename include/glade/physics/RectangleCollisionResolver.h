@@ -7,12 +7,12 @@
 
 class RectangleCollisionResolver : CollisionEventListener
 {
-	private:
+  private:
     static const char HORIZONTAL = 0, VERTICAL = 1;
     char direction, axis;
     float distance;
-	
-	public:
+  
+  public:
     bool onCollision(CollisionEvent &collisionEvent)
     {
       // dis is not good, gotta do a proper method with argument type declarations
@@ -66,8 +66,8 @@ class RectangleCollisionResolver : CollisionEventListener
       
       return false;
     }
-	
-	private:
+  
+  private:
     void determinePushDirections(CollisionEvent &collisionEvent)
     {
       if (collisionEvent.overlap.x < collisionEvent.overlap.y) {

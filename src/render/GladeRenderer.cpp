@@ -10,7 +10,7 @@ const GLuint  GladeRenderer::TEXCOORD_SIZE_FLOATS   = 2;
 const GLuint  GladeRenderer::POS_OFFSET_FLOATS      = 0;
 const GLuint  GladeRenderer::NORMAL_OFFSET_FLOATS   = POS_SIZE_FLOATS;
 const GLuint  GladeRenderer::TEXCOORD_OFFSET_FLOATS = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS;
-const GLuint  GladeRenderer::VERTEX_STRIDE_FLOATS 	= POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
+const GLuint  GladeRenderer::VERTEX_STRIDE_FLOATS   = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
 const GLsizei GladeRenderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS * sizeof(float);
 const GLsizei GladeRenderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS * sizeof(float);
 const GLsizei GladeRenderer::TEXCOORD_OFFSET_BYTES  = TEXCOORD_OFFSET_FLOATS * sizeof(float);
@@ -18,20 +18,20 @@ const GLsizei GladeRenderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS * siz
 
 GladeRenderer::GladeRenderer(void)
 {
-	camera.invertTranslation(true);
-		
-	sceneProjectionMode = PERSPECTIVE;
-	initialized = false;
+  camera.invertTranslation(true);
+    
+  sceneProjectionMode = PERSPECTIVE;
+  initialized = false;
 }
 
 void GladeRenderer::add(GladeObject* pSceneObject)
 {
   log("Adding object");
-	if (this->initialized) {
-		moveIntoVideoMemory(*pSceneObject);
-	}
-	
-	sceneObjects.push_back(pSceneObject);
+  if (this->initialized) {
+    moveIntoVideoMemory(*pSceneObject);
+  }
+  
+  sceneObjects.push_back(pSceneObject);
 }
 
 void GladeRenderer::add(Widget* uiElement)
@@ -45,217 +45,217 @@ void GladeRenderer::add(Widget* uiElement)
 
 void GladeRenderer::clear(void)
 {
-	log("Clearing renderer");
-	removeAllObjectsFromVideoMemory();
+  log("Clearing renderer");
+  removeAllObjectsFromVideoMemory();
   
   GladeObject::Drawables* drawables;
   vector<GladeObject*>::iterator oi = sceneObjects.begin(); // must be a 'set'
   
   while (oi != sceneObjects.end()) {
-  	drawables = (*oi)->getDrawables();
-		
-    for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
-			(*di)->getTextureTransform()->removeAnimationCallbacks();
-		}
+    drawables = (*oi)->getDrawables();
     
-		oi = sceneObjects.erase(oi);
+    for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
+      (*di)->getTextureTransform()->removeAnimationCallbacks();
+    }
+    
+    oi = sceneObjects.erase(oi);
   }
   
   vector<GladeObject*>::iterator wi = uiElements.begin(); // must be a 'set'
   
   while (wi != uiElements.end()) {
-  	drawables = (*wi)->getDrawables();
-		
-    for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
-			(*di)->getTextureTransform()->removeAnimationCallbacks();
-		}
+    drawables = (*wi)->getDrawables();
     
-		wi = uiElements.erase(wi);
+    for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
+      (*di)->getTextureTransform()->removeAnimationCallbacks();
+    }
+    
+    wi = uiElements.erase(wi);
   }
-	
-	log("Done clearing renderer");
+  
+  log("Done clearing renderer");
 }
 
 void GladeRenderer::onSurfaceCreated()
 {
   glFrontFace(GL_CCW);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
-	glEnable(GL_CULL_FACE);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	moveAllObjectsIntoVideoMemory();
+  glEnable(GL_CULL_FACE);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  moveAllObjectsIntoVideoMemory();
   log("Initialized renderer");
-	initialized = true;
+  initialized = true;
 }
 
 void GladeRenderer::onSurfaceChanged(int width, int height)
 {
-	viewportWidth = width;
-	viewportHeight = height;
-	aspectRatio = (float) viewportWidth / viewportHeight;
-	glViewport(0, 0, viewportWidth, viewportHeight);
-	
-	switchProjectionMode(sceneProjectionMode, true);
+  viewportWidth = width;
+  viewportHeight = height;
+  aspectRatio = (float) viewportWidth / viewportHeight;
+  glViewport(0, 0, viewportWidth, viewportHeight);
+  
+  switchProjectionMode(sceneProjectionMode, true);
 }
 
 void GladeRenderer::onDrawFrame(void)
 {
-	for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
-		(*hook)->onBeforeDraw();
-	}
+  for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
+    (*hook)->onBeforeDraw();
+  }
 
-	glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	switchProjectionMode(sceneProjectionMode);
-	camera.getMatrix(viewMatrix);
+  glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  switchProjectionMode(sceneProjectionMode);
+  camera.getMatrix(viewMatrix);
   
   drawAll(sceneObjects.begin(), sceneObjects.end());
-	
-	switchProjectionMode(ORTHO);
-	Matrix::setIdentityM(viewMatrix, 0);
-	
+  
+  switchProjectionMode(ORTHO);
+  Matrix::setIdentityM(viewMatrix, 0);
+  
   drawAll(uiElements.begin(), uiElements.end());
-	
+  
   for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
-		(*hook)->onAfterDraw();
-	}
+    (*hook)->onAfterDraw();
+  }
 }
 
 void GladeRenderer::setSceneProjectionMode(ProjectionMode projectionMode)
 {
-	this->sceneProjectionMode = projectionMode;
+  this->sceneProjectionMode = projectionMode;
 }
 
 int GladeRenderer::getViewportWidth(void)
 {
-	return viewportWidth;
+  return viewportWidth;
 }
 
 int GladeRenderer::getViewportHeight(void)
 {
-	return viewportHeight;
+  return viewportHeight;
 }
 
 void GladeRenderer::setBackgroundColor(float r, float g, float b)
 {
-	this->backgroundColor.set(r, g, b);
+  this->backgroundColor.set(r, g, b);
 }
 
 int GladeRenderer::percentToPixels(float percent)
 {
-	return (int)((viewportWidth < viewportHeight ? viewportWidth / 2 : viewportHeight / 2) * percent); 
+  return (int)((viewportWidth < viewportHeight ? viewportWidth / 2 : viewportHeight / 2) * percent); 
 }
 
 float GladeRenderer::pixelsToPercent(float pixels)
 {
-	return pixels / (viewportWidth < viewportHeight ? viewportWidth / 2 : viewportHeight / 2);
+  return pixels / (viewportWidth < viewportHeight ? viewportWidth / 2 : viewportHeight / 2);
 }
 
 Transform GladeRenderer::getTransformForRootWidget(void)
 {
-	return Transform(
-			0.0f, 0.0f, 0.0f,
-			0.0f, 0.0f, 0.0f,
-			getHalfViewportWidthCoords(), getHalfViewportHeightCoords(), 1.0f
-	);
+  return Transform(
+      0.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 0.0f,
+      getHalfViewportWidthCoords(), getHalfViewportHeightCoords(), 1.0f
+  );
 }
 
 void GladeRenderer::moveZeroToUpperLeftCorner(void)
 {
-	camera.setPosition(getHalfViewportWidthCoords(),  getHalfViewportHeightCoords(), 0);
+  camera.setPosition(getHalfViewportWidthCoords(),  getHalfViewportHeightCoords(), 0);
 }
 
 float GladeRenderer::getHalfViewportWidthCoords(void)
 {
-	return aspectRatio > 1 ? aspectRatio : 1;
+  return aspectRatio > 1 ? aspectRatio : 1;
 }
 
 float GladeRenderer::getHalfViewportHeightCoords(void)
 {
-	return aspectRatio > 1 ? 1 : aspectRatio;
+  return aspectRatio > 1 ? 1 : aspectRatio;
 }
-	
+  
 float GladeRenderer::getViewportWidthCoords(void)
 {
-	return 2 * aspectRatio;
+  return 2 * aspectRatio;
 }
 
 float GladeRenderer::getViewportHeightCoords(void)
 {
-	return 2;
+  return 2;
 }
 
 Vector2f GladeRenderer::getPointCoords(float screenX, float screenY)
 {
-	Vector2f result;
-	
-	result.x = screenX / viewportWidth * 2 * aspectRatio - aspectRatio;
-	result.y = screenY / viewportHeight * 2 - 1;
-	
-	return result;
+  Vector2f result;
+  
+  result.x = screenX / viewportWidth * 2 * aspectRatio - aspectRatio;
+  result.y = screenY / viewportHeight * 2 - 1;
+  
+  return result;
 }
 
 /*
 vector<GladeObject>::iterator GladeRenderer::getWidgets(void)
 {
-	return uiElements.begin();
+  return uiElements.begin();
 }*/
 
 void GladeRenderer::drawAll(vector<GladeObject*>::iterator i, vector<GladeObject*>::iterator end)
 {
-	Transform finalWorldTransformForDrawable;
+  Transform finalWorldTransformForDrawable;
   GladeObject::Drawables* drawables;
   
-	while (i != end) {
+  while (i != end) {
     if ((*i)->isEnabled()) {
-			drawables = (*i)->getDrawables();
-		
-			for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
-				if ((*i)->isViewEnabled(*di)) {
+      drawables = (*i)->getDrawables();
+    
+      for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
+        if ((*i)->isViewEnabled(*di)) {
           (*i)->getTransform()->combineWith(
-						*(*di)->getTransform(),
-						(*di)->preservePosition,
-						(*di)->preserveRotation,
-						(*di)->preserveScale,
-						finalWorldTransformForDrawable
-					);
-					
-					draw(di, finalWorldTransformForDrawable);
-				}
-			}
-		}
-		
-		i++;
-	}
+            *(*di)->getTransform(),
+            (*di)->preservePosition,
+            (*di)->preserveRotation,
+            (*di)->preserveScale,
+            finalWorldTransformForDrawable
+          );
+          
+          draw(di, finalWorldTransformForDrawable);
+        }
+      }
+    }
+    
+    i++;
+  }
 }
 
 void GladeRenderer::moveAllObjectsIntoVideoMemory(void)
 {
-	vector<GladeObject*>::iterator i = sceneObjects.begin();
-	
-	while (i != sceneObjects.end()) {
-		moveIntoVideoMemory(**i);
-		i++;
-	}
-	
-	vector<GladeObject*>::iterator wi = uiElements.begin();
-	
-	while (wi != uiElements.end()) {
-		moveIntoVideoMemory(**wi);
-		wi++;
-	}
+  vector<GladeObject*>::iterator i = sceneObjects.begin();
+  
+  while (i != sceneObjects.end()) {
+    moveIntoVideoMemory(**i);
+    i++;
+  }
+  
+  vector<GladeObject*>::iterator wi = uiElements.begin();
+  
+  while (wi != uiElements.end()) {
+    moveIntoVideoMemory(**wi);
+    wi++;
+  }
 }
 
 void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
 {
-	GladeObject::DrawablesI di = sceneObject.getDrawables()->begin();
-	
-	while (di != sceneObject.getDrawables()->end()) {
-		moveIntoVideoMemory((*di)->getVertexObject());
+  GladeObject::DrawablesI di = sceneObject.getDrawables()->begin();
+  
+  while (di != sceneObject.getDrawables()->end()) {
+    moveIntoVideoMemory((*di)->getVertexObject());
     moveIntoVideoMemory((*di)->getTexture());
     compileShaderProgram((*di)->getShaderProgram().get());
-		di++;
-	}
+    di++;
+  }
   
   glReleaseShaderCompiler();
 }
@@ -271,9 +271,9 @@ void GladeRenderer::compileShaderProgram(ShaderProgram *program)
   }
     
   GLuint vertexShaderPointer = loadShader(GL_VERTEX_SHADER, program->vertexShaderSource);
-	GLuint fragmentShaderPointer = loadShader(GL_FRAGMENT_SHADER, program->fragmentShaderSource);
-	
-	program->gpuHandle = glCreateProgram();
+  GLuint fragmentShaderPointer = loadShader(GL_FRAGMENT_SHADER, program->fragmentShaderSource);
+  
+  program->gpuHandle = glCreateProgram();
   glAttachShader(program->gpuHandle, vertexShaderPointer);
   glAttachShader(program->gpuHandle, fragmentShaderPointer);
   glLinkProgram(program->gpuHandle);
@@ -350,7 +350,7 @@ void GladeRenderer::moveIntoVideoMemory(std::shared_ptr<Texture> texturePtr)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   } else {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);  
   }
   
   glTexImage2D(
@@ -372,53 +372,53 @@ void GladeRenderer::removeFromVideoMemory(Drawable &drawable)
 {
   Texture *texture = drawable.getTexture().get();
   VertexObject *mesh = drawable.getVertexObject();
-	
-	if (nullptr != texture && texture->hasVideoBufferHandle()) {
+  
+  if (nullptr != texture && texture->hasVideoBufferHandle()) {
     GLuint texIds[1];
     texIds[0] = texture->getVideoBufferHandle();
     glDeleteTextures(1, texIds);
     texture->setVideoBufferHandle(-1);
-	}
+  }
   
-	if (mesh->hasVideoBufferHandle()) {
-		GLuint vboIds[1];
-		vboIds[0] = mesh->vertexVboId;
-		vboIds[1] = mesh->indexVboId;
-		glDeleteBuffers(2, vboIds);
-		mesh->vertexVboId = -1;
-		mesh->indexVboId = -1;
-	}
+  if (mesh->hasVideoBufferHandle()) {
+    GLuint vboIds[1];
+    vboIds[0] = mesh->vertexVboId;
+    vboIds[1] = mesh->indexVboId;
+    glDeleteBuffers(2, vboIds);
+    mesh->vertexVboId = -1;
+    mesh->indexVboId = -1;
+  }
 }
 
 void GladeRenderer::removeAllObjectsFromVideoMemory(void)
 {
-	vector<GladeObject*>::iterator i = sceneObjects.begin();
-	
-	while (i != sceneObjects.end()) {
-		GladeObject::Drawables* drawables = (*i)->getDrawables();
-		GladeObject::DrawablesI di = drawables->begin();
-		
-		while (di != drawables->end()) {
-			removeFromVideoMemory(**di);
+  vector<GladeObject*>::iterator i = sceneObjects.begin();
+  
+  while (i != sceneObjects.end()) {
+    GladeObject::Drawables* drawables = (*i)->getDrawables();
+    GladeObject::DrawablesI di = drawables->begin();
+    
+    while (di != drawables->end()) {
+      removeFromVideoMemory(**di);
       di++;
-		}
-		
-		i++;
-	}
+    }
+    
+    i++;
+  }
 
   vector<GladeObject*>::iterator wi = uiElements.begin();
-	
-	while (wi != uiElements.end()) {
+  
+  while (wi != uiElements.end()) {
     GladeObject::Drawables* drawables = (*wi)->getDrawables();
-		GladeObject::DrawablesI di = drawables->begin();
-		
+    GladeObject::DrawablesI di = drawables->begin();
+    
     while (di != drawables->end()) {
-    	removeFromVideoMemory(**di);
+      removeFromVideoMemory(**di);
       di++;
-		}
-		
-		wi++;
-	}
+    }
+    
+    wi++;
+  }
 }
 
 void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
@@ -438,24 +438,24 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   glUseProgram(program->gpuHandle);
   getShaderHandles(*program);
   
-	static float worldMatrix[16];
-	
+  static float worldMatrix[16];
+  
   transform.getMatrix(worldMatrix);
-	Matrix::multiplyMM(worldViewMatrix, 0, viewMatrix, 0, worldMatrix, 0);
+  Matrix::multiplyMM(worldViewMatrix, 0, viewMatrix, 0, worldMatrix, 0);
   
   glUniformMatrix4fv(uProjectionMatrix, 4, GL_FALSE, projectionMatrix);
   glUniformMatrix4fv(uWorldViewMatrix, 4, GL_FALSE, worldViewMatrix);
   
-	bindBuffers(*(*di)->getVertexObject());
-	
-	glVertexAttribPointer(
-		aPosition, POS_SIZE_FLOATS,
-		GL_FLOAT, GL_FALSE,
-		VERTEX_STRIDE_BYTES, (const GLvoid *)POS_OFFSET_BYTES
-	);
+  bindBuffers(*(*di)->getVertexObject());
   
-	glEnableVertexAttribArray(aPosition);
-	
+  glVertexAttribPointer(
+    aPosition, POS_SIZE_FLOATS,
+    GL_FLOAT, GL_FALSE,
+    VERTEX_STRIDE_BYTES, (const GLvoid *)POS_OFFSET_BYTES
+  );
+  
+  glEnableVertexAttribArray(aPosition);
+  
   glVertexAttribPointer(
     aNormal, NORMAL_SIZE_FLOATS,
     GL_FLOAT, GL_FALSE,
@@ -464,29 +464,29 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   
   glEnableVertexAttribArray(aNormal);
   
-	Texture *texture = (*di)->getTexture().get();
-	
-	if (texture != nullptr) {
+  Texture *texture = (*di)->getTexture().get();
+  
+  if (texture != nullptr) {
     if (texture->hasVideoBufferHandle()) {
       glActiveTexture(GL_TEXTURE0);
-		  glBindTexture(GL_TEXTURE_2D, texture->getVideoBufferHandle());
+      glBindTexture(GL_TEXTURE_2D, texture->getVideoBufferHandle());
 
-		  TextureTransform* texTransform = (*di)->getTextureTransform();
+      TextureTransform* texTransform = (*di)->getTextureTransform();
       texTransform->executeCallbacks();
-			
+      
       glUniform1i(uSamplerNumber, 0);
       glUniform1f(uTexScaleX, texTransform->textureScaleX  / (float) texture->numberOfFrames * texTransform->getTextureScaleXModifierForFrame(*texture));
       glUniform1f(uTexScaleY, texTransform->textureScaleY  / (float) texture->numberOfAnimations * texTransform->getTextureScaleYModifierForFrame(*texture));
-			glUniform1f(uTexOffsetX, texTransform->getCurrentFrameNumber(*texture) * texture->texCoordFrameWidth);
-			glUniform1f(uTexOffsetY, texTransform->getCurrentAnimationNumber(*texture) * texture->texCoordFrameHeight);
-			
-			glVertexAttribPointer(
-				aTexCoord, TEXCOORD_SIZE_FLOATS,
-				GL_FLOAT, GL_FALSE,
-				VERTEX_STRIDE_BYTES, (const GLvoid*)TEXCOORD_OFFSET_BYTES
-			);
-						
-			glEnableVertexAttribArray(aTexCoord);
+      glUniform1f(uTexOffsetX, texTransform->getCurrentFrameNumber(*texture) * texture->texCoordFrameWidth);
+      glUniform1f(uTexOffsetY, texTransform->getCurrentAnimationNumber(*texture) * texture->texCoordFrameHeight);
+      
+      glVertexAttribPointer(
+        aTexCoord, TEXCOORD_SIZE_FLOATS,
+        GL_FLOAT, GL_FALSE,
+        VERTEX_STRIDE_BYTES, (const GLvoid*)TEXCOORD_OFFSET_BYTES
+      );
+            
+      glEnableVertexAttribArray(aTexCoord);
     }
   }
   
@@ -531,67 +531,67 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
     ++v4i;
   }
   
-	glDrawElements(GL_TRIANGLES, (*di)->getVertexObject()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
-	
-	glDisableVertexAttribArray(aPosition);
-	glDisableVertexAttribArray(aNormal);
-	glDisableVertexAttribArray(aTexCoord);
+  glDrawElements(GL_TRIANGLES, (*di)->getVertexObject()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
+  
+  glDisableVertexAttribArray(aPosition);
+  glDisableVertexAttribArray(aNormal);
+  glDisableVertexAttribArray(aTexCoord);
 }
 
 void GladeRenderer::bindBuffers(VertexObject &mesh)
 {
-	if (!mesh.hasVideoBufferHandle()) {
-		log("Render error: trying to use a mesh which was not loaded into video buffer");
-	}
-	
-	glBindBuffer(GL_ARRAY_BUFFER, mesh.vertexVboId);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.indexVboId);
+  if (!mesh.hasVideoBufferHandle()) {
+    log("Render error: trying to use a mesh which was not loaded into video buffer");
+  }
+  
+  glBindBuffer(GL_ARRAY_BUFFER, mesh.vertexVboId);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.indexVboId);
 }
 
 void GladeRenderer::switchProjectionMode(ProjectionMode projectionMode, bool force)
 {
-	if (force || projectionMode != currentProjectionMode) {
-		switch (projectionMode) {
-			case ORTHO:
-				Matrix::orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, 1, -1, -(float)DOUBLE_CUBE_DIAGONAL, (float)DOUBLE_CUBE_DIAGONAL);
-				glDisable(GL_DEPTH_TEST);
-				break;
-			case PERSPECTIVE:
-				Matrix::perspectiveM(projectionMatrix, 0, 45, aspectRatio, 1, 150);
-				glEnable(GL_DEPTH_TEST);
-				break;
-			default: ;
-				//throw new RuntimeException("Unexpected projection mode. Use ORTHO or PERSPECTIVE constants");
-		}
-		
-		currentProjectionMode = projectionMode;
-	}
+  if (force || projectionMode != currentProjectionMode) {
+    switch (projectionMode) {
+      case ORTHO:
+        Matrix::orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, 1, -1, -(float)DOUBLE_CUBE_DIAGONAL, (float)DOUBLE_CUBE_DIAGONAL);
+        glDisable(GL_DEPTH_TEST);
+        break;
+      case PERSPECTIVE:
+        Matrix::perspectiveM(projectionMatrix, 0, 45, aspectRatio, 1, 150);
+        glEnable(GL_DEPTH_TEST);
+        break;
+      default: ;
+        //throw new RuntimeException("Unexpected projection mode. Use ORTHO or PERSPECTIVE constants");
+    }
+    
+    currentProjectionMode = projectionMode;
+  }
 }
 
 void GladeRenderer::switchProjectionMode(ProjectionMode projectionMode)
 {
-	switchProjectionMode(projectionMode, false);
+  switchProjectionMode(projectionMode, false);
 }
 
 void GladeRenderer::getShaderHandles(ShaderProgram &program)
 {
-  uProjectionMatrix 	= glGetUniformLocation(program.gpuHandle, "uProjectionMatrix");
-	uWorldViewMatrix	= glGetUniformLocation(program.gpuHandle, "uWorldViewMatrix");
+  uProjectionMatrix   = glGetUniformLocation(program.gpuHandle, "uProjectionMatrix");
+  uWorldViewMatrix  = glGetUniformLocation(program.gpuHandle, "uWorldViewMatrix");
 
-	aPosition			= glGetAttribLocation(program.gpuHandle, "aPosition");
-	aNormal				= glGetAttribLocation(program.gpuHandle, "aNormal");
-	aTexCoord			= glGetAttribLocation(program.gpuHandle, "aTexCoord0");
-	
-	uSamplerNumber  = glGetUniformLocation(program.gpuHandle, "uTextureSampler0");
-	uTexScaleX 			= glGetUniformLocation(program.gpuHandle, "uTexCoordScaleX0");
-	uTexScaleY 			= glGetUniformLocation(program.gpuHandle, "uTexCoordScaleY0");
-	uTexOffsetX 		= glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetX0");
-	uTexOffsetY 		= glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetY0");
+  aPosition      = glGetAttribLocation(program.gpuHandle, "aPosition");
+  aNormal        = glGetAttribLocation(program.gpuHandle, "aNormal");
+  aTexCoord      = glGetAttribLocation(program.gpuHandle, "aTexCoord0");
+  
+  uSamplerNumber  = glGetUniformLocation(program.gpuHandle, "uTextureSampler0");
+  uTexScaleX       = glGetUniformLocation(program.gpuHandle, "uTexCoordScaleX0");
+  uTexScaleY       = glGetUniformLocation(program.gpuHandle, "uTexCoordScaleY0");
+  uTexOffsetX     = glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetX0");
+  uTexOffsetY     = glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetY0");
 } 
 
 GLuint GladeRenderer::loadShader(GLuint shaderType, std::vector<char> &shader_source)
 {
-	GLuint shaderHandle = glCreateShader(shaderType);
+  GLuint shaderHandle = glCreateShader(shaderType);
   
   if (shaderHandle) {
     const char *shaderSourceLinePtr = shader_source.data();
@@ -626,41 +626,42 @@ GLuint GladeRenderer::loadShader(GLuint shaderType, std::vector<char> &shader_so
 
 int GladeRenderer::checkGLError(void)
 {
-	int errorCode = glGetError();
-	
-	switch (errorCode) {
-		case GL_INVALID_ENUM:
-			log("GL_INVALID_ENUM: A GLenum argument is out of range. The command that generated this error was ignored.");
-			break;
-		case GL_INVALID_VALUE:
-			log("GL_INVALID_VALUE: A numeric argument is out of range. The command that generated this error was ignored.");
-			break;
-		case GL_INVALID_OPERATION:
-			log("GL_INVALID_OPERATION: The command cannot be performed in the current OpenGL state. The command that generated this error was ignored.");
-			break;
-		case GL_OUT_OF_MEMORY:
-			log("GL_OUT_OF_MEMORY: There is insufficient memory to execute this command. The state of the OpenGL pipeline is undefined after this point.");
-			break;
-	}
-	
-	return errorCode;
+  int errorCode = glGetError();
+  
+  switch (errorCode) {
+    case GL_INVALID_ENUM:
+      log("GL_INVALID_ENUM: A GLenum argument is out of range. The command that generated this error was ignored.");
+      break;
+    case GL_INVALID_VALUE:
+      log("GL_INVALID_VALUE: A numeric argument is out of range. The command that generated this error was ignored.");
+      break;
+    case GL_INVALID_OPERATION:
+      log("GL_INVALID_OPERATION: The command cannot be performed in the current OpenGL state. The command that generated this error was ignored.");
+      break;
+    case GL_OUT_OF_MEMORY:
+      log("GL_OUT_OF_MEMORY: There is insufficient memory to execute this command. The state of the OpenGL pipeline is undefined after this point.");
+      break;
+  }
+  
+  return errorCode;
 }
 
 void GladeRenderer::addDrawFrameHook(DrawFrameHook &hook)
 {
-	drawFrameHooks.insert(&hook);
+  drawFrameHooks.insert(&hook);
 }
 
-/*
-void GladeRenderer::setDrawingOrderComparator(Comparator<GladeObject> drawingOrderComparator)
+
+void GladeRenderer::setDrawingOrderComparator(std::unique_ptr<GladeObject::Comparator> &comparator)
 {
-	this->drawingOrderComparator = drawingOrderComparator;
+  this->drawingOrderComparator = std::move(comparator);
 }
-*/	
+
 void GladeRenderer::sortDrawables()
 {
+  log("Fixme: Sorting drawables not implemented");
   /*
-	if (drawingOrderComparator != NULL) {
-		Collections.sort(sceneObjects, drawingOrderComparator);
-	}*/
+  if (drawingOrderComparator != NULL) {
+    Collections.sort(sceneObjects, drawingOrderComparator);
+  }*/
 }

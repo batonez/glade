@@ -6,80 +6,88 @@
 
 #include "log/log.h"
 #include "math/Transform.h"
-#include "render/Drawable.h"
 #include "exception/GladeException.h"
+
+class Behavior;
+class PhysicBody;
+class CollisionShape;
+class Drawable;
 
 class GladeObject {
 public:
   typedef std::set<Drawable*>    Drawables;
   typedef Drawables::iterator    DrawablesI;
 
+  class Comparator
+  {
+    public:
+      virtual int compare(GladeObject &first, GladeObject &second) = 0;
+  };
+
 private:
   typedef std::map<Drawable*, bool> VisibilitySwitches;
   std::string name;
-  
+
 protected:
   bool enabled;
-//	PhysicBody* physicBody;
-//	CollisionShape* collisionShape;
-//	Behavior* behavior;
-  
-  Drawables drawables;
-	VisibilitySwitches visibilitySwitches;
-//	Set<Sound> sounds;
-	bool colShapeEnabled, physicBodyEnabled, behaviorEnabled;
-	
-private:
-	Transform transform;
-		
-public:
-	GladeObject(void):
-		enabled(true),
-//		physicBody(NULL),
-//		collisionShape(NULL),
-//		behavior(NULL),
-		colShapeEnabled(true),
-		physicBodyEnabled(true),
-		behaviorEnabled(true),
-    name("Undefined")
-	{
-  }
-  
-	void setEnabled(bool enable)
-  {
-		enabled = enable;
-	}
-	
-	bool isEnabled(void) const
-  {
-		return enabled;
-	}
-/*	
-	Behavior getBehavior(void) {
-		return behavior;
-	}
+  PhysicBody* physicBody;
+  CollisionShape* collisionShape;
+  Behavior* behavior;
 
-	void setBehavior(Behavior behavior) {
-		this->behavior = behavior;
-	}
-*/
-	
-	void setTransform(Transform transform)
+  Drawables drawables;
+  VisibilitySwitches visibilitySwitches;
+//  Set<Sound> sounds;
+  bool colShapeEnabled, physicBodyEnabled, behaviorEnabled;
+
+private:
+  Transform transform;
+
+public:
+  GladeObject(void):
+    enabled(true),
+    physicBody(NULL),
+    collisionShape(NULL),
+    behavior(NULL),
+    colShapeEnabled(true),
+    physicBodyEnabled(true),
+    behaviorEnabled(true),
+    name("Undefined")
   {
-		this->transform = transform;
-	}
-	
-	
-	Transform* getTransform(void)
+  }
+
+  void setEnabled(bool enable)
   {
-		return &transform;
-	}
-	
-	virtual void addDrawable(Drawable* view)
+    enabled = enable;
+  }
+
+  bool isEnabled(void) const
   {
-		drawables.insert(view);
-		visibilitySwitches[view] = true;
-	}
+    return enabled;
+  }
+
+  Behavior* getBehavior(void) {
+    return behavior;
+  }
+
+  void setBehavior(Behavior *behavior) {
+    this->behavior = behavior;
+  }
+
+  void setTransform(Transform transform)
+  {
+    this->transform = transform;
+  }
+
+  Transform* getTransform(void)
+  {
+    return &transform;
+  }
+
+  virtual void addDrawable(Drawable* view)
+  {
+    drawables.insert(view);
+    visibilitySwitches[view] = true;
+  }
 
   void addDrawables(Drawables &drawables)
   {
@@ -87,111 +95,112 @@ public:
       addDrawable(*di);
     }
   }
-  
-	Drawables* getDrawables(void)
-  {
-		return &drawables;
-	}
-	
-	/*
-	void addSound(Sound sound) {
-		if (sound == null) {
-			throw new GladeRuntimeException("Tried to add a Sound that is NULL to GladeObject");
-		}
-		
-		sounds.add(sound);
-	}*/
-	
-	/*
-	Collection<Sound> getSounds() {
-		return sounds;
-	}
-	
-	
-	void setPhysicBody(PhysicBody &physicBody) {
-		this->physicBody = &physicBody;
-	}
-	
-	PhysicBody* getPhysicBody(void) {
-		return physicBody;
-	}
 
-	CollisionShape* getCollisionShape(void) {
-		return collisionShape;
-	}
-	
-	void setCollisionShape(CollisionShape &collisionShape) {
-		this->collisionShape = &collisionShape;
-	}
-	*/
-	void toggleView(Drawable& view, bool enable)
+  Drawables* getDrawables(void)
   {
-  	VisibilitySwitches::iterator i = visibilitySwitches.find(&view);
-    
+    return &drawables;
+  }
+
+  /*
+  void addSound(Sound sound) {
+    if (sound == null) {
+      throw new GladeRuntimeException("Tried to add a Sound that is NULL to GladeObject");
+    }
+
+    sounds.add(sound);
+  }
+
+  Collection<Sound> getSounds() {
+    return sounds;
+  }
+  */
+
+  void setPhysicBody(PhysicBody &physicBody)
+  {
+    this->physicBody = &physicBody;
+  }
+
+  PhysicBody* getPhysicBody(void)
+  {
+    return physicBody;
+  }
+
+  CollisionShape* getCollisionShape(void) {
+    return collisionShape;
+  }
+
+  void setCollisionShape(CollisionShape &collisionShape) {
+    this->collisionShape = &collisionShape;
+  }
+
+  void toggleView(Drawable& view, bool enable)
+  {
+    VisibilitySwitches::iterator i = visibilitySwitches.find(&view);
+
     if (i != visibilitySwitches.end()) {
       i->second = enable;
     }
-	}
+  }
 
-	void toggleView(bool enable)
+  void toggleView(bool enable)
   {
-		for (DrawablesI i = drawables.begin(); i != drawables.end(); i++) {
-			toggleView(**i, enable);
-		}
-	}
-	
-	void toggleCollisionShape(bool enable)
-  {
-		colShapeEnabled = enable;
-	}
-	
-	void toggleBehavior(bool enable)
-  {
-		behaviorEnabled = enable;
-	}
+    for (DrawablesI i = drawables.begin(); i != drawables.end(); i++) {
+      toggleView(**i, enable);
+    }
+  }
 
-	void togglePhysicBody(bool enable)
+  void toggleCollisionShape(bool enable)
   {
-		physicBodyEnabled = enable;
-	}
-	
-	bool isViewEnabled(Drawable *view) const
+    colShapeEnabled = enable;
+  }
+
+  void toggleBehavior(bool enable)
+  {
+    behaviorEnabled = enable;
+  }
+
+  void togglePhysicBody(bool enable)
+  {
+    physicBodyEnabled = enable;
+  }
+
+  bool isViewEnabled(Drawable *view) const
   {
     VisibilitySwitches::const_iterator i = visibilitySwitches.find(view);
-		
+
     if (i != visibilitySwitches.end()) {
       return i->second;
     }
-    
+
     return false;
-	}
+  }
 
-	bool isCollisionShapeEnabled() const
+  bool isCollisionShapeEnabled() const
   {
-		return colShapeEnabled;
-	}
+    return colShapeEnabled;
+  }
 
-	
-	bool isBehaviorEnabled() const
-  {
-		return behaviorEnabled;
-	}
 
-	
-	bool isPhysicBodyEnabled() const
+  bool isBehaviorEnabled() const
   {
-		return physicBodyEnabled;
-	}
-	
-	/** This is for debugging purposes */
-	const std::string* getName(void) const
+    return behaviorEnabled;
+  }
+
+
+  bool isPhysicBodyEnabled() const
   {
-		return &name;
-	}
-	
-	/** This is for debugging purposes */
-	void setName(const std::string &name)
+    return physicBodyEnabled;
+  }
+
+  /** This is for debugging purposes */
+  const std::string* getName(void) const
+  {
+    return &name;
+  }
+
+  /** This is for debugging purposes */
+  void setName(const std::string &name)
   {
     this->name = name;
-	}
+  }
 };

@@ -7,10 +7,10 @@
 
 class Button : public Widget
 {
-	private:
+  private:
     Label* label;
-	
-	public:
+  
+  public:
     Button() : Button(NULL, NULL)
     {
     }

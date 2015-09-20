@@ -11,21 +11,21 @@
 #include "glade/GladeObject.h"
 #include "glade/render/meshes/Rectangle.h"
 
-extern ResourceManager resource_manager;
+extern Glade::ResourceManager *resource_manager;
 
 class BitmapFont
 {
-	private:
+  private:
     std::shared_ptr<Texture> atlas;
     std::shared_ptr<ShaderProgram> shaderProgram;
-	  int cellWidth, cellHeight;
-	  int firstGlyphAsciiCode;
-	  int glyphHeight;
-	  std::vector<int> glyphWidths;
-	  int numberOfGlyphsInARow;
+    int cellWidth, cellHeight;
+    int firstGlyphAsciiCode;
+    int glyphHeight;
+    std::vector<int> glyphWidths;
+    int numberOfGlyphsInARow;
 
-   	// Desired result font height in screen coordinates
-	  float fontSize;
+     // Desired result font height in screen coordinates
+    float fontSize;
     
   public:
     // TODO move loading into resource manager
@@ -49,7 +49,7 @@ class BitmapFont
       
       numberOfGlyphsInARow    = declaredAtlasWidth / cellWidth;
       
-      atlas = resource_manager.getTexture(atlas_filename, cellWidth, cellHeight);
+      atlas = resource_manager->getTexture(atlas_filename, cellWidth, cellHeight);
             
       if (declaredAtlasWidth != atlas->textureWidth) {
         throw GladeException("CSV data doesn't match atlas data");

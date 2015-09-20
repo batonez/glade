@@ -9,27 +9,27 @@
 
 class Matrix {
 public:
-	static void mx4transform(float x, float y, float z, float w, const float* pM, float* pDest) {
-		pDest[0] = pM[0 + 4 * 0] * x + pM[0 + 4 * 1] * y + pM[0 + 4 * 2] * z + pM[0 + 4 * 3] * w;
-		pDest[1] = pM[1 + 4 * 0] * x + pM[1 + 4 * 1] * y + pM[1 + 4 * 2] * z + pM[1 + 4 * 3] * w;
-		pDest[2] = pM[2 + 4 * 0] * x + pM[2 + 4 * 1] * y + pM[2 + 4 * 2] * z + pM[2 + 4 * 3] * w;
-		pDest[3] = pM[3 + 4 * 0] * x + pM[3 + 4 * 1] * y + pM[3 + 4 * 2] * z + pM[3 + 4 * 3] * w;
-	}
+  static void mx4transform(float x, float y, float z, float w, const float* pM, float* pDest) {
+    pDest[0] = pM[0 + 4 * 0] * x + pM[0 + 4 * 1] * y + pM[0 + 4 * 2] * z + pM[0 + 4 * 3] * w;
+    pDest[1] = pM[1 + 4 * 0] * x + pM[1 + 4 * 1] * y + pM[1 + 4 * 2] * z + pM[1 + 4 * 3] * w;
+    pDest[2] = pM[2 + 4 * 0] * x + pM[2 + 4 * 1] * y + pM[2 + 4 * 2] * z + pM[2 + 4 * 3] * w;
+    pDest[3] = pM[3 + 4 * 0] * x + pM[3 + 4 * 1] * y + pM[3 + 4 * 2] * z + pM[3 + 4 * 3] * w;
+  }
 
-	// FIXME: add offsets (just like in the multiplyMM)
-	static void multiplyMV(float* r, const float* lhs, const float* rhs) {
-		mx4transform(rhs[0], rhs[1], rhs[2], rhs[3], lhs, r);
-	}
-	
-	static float length(float x, float y, float z) {
+  // FIXME: add offsets (just like in the multiplyMM)
+  static void multiplyMV(float* r, const float* lhs, const float* rhs) {
+    mx4transform(rhs[0], rhs[1], rhs[2], rhs[3], lhs, r);
+  }
+  
+  static float length(float x, float y, float z) {
         return (float) sqrt(x * x + y * y + z * z);
     }
-	
-	static void setIdentityM(float sm[16], int smOffset) {
+  
+  static void setIdentityM(float sm[16], int smOffset) {
         for (int i=0 ; i<16 ; i++) {
             sm[smOffset + i] = 0.0f;
         }
-		
+    
         for(int i = 0; i < 16; i += 5) {
             sm[smOffset + i] = 1.0f;
         }
@@ -59,7 +59,7 @@ public:
         for (int i=0 ; i<12 ; i++) {
             tm[tmOffset + i] = m[mOffset + i];
         }
-		
+    
         for (int i=0 ; i<4 ; i++) {
             int tmi = tmOffset + i;
             int mi = mOffset + i;
@@ -86,12 +86,12 @@ public:
         multiplyMM(temp, 16, m, mOffset, temp, 0);
         memcpy(m + mOffset, temp + 16, 16 * sizeof(float)); // было System.arraycopy(temp, 16, m, mOffset, 16);
     }
-	
-	static void multiplyMM(float* r, int rOffset, const float* lhs, int lhsOffset, const float* rhs, int rhsOffset);
+  
+  static void multiplyMM(float* r, int rOffset, const float* lhs, int lhsOffset, const float* rhs, int rhsOffset);
     static void transposeM(float mTrans[16], int mTransOffset, const float m[16], int mOffset);
-	static bool invertM(float mInv[16], int mInvOffset, const float m[16], int mOffset);
+  static bool invertM(float mInv[16], int mInvOffset, const float m[16], int mOffset);
     static void orthoM(float m[16], int mOffset, float left, float right, float bottom, float top, float near, float far);
-	static void frustumM(float m[16], int offset, float left, float right, float bottom, float top, float near, float far);
+  static void frustumM(float m[16], int offset, float left, float right, float bottom, float top, float near, float far);
     static void perspectiveM(float m[16], int offset, float fovy, float aspect, float zNear, float zFar);
     static void setRotateM(float rm[16], int rmOffset, float a, float x, float y, float z);
     static void setRotateEulerM(float rm[16], int rmOffset, float x, float y, float z);

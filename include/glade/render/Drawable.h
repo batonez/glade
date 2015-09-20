@@ -28,7 +28,7 @@ public:
   
 protected:
   Transform transform;
-  VertexObject* vertexObject; // fixme shared ptr!
+  VertexObject* vertexObject; // fixme shared ptr! (once you get rid of static singletones)
   std::shared_ptr<Texture> texture;
   TextureTransform textureTransform;
   std::shared_ptr<ShaderProgram> shaderProgram;

@@ -17,7 +17,7 @@ class Button : public Widget
       initialize();
     }
 
-    Button(const std::string &text, std::shared_ptr<BitmapFont> &font): Widget(),
+    Button(const std::string &text, std::shared_ptr<Font> &font): Widget(),
       label(NULL)
     {
       initialize();

@@ -22,10 +22,10 @@ class Texture;
 class Widget;
 class Drawable;
 
-enum ProjectionMode {PERSPECTIVE, ORTHO};
-
 class GladeRenderer {
 public:
+  enum ProjectionMode {PERSPECTIVE, ORTHO};
+  
   static const GLuint POS_SIZE_FLOATS;
   static const GLuint COLOR_SIZE_FLOATS;
   static const GLuint NORMAL_SIZE_FLOATS;

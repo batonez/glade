@@ -2,6 +2,8 @@
 
 #include <glade/GladeObject.h>
 
+class ShaderProgram;
+
 class Font
 {
   protected:

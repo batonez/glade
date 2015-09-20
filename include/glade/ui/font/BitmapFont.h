@@ -59,7 +59,7 @@ class BitmapFont: public Font
       }
     }
 
-    virtual void setFontSizePixels(unsigned int width, unsigned int height)
+    virtual void setFontSizePixels(unsigned int width, unsigned int height = 0)
     {
       width  = width  ? width  : height;
       height = height ? height :  width;

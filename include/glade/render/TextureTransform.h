@@ -1,56 +1,83 @@
 #pragma once
 
 #include "../Timer.h"
+#include "../Callable.h"
 
 class TextureTransform {
-public:
+  public:/*
+    class AnimationCallback: public Callable
+    {
+      public:
+        // Negative value means it never triggers
+        virtual int   getTriggeringFrame();
+        virtual float getTriggeringTime();
+        
+      protected:
+        std::unique_ptr<Callable> callable;
+        
+      public:
+        AnimationCallback() {}
+        
+        AnimationCallback(std::unique_ptr<Callable> &callable_param)
+        {
+          //callable = std::move(callable_param);
+        }
+        
+        virtual void call()
+        {
+          if (callable != nullptr) {
+            callable->call();
+          }
+        }
+        
+        virtual void call(TextureTransform &textureTransform) { call(); }
+    };*/
+  
     float animationTime;
     Timer timer;
     bool animating;
     float textureScaleX, textureScaleY;
   
-protected:
+  protected:
+    //typedef std::vector<std::unique_ptr<AnimationCallback> > Callbacks;
+  
     unsigned int currentFrameWidthPixels, currentFrameHeightPixels;
     unsigned char currentAnimationNumber;
     unsigned char currentFrameNumber;
     bool repeat;
-//  List<TextureAnimationCallback> callbacks = new ArrayList<TextureAnimationCallback>();
+    //Callbacks callbacks;
 
-public:
-  TextureTransform(void):
-    animationTime(600.0f),
-    animating(false),
-    textureScaleX(1),
-    textureScaleY(1),
-    currentFrameWidthPixels(0),
-    currentFrameHeightPixels(0),
-    currentAnimationNumber(0),
-    currentFrameNumber(0),
-    repeat(true)
-  {}
+  public:
+    TextureTransform(void):
+      animationTime(600.0f),
+      animating(false),
+      textureScaleX(1),
+      textureScaleY(1),
+      currentFrameWidthPixels(0),
+      currentFrameHeightPixels(0),
+      currentAnimationNumber(0),
+      currentFrameNumber(0),
+      repeat(true)
+    {}
   
-    void executeCallbacks(void) {
-      // Executing frame and time hooked callbacks
-      /*
-    Iterator<TextureAnimationCallback> i = callbacks.iterator();
-    TextureAnimationCallback callback;
-    
-    while (i.hasNext()) {
-      callback = i.next();
-      
-      if (callback != null && callback.getTriggeringFrame() != null && callback.getTriggeringFrame() == currentFrameNumber) {
-          i.remove();
-        callback.call(this);
+    void executeCallbacks(void)
+    {/*
+      // Executing frame and time hooked callbacks 
+      for (Callbacks::iterator i = callbacks.begin(); i != callbacks.end(); ++i) {
+        if ((*i)->getTriggeringFrame() == currentFrameNumber) {
+          (*i)->call(*this);
+          callbacks.erase(i);
         }
-      
-      if (callback != null && callback.getTriggeringTime() != null && timer.getDeltaTime() > callback.getTriggeringTime()) {
-        i.remove();
-          callback.call(this);
+        
+        if (timer.getDeltaTime() == (*i)->getTriggeringTime()) {
+          (*i)->call(*this);
+          callbacks.erase(i);
         }
-    } */
+      }*/
     }
   
-    void animate(int numberOfAnimation, float animationTime, bool repeat, bool forceZeroFrame = false) {
+    void animate(int numberOfAnimation, float animationTime, bool repeat, bool forceZeroFrame = false)
+    {
       if (currentAnimationNumber != numberOfAnimation || forceZeroFrame) {
         setCurrentAnimationNumber(numberOfAnimation);
         setCurrentFrameNumber(0);
@@ -62,7 +89,8 @@ public:
       timer.unpause();
     }
     
-    void freezeAnimation(bool freeze) {
+    void freezeAnimation(bool freeze)
+    {
       if (freeze) {
         timer.pause();
       } else {
@@ -125,20 +153,19 @@ public:
         currentFrameHeightPixels / texture.frameHeight :
         1;
     }
-    
-  /*
-    void addAnimationCallback(TextureAnimationCallback callback) {
-      callbacks.add(callback);
-    }
   
-    void removeAnimationCallback(TextureAnimationCallback callback) {
-      callbacks.remove(callback);
-    }*/
+    //void addAnimationCallback(std::unique_ptr<AnimationCallback> &callback) {
+      //callbacks.push_back(std::move(callback));
+    //}
+  
+    //void removeAnimationCallback(AnimationCallback callback) {
+     // callbacks.erase(callback);
+    //}
     
     void removeAnimationCallbacks(void) {
-    //  callbacks.clear();
+     // callbacks.clear();
     }
-  
+    
 protected:
   void changeTextureFrames(Texture &texture) {
       if (timer.getDeltaTime() > animationTime / texture.numberOfFrames) {

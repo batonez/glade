@@ -2,7 +2,7 @@
 #include <assert.h>
 
 #include "glade/log/log.h"
-#include "glade/math/globals.h"
+#include "glade/math/util.h"
 #include "glade/math/Matrix.h"
 #include "glade/ui/Widget.h"
 #include "glade/render/GladeRenderer.h"

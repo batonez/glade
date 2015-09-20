@@ -1,23 +1,25 @@
 #pragma once
 
-#include <string.h>
+#include <string>
 
 class GladeException
 {
-private:
-  char message[512];
-  
-public:
-  GladeException(const char* message)
-  {
-    int messageLength = strlen(message);
-    int sizeToCopy = messageLength < 511 ? messageLength : 511;
-    memcpy(this->message, message, sizeof(char) * sizeToCopy);
-    this->message[sizeToCopy] = '\0';
-  }
-  
-  const char* getMessage()
-  {
-    return message;
-  }
+  private:
+    std::string message;
+    
+  public:
+    GladeException() {}
+    
+    GladeException(std::string &message_param):
+      message(message_param)
+    {}
+    
+    GladeException(const char *message_param):
+      message(message_param)
+    {}
+    
+    const char* getMessage()
+    {
+      return message.c_str();
+    }
 };

@@ -22,8 +22,8 @@ class Button : public Widget
       if (font != NULL) {
         label = new Label(*text, *font);
         
-        getTransform()->getScaleP()->x = label->getTransform()->getScaleP()->x;
-        getTransform()->getScaleP()->y = label->getTransform()->getScaleP()->y;
+        getTransform()->getScale()->x = label->getTransform()->getScale()->x;
+        getTransform()->getScale()->y = label->getTransform()->getScale()->y;
         label->setParent(this);
       }
     }

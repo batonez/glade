@@ -117,12 +117,12 @@ class BitmapFont
         glyphWidth = getGlyphWidth(string[i]);
         
         rectangle = new Drawable(Rectangle::INSTANCE, BasicTextShaderProgram::INSTANCE);
-        rectangle->getTransform()->getScaleP()->x = ((float) glyphWidth / (float) glyphHeight) * fontSize;
-        rectangle->getTransform()->getScaleP()->y = fontSize;
+        rectangle->getTransform()->getScale()->x = ((float) glyphWidth / (float) glyphHeight) * fontSize;
+        rectangle->getTransform()->getScale()->y = fontSize;
         
-        nextOffsetX += rectangle->getTransform()->getScale().x;
-        rectangle->getTransform()->getPositionP()->x = nextOffsetX - halfStringWidth;
-        nextOffsetX += rectangle->getTransform()->getScale().x;
+        nextOffsetX += rectangle->getTransform()->getScale()->x;
+        rectangle->getTransform()->getPosition()->x = nextOffsetX - halfStringWidth;
+        nextOffsetX += rectangle->getTransform()->getScale()->x;
 
         rectangle->setTexture(atlas);
 //      rectangle->setConstantColor((float)(rand() % 100)/100.0f, (float)(rand() % 100)/100.0f, (float)(rand() % 100)/100.0f, 0.5f);

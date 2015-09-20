@@ -77,10 +77,10 @@ void GladeRenderer::clear(void)
 
 void GladeRenderer::onSurfaceCreated()
 {
-  glFrontFace(GL_CW);
+  glFrontFace(GL_CCW);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   //glEnable(GL_BLEND);
-//	glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	moveAllObjectsIntoVideoMemory();
   log("Initialized renderer");

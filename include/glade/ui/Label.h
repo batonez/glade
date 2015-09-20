@@ -6,6 +6,9 @@
 
 class Label : public Widget
 {
+  private:
+    std::string text;
+    
 	public:
     Label(std::string &string, BitmapFont &font) : Label(string, font, 0.0f, 0.0f, 0.0f)
     {
@@ -16,8 +19,10 @@ class Label : public Widget
       setFocusable(false);
 
       addDrawables(*font.createDrawablesForString(string));
-      getTransform()->getScaleP()->set(font.getStringWidth(string), font.getFontSize(), 1);
+      getTransform()->getScale()->set(font.getStringWidth(string), font.getFontSize(), 1);
 //    setTextColor(r, g, b); // MAKE SHADERS FOR TEXT AND DEBUG THEM
+
+      text = string;
     }
     
     Label() : Widget(CenterLayout::INSTANCE)
@@ -38,5 +43,10 @@ class Label : public Widget
         program->replaceOriginalColor = true;
         program->constantColor.set(r, g, b, 1.0f);
       }
+    }
+    
+    std::string getText()
+    {
+      return text;
     }
 };

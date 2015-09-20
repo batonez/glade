@@ -22,24 +22,24 @@ public class GridLayout extends Layout
 		rescaleChildrenOf(widget);
 		
 		float cellWidth, cellHeight;
-		cellWidth = cellHeight = 2 * widget.getTransform().getScale().x / rowLength;
+		cellWidth = cellHeight = 2 * widget.getTransform().getScale()->x / rowLength;
 		
 		Transform parentTransform = widget.getTransform();
 		Vector4f padding = getPadding();
 		
-		float	homeX	 = parentTransform.getPosition().x + padding.w,
+		float	homeX	 = parentTransform.getPosition()->x + padding.w,
 				currentX = homeX,
-				currentY = parentTransform.getPosition().y + padding.x,
-				currentZ = parentTransform.getPosition().z;
+				currentY = parentTransform.getPosition()->y + padding.x,
+				currentZ = parentTransform.getPosition()->z;
 		
 		int numberInARow = 0;
 		
 		for (Widget child: widget.getChildren()) {
 			++ numberInARow;
 			Vector3f childScale = child.getTransform().getScale();
-			child.getTransform().getPosition().x = currentX - parentTransform.getScale().x + childScale.x;
-			child.getTransform().getPosition().y = currentY - parentTransform.getScale().y + childScale.y;
-			child.getTransform().getPosition().z = currentZ;
+			child.getTransform().getPosition()->x = currentX - parentTransform.getScale()->x + childScale.x;
+			child.getTransform().getPosition()->y = currentY - parentTransform.getScale()->y + childScale.y;
+			child.getTransform().getPosition()->z = currentZ;
 			
 			child.getLayout().calculateTransformsForChildrenOf(child);
 			

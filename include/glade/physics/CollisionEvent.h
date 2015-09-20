@@ -20,7 +20,7 @@ class CollisionEvent const
 		Transform kinematicColShapeTransform = kinematicObject->getTransform();
 		Transform staticColShapeTransform = staticObject->getTransform();
 		
-		firstIsAtTop = kinematicColShapeTransform.getPosition().y < staticColShapeTransform.getPosition().y;
-		firstIsAtLeft = kinematicColShapeTransform.getPosition().x < staticColShapeTransform.getPosition().x;
+		firstIsAtTop = kinematicColShapeTransform.getPosition()->y < staticColShapeTransform.getPosition()->y;
+		firstIsAtLeft = kinematicColShapeTransform.getPosition()->x < staticColShapeTransform.getPosition()->x;
 	}
 };

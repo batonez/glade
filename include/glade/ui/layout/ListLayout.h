@@ -2,6 +2,7 @@
 
 #include "glade/math/Vector.h"
 #include "Layout.h"
+#include "glade/math/Transform.h"
 
 class ListLayout : public Layout
 {
@@ -13,7 +14,7 @@ class ListLayout : public Layout
       rescaleChildrenOf(widget);
       
       Transform* parentTransform = widget->getTransform();
-      Vector3f* parentPosition = parentTransform->getPositionP();
+      Transform::SharedVector parentPosition = parentTransform->getPosition();
       
       float
         currentX = parentPosition->x,
@@ -24,8 +25,8 @@ class ListLayout : public Layout
       
       for (Widget::WidgetsI child = children->begin(); child != children->end(); ++child) {
         Transform* childTransform = (*child)->getTransform();
-        Vector3f* childScale = childTransform->getScaleP();
-        Vector3f* parentScale = parentTransform->getScaleP();
+        Transform::SharedVector childScale = childTransform->getScale();
+        Transform::SharedVector parentScale = parentTransform->getScale();
         
         log("CHILD: %f, %f, %f", childScale->x, childScale->y, childScale->z);
         log("PARENT: %f, %f, %f", parentScale->x, parentScale->y, parentScale->z);
@@ -51,7 +52,7 @@ class ListLayout : public Layout
             break;
         }
         
-        Vector3f* childPosition = childTransform->getPositionP();
+        Transform::SharedVector childPosition = childTransform->getPosition();
         
         childPosition->x = currentX + horizontalAlignOffset;
         childPosition->y = currentY + verticalAlignOffset;

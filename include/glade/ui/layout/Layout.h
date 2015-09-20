@@ -160,11 +160,11 @@ class Layout
       
       switch (widget->getLayout()->getHorizontalSizeType()) {
         case PERCENT_OF_PARENT:
-          widget->getTransform()->getScaleP()->x = horizontalSize * hisParent->getTransform()->getScale().x - ((padding.y + padding.w) / 2);
+          widget->getTransform()->getScale()->x = horizontalSize * hisParent->getTransform()->getScale()->x - ((padding.y + padding.w) / 2);
           break;
         case PERCENT_OF_SELF_HEIGHT:
           rescaleY(widget, hisParent);
-          widget->getTransform()->getScaleP()->x = horizontalSize * widget->getTransform()->getScale().y;
+          widget->getTransform()->getScale()->x = horizontalSize * widget->getTransform()->getScale()->y;
           result = true;
           break;
         default:
@@ -182,11 +182,11 @@ class Layout
       
       switch (widget->getLayout()->verticalSizeType) {
         case PERCENT_OF_PARENT:
-          widget->getTransform()->getScaleP()->y = verticalSize * hisParent->getTransform()->getScale().y - ((padding.x + padding.z) / 2);
+          widget->getTransform()->getScale()->y = verticalSize * hisParent->getTransform()->getScale()->y - ((padding.x + padding.z) / 2);
           break;
         case PERCENT_OF_SELF_WIDTH:
           rescaleX(widget, hisParent);
-          widget->getTransform()->getScaleP()->y = verticalSize * widget->getTransform()->getScale().x;
+          widget->getTransform()->getScale()->y = verticalSize * widget->getTransform()->getScale()->x;
           result = true;
           break;
         default:

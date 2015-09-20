@@ -26,7 +26,7 @@ public:
   bool enableSimulator, enableCollisionDetector, enableAiContainer, enableSoundPlayer;
 
 private:
-	State *currentState, *requestedState;
+	State::Unique currentState, requestedState;
 	bool stopRequested, clearRequested;
 	VirtualController* controller;
 	queue<GladeObject*> objectsToAdd;
@@ -47,8 +47,8 @@ public:
 	{
 	}
 		
-	void requestStateChange(State* state) {
-		requestedState = state;
+	void requestStateChange(State::Unique &state) {
+		requestedState = std::move(state);
 	}
 
 	void requestStop(void) {
@@ -73,7 +73,7 @@ public:
 	}
 	
 	State* getCurrentState(void) {
-		return currentState;
+		return currentState.get();
 	}
 	/*
 	Simulator* getSimulator(void) {
@@ -96,12 +96,18 @@ public:
 		if (stopRequested) {
 			stopRequested = false;
 			clearNowFully();
+      
+      if (currentState.get() != nullptr) {
+        currentState->shutdown();
+        currentState.reset();
+      }
+      
 			gladen::system::exit();
 			
 			return;
 		}
 		
-		if (requestedState != NULL) {
+		if (requestedState.get() != nullptr) {
 			switchState();
 			
 			return;
@@ -142,17 +148,13 @@ public:
 		clearRequested = true;
 	}
 	
-	void setController(VirtualController* controller) {
-		controller->init();
-		this->controller = controller;
+	void setController(VirtualController &controller) {
+		controller.init();
+		this->controller = &controller;
 	}
 	
 	VirtualController* getController(void) {
 		return controller;
-	}
-	
-	void pollInput(void) {
-		gladen::system::pollInput();
 	}
 
 private:
@@ -160,15 +162,18 @@ private:
 	 * Should be called only from rendering thread
 	 */
 	void switchState(void) {
-		if (requestedState == NULL) {
+		if (requestedState.get() == nullptr) {
 			log("You should request a state before activating it");
       return;
 		}
     
-		currentState = requestedState;
-		requestedState = NULL;
+    if (currentState.get() != nullptr) {
+      currentState->shutdown();
+    }
+    
+		currentState = std::move(requestedState);
 		
-		if (currentState != NULL) {
+		if (currentState.get() != nullptr) {
 			clearBeforeStateInit();
 			currentState->init();
 			clearAfterStateInit();
@@ -206,7 +211,7 @@ private:
 	 */
 	void addNow(Widget* widget) {
 		if (widget->getParent() == NULL) {
-			widget->getTransform()->set(&renderer->getTransformForRootWidget());
+			widget->getTransform()->set(renderer->getTransformForRootWidget());
 		}
 		
 		widget->getLayout()->calculateTransformsForChildrenOf(widget);

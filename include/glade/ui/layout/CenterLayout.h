@@ -16,8 +16,8 @@ class CenterLayout : public Layout
       Widget::Widgets* children = widget->getChildren();
       
       for (Widget::WidgetsI child = children->begin(); child != children->end(); ++child) {
-        (*child)->getTransform()->getPositionP()->x = parentTransform->getPosition().x;
-        (*child)->getTransform()->getPositionP()->y = parentTransform->getPosition().y;
+        (*child)->getTransform()->getPosition()->x = parentTransform->getPosition()->x;
+        (*child)->getTransform()->getPosition()->y = parentTransform->getPosition()->y;
         
         (*child)->getLayout()->calculateTransformsForChildrenOf(*child);
       }

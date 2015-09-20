@@ -3,6 +3,7 @@
 #include "glade/math/Vector.h"
 #include "Layout.h"
 #include "glade/ui/Widget.h"
+#include "glade/math/Transform.h"
 
 class SequenceLayout : public Layout
 {
@@ -16,17 +17,17 @@ class SequenceLayout : public Layout
       Transform* parentTransform = widget->getTransform();
       
       float
-        currentX = parentTransform->getPositionP()->x + padding.w,
-        currentY = parentTransform->getPositionP()->y + padding.x,
-        currentZ = parentTransform->getPositionP()->z;
+        currentX = parentTransform->getPosition()->x + padding.w,
+        currentY = parentTransform->getPosition()->y + padding.x,
+        currentZ = parentTransform->getPosition()->z;
       
       Widget::Widgets* children = widget->getChildren();
       
       for (Widget::WidgetsI child = children->begin(); child != children->end(); ++child) {
         Transform* childTransform = (*child)->getTransform();
-        Vector3f* childScale = childTransform->getScaleP();
-        Vector3f* childPosition = childTransform->getPositionP();
-        Vector3f* parentScale = parentTransform->getScaleP();
+        Transform::SharedVector childScale = childTransform->getScale();
+        Transform::SharedVector childPosition = childTransform->getPosition();
+        Transform::SharedVector parentScale = parentTransform->getScale();
         
         childPosition->x = currentX - parentScale->x + childScale->x;
         childPosition->y = currentY - parentScale->y + childScale->y;

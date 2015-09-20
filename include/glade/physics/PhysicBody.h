@@ -17,8 +17,8 @@ class PhysicBody
       velocity.y += deltaTime * acceleration.y;
       velocity.z += deltaTime * acceleration.z;
       
-      transform->getPosition().x += deltaTime * velocity.x;
-      transform->getPosition().y += deltaTime * velocity.y;
-      transform->getPosition().z += deltaTime * velocity.z;
+      transform->getPosition()->x += deltaTime * velocity.x;
+      transform->getPosition()->y += deltaTime * velocity.y;
+      transform->getPosition()->z += deltaTime * velocity.z;
     }
 };

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <set>
+
 #include "../GladeObject.h"
 #include "../Callable.h"
+#include "../math/Transform.h"
 
 class Layout;
 
@@ -29,7 +31,7 @@ class Widget : public GladeObject
 	  bool focused;
 	  Callable::Callables onFocusListeners;
 	  Callable::Callables onBlurListeners;
-	  Callable* action;
+	  Callable::AutoDispose action;
   
   public:
     Widget(Layout &layout):
@@ -37,8 +39,7 @@ class Widget : public GladeObject
       focusable(true),
       layout(layout),
       parent(NULL),
-      breadCrumb(NULL),
-      action(NULL)
+      breadCrumb(NULL)
     {
     }
     
@@ -67,11 +68,11 @@ class Widget : public GladeObject
     
     bool isPointInside(float x, float y)
     {
-      Vector3f position = getTransform()->getPosition();
-      Vector3f scale = getTransform()->getScale();
+      Transform::SharedVector position = getTransform()->getPosition();
+      Transform::SharedVector scale = getTransform()->getScale();
       
-      if (x > position.x - scale.x && x < position.x + scale.x &&
-        y > position.y - scale.y && y < position.y + scale.y
+      if (x > position->x - scale->x && x < position->x + scale->x &&
+        y > position->y - scale->y && y < position->y + scale->y
       ) {
         return true;
       }
@@ -355,14 +356,14 @@ class Widget : public GladeObject
       onBlurListeners.erase(listener);
     }
     
-    void setAction(Callable* action)
+    void setAction(Callable::AutoDispose &action)
     {
-      this->action = action; 
+      this->action = std::move(action);
     }
     
     void performAction()
     {
-      if (action != NULL) {
+      if (action.get() != nullptr) {
         action->call();
       }
     }

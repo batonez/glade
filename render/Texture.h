@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../exception/GladeException.h"
+
 class Texture {
 public:
     const unsigned int textureWidth;
@@ -12,11 +14,12 @@ public:
     const float texCoordFrameHeight; // ¬ысота кадра в координатах T
 	
 private:
-	unsigned char* data;
+	unsigned char* data = NULL;
 	int bufferId;
 	
 public:
-    Texture(int texWidth, int texHeight, int numOfAnimations, int numOfFrames, float* textureData):
+    Texture(int texWidth, int texHeight, int numOfAnimations, int numOfFrames, std::vector<unsigned char> &textureData):
+    bufferId(-1),
 		textureWidth(texWidth),
 		textureHeight(texHeight),
     	numberOfFrames(numOfFrames),
@@ -25,37 +28,36 @@ public:
     	frameHeight((float) textureHeight / (float) numberOfAnimations),
     	texCoordFrameWidth(1 / (float) numberOfFrames),
     	texCoordFrameHeight(1 / (float) numberOfAnimations)
-	{
-		if (texWidth <= 0 || texHeight <= 0 || numberOfAnimations <= 0 || numberOfFrames <= 0 || textureData == NULL) {
-			// throw new RuntimeException("Incorrect parameters for texture constructorz method.");
-		}
-			
-		unsigned int texSize = texWidth * texHeight;
-		data = new unsigned char[texSize];
-		memcpy(data, textureData, texSize * sizeof(float));
+    {
+      if (texWidth <= 0 || texHeight <= 0 || numberOfAnimations <= 0 || numberOfFrames <= 0) {
+         throw GladeException("Texture::Texture(): Incorrect parameters for texture constructor method");
+      }
+        
+      data = new unsigned char[textureData.size()];
+      memcpy(data, textureData.data(), textureData.size());
     }
     
-	~Texture(void) {
-		erase();
-	}
+    ~Texture(void) {
+      erase();
+    }
 	
     bool isTextureSizePowerOfTwo() {
     	return isPowerOfTwo(textureWidth) && isPowerOfTwo(textureHeight);
     }
     
     bool hasVideoBufferHandle() {
-    	return bufferId != 0;
-    }
-    
-    bool isErased() {
-    	return data == NULL;
+    	return bufferId >= 0;
     }
     
     void erase() {
-		if (data != NULL) {
-			delete [] data;
-			data = NULL;
-		}
+      if (data != NULL) {
+        delete [] data;
+        data = NULL;
+      }
+    }
+    
+    void free() {
+      delete this;
     }
     
     unsigned char* getData() {
@@ -63,11 +65,11 @@ public:
     }
     
     void setVideoBufferHandle(int bufferId) {
-		if (bufferId == 0) {
-			// 0 используетс€ дл€ индикации отсутсви€ bufferId, нужно отловить эту ситуацию
-		}
+      if (bufferId < 0) {
+        throw GladeException("Texture::setVideoBufferHandle(): buffer ID must be positive integer");
+      }
 		
-    	bufferId = bufferId;
+      this->bufferId = bufferId;
     }
     
     int getVideoBufferHandle() {

@@ -147,11 +147,9 @@ public:
     VisibilitySwitches::iterator i = visibilitySwitches.find(view);
 		
     if (i != visibilitySwitches.end()) {
-      log(i->second ? "VIEW ENABLED" : "VIEW DISABLED");
       return i->second;
     }
     
-    log("VIEW NOT FOUND");
     return false;
 	}
 

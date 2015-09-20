@@ -12,19 +12,19 @@ public:
 	{
 		static float vertices[] = {
 			0.0f, 0.5f, 0.0f,  // position
-			1.0f, 0.0f, 0.0f, 1.0f, // color
+			1.0f, 0.0f, 0.0f, 0.4f, // color
 			0.0f, 0.0f, 0.0f, // normal
 			0.0f, 0.0f, // texcoord
 
 			 -0.5f, -0.5f, 0.0f,
 			1.0f, 0.0f, 0.0f, 1.0f,
 			0.0f, 0.0f, 0.0f,
-			0.0f, 0.0f,
+			0.0f, 1.0f,
 
 			0.5f, -0.5f, 0.0f,
-			1.0f, 0.0f, 0.0f, 1.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
 			0.0f, 0.0f, 0.0f,
-			0.0f, 0.0f
+			1.0f, 1.0f
 		};
 		
 		return vertices;

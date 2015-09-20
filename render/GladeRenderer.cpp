@@ -89,7 +89,7 @@ static const char vertexShaderSource[] =
 "}\n"
 
 "void main() {\n"
-  "gl_Position = uProjectionMatrix * uWorldViewMatrix * aPosition;\n" // multiply by matrices here  gl_Position = uProjectionMatrix * uWorldViewMatrix * aPosition;
+  "gl_Position = uProjectionMatrix * uWorldViewMatrix * aPosition;\n"
   "vTexCoord0 = transformTexCoords(aTexCoord0, vec2(uTexCoordOffsetX0, uTexCoordOffsetY0), vec2(uTexCoordScaleX0, uTexCoordScaleY0));\n"
   
   "if (uLight != ZERO) {\n"
@@ -118,18 +118,19 @@ static char fragmentShaderSource[] =
 
 "void main(void)\n"
 "{\n"
-"vec4 texColor = texture2D(uTextureSampler0, vTexCoord0);\n"
+  "vec4 texColor = texture2D(uTextureSampler0, vTexCoord0);\n"
 
-"if (uReplaceColor == 1) {\n"
-		"gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, texColor.a);\n"
-	"} else {\n"
-		"gl_FragColor = texColor;\n"
-	"}\n"
-  "gl_FragColor = blendColors(gl_FragColor, vColor);\n"
+//"if (uReplaceColor == 1) {\n"
+//		"gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, texColor.a);\n"
+//	"} else {\n"
+  	"gl_FragColor = texColor;\n"
+//	"}\n"
+  
+  "gl_FragColor = blendColors(gl_FragColor, uColor);\n"
 	
-	"if (uReplaceColor == 0) {\n"
-		"gl_FragColor = blendColors(gl_FragColor, uColor);\n"
-	"}\n"
+//	"if (uReplaceColor == 0) {\n"
+//		"gl_FragColor = blendColors(gl_FragColor, uColor);\n"
+//	"}\n"
 "}\n";
 
 GladeRenderer::GladeRenderer(void)
@@ -401,7 +402,17 @@ void GladeRenderer::moveIntoVideoMemory(Drawable &drawable)
   log("Moving drawable into video memory");
 	Texture* texture = drawable.getTexture();
 	
-	if (texture != NULL && !texture->hasVideoBufferHandle() && !texture->isErased()) {
+  if (texture == NULL)
+    log("Texture is null");
+    
+  if (texture->hasVideoBufferHandle())
+    log("Has video buffer handle");
+    
+  if (texture->getData() == NULL)
+    log("Texture data is null");
+    
+	if (texture != NULL && !texture->hasVideoBufferHandle() && texture->getData() != NULL) {
+    log("Loading texture into video memory");
     GLvoid* data = (GLvoid*) texture->getData();
 		
 		GLuint texIds[1];
@@ -458,15 +469,17 @@ void GladeRenderer::removeFromVideoMemory(Drawable &drawable)
 {
 	Texture* texture = drawable.getTexture();
 	
-	if (texture != NULL && texture->hasVideoBufferHandle()) {
-		GLuint texIds[1];
-		texIds[0] = texture->getVideoBufferHandle();
-		glDeleteTextures(1, texIds);
-		texture->setVideoBufferHandle(0);
+	if (texture != NULL) {
+    if (texture->hasVideoBufferHandle()) {
+      GLuint texIds[1];
+      texIds[0] = texture->getVideoBufferHandle();
+      glDeleteTextures(1, texIds);
+      texture->setVideoBufferHandle(0);
+    }
+    
+    texture->free();
 	}
-	
-	
-	
+		
 	if (drawable.indexVboId != 0 || drawable.vertexVboId != 0) {
 		GLuint vboIds[1];
 		vboIds[0] = drawable.vertexVboId;
@@ -515,7 +528,7 @@ void GladeRenderer::draw(vector<Drawable*>::iterator di, Transform &transform)
   glUniformMatrix4fv(uWorldViewMatrix, 4, GL_FALSE, worldViewMatrix);
   
   Vector4f* constantColor = (*di)->getConstantColor();
-	glUniform4f(uColor, constantColor->x, constantColor->y, constantColor->z, 1);
+	glUniform4f(uColor, constantColor->x, constantColor->y, constantColor->z, constantColor->w);
   
 	glUniform1i(uReplaceColor, (*di)->replaceOriginalColor ? 1 : 0);
   
@@ -533,15 +546,15 @@ void GladeRenderer::draw(vector<Drawable*>::iterator di, Transform &transform)
 	
 	if (texture != NULL) {
 		if (texture->hasVideoBufferHandle()) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texture->getVideoBufferHandle());
+      glActiveTexture(GL_TEXTURE0);
+		  glBindTexture(GL_TEXTURE_2D, texture->getVideoBufferHandle());
 
-			TextureTransform* texTransform = (*di)->getTextureTransform();
-			texTransform->executeCallbacks();
+		  TextureTransform* texTransform = (*di)->getTextureTransform();
+      texTransform->executeCallbacks();
 			
-			glUniform1i(uSamplerNumber, 0);
-			glUniform1f(uTexScaleX, texTransform->textureScaleX  / (float) texture->numberOfFrames * texTransform->getTextureScaleXModifierForFrame(*texture));
-			glUniform1f(uTexScaleY, texTransform->textureScaleY  / (float) texture->numberOfAnimations * texTransform->getTextureScaleYModifierForFrame(*texture));
+      glUniform1i(uSamplerNumber, 0);
+      glUniform1f(uTexScaleX, texTransform->textureScaleX  / (float) texture->numberOfFrames * texTransform->getTextureScaleXModifierForFrame(*texture));
+      glUniform1f(uTexScaleY, texTransform->textureScaleY  / (float) texture->numberOfAnimations * texTransform->getTextureScaleYModifierForFrame(*texture));
 			glUniform1f(uTexOffsetX, texTransform->getCurrentFrameNumber(*texture) * texture->texCoordFrameWidth);
 			glUniform1f(uTexOffsetY, texTransform->getCurrentAnimationNumber(*texture) * texture->texCoordFrameHeight);
 			
@@ -552,8 +565,8 @@ void GladeRenderer::draw(vector<Drawable*>::iterator di, Transform &transform)
 			);
 						
 			glEnableVertexAttribArray(aTexCoord);
-		}
-	}
+    }
+  }
 
   if ((*di)->isLit()) {
     Material* material = (*di)->getMaterial();

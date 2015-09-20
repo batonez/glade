@@ -56,7 +56,7 @@ public:
 	Vector4f(float x, float y, float z, float w) { this->x = x; this->y = y; this->z = z; this->w = w;}
 	void setIdentity(void) { x = y = z = w = 0.0f; }
 	void set(const Vector4f &vector) { x  = vector.x; y  = vector.y; z  = vector.z; w  = vector.w; }
-	void set(float x, float y, float z, float w) { this->x = x; this->y = y; this->z = z; this->w; }
+	void set(float x, float y, float z, float w) { this->x = x; this->y = y; this->z = z; this->w = w; }
 	void add(const Vector4f &vector) { x += vector.x; y += vector.y; z += vector.z; w += vector.w; }
 	void dot(const Vector4f &vector) { x *= vector.x; y *= vector.y; z *= vector.z; w *= vector.w; }
 	void add(const Vector4f &vector, Vector4f &result) { result.x = x + vector.x; result.y = y + vector.y; result.z = z + vector.z; result.w = w + vector.w; }
@@ -71,7 +71,7 @@ public:
 	Vector4i(int x, int y, int z, int w) { this->x = x; this->y = y; this->z = z; this->w = w;}
 	void setIdentity(void) { x = y = z = w = 0.0f; }
 	void set(const Vector4i &vector) { x  = vector.x; y  = vector.y; z  = vector.z; w  = vector.w; }
-	void set(int x, int y, int z) { this->x = x; this->y = y; this->z = z; this->w = w; }
+	void set(int x, int y, int z, int w) { this->x = x; this->y = y; this->z = z; this->w = w; }
 	void add(const Vector4i &vector) { x += vector.x; y += vector.y; z += vector.z; w += vector.w; }
 	void dot(const Vector4i &vector) { x *= vector.x; y *= vector.y; z *= vector.z; w *= vector.w; }
 	void add(const Vector4i &vector, Vector4i &result) { result.x = x + vector.x; result.y = y + vector.y; result.z = z + vector.z; result.w = w + vector.w; }

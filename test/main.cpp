@@ -11,6 +11,8 @@
 #include "../render/Drawable.h"
 #include "../render/samples/Cube.h"
 #include "../render/samples/Triangle.h"
+#include "../render/Texture.h"
+#include "../#util/TextureLoader.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -146,11 +148,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
         _T("Glade native"),
         NULL);
     }
-    
+
     // OpenGL calls may start here
     
     //MessageBox(0,(TCHAR*)glGetString(GL_VERSION), "OPENGL VERSION",0);
-   
+    
     // load necessary extensions and function pointers
     loadFunctions();
     // also, re-create context using pixel format extensions if necessary
@@ -160,21 +162,16 @@ int WINAPI WinMain(HINSTANCE hInstance,
     renderer.onSurfaceCreated();
     renderer.onSurfaceChanged(500, 500);
     renderer.setBackgroundColor(1.0, 1.0, 1.0);
-    
-    /*
+        
     GladeObject object;
     Drawable view(Triangle::INSTANCE);
-    view.setConstantColor(1.0, 0, 0);
-    object.addDrawable(&view);
-    renderer.add(&object);
-    renderer.setSceneProjectionMode(ORTHO);
-    renderer.camera.setPosition(0.0f, 0.0f, -1.0f);
-    view.setLit(false);*/
-    
-    GladeObject object;
-    Drawable view(Triangle::INSTANCE);
-    view.setConstantColor(1.0f, 0.0f, 0.0f, 1.0f);
+ //   view.setConstantColor(1.0f, 0.0f, 0.0f, 0.1f);
+    view.setConstantColor(1.0f, 0.0f, 0.0f, 0.5f);
     view.setLit(false);
+    
+    Texture* texture = TextureLoader::loadTexture("notexture.png");
+    view.setTexture(texture);
+    
     object.addDrawable(&view);
     renderer.add(&object);
     
@@ -204,7 +201,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
       if (msg.message == WM_QUIT)
         break;
       
-      
       renderer.onDrawFrame();
       SwapBuffers(hdc);
       
@@ -228,9 +224,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
     OutputDebugString("Program is finishing");
     return (int) msg.wParam;
   } catch (GladeException e) {
-    log("Uncaught GladeException: %s", e.getMessage());
+    log("Uncaught GladeException: %s", e.getMessage()); // FIXME!! FREE GL CONTEXT AND RESOURCES!
   } catch (...) {
-    log("Uncaught unknown exception");
+    log("Uncaught unknown exception");  // FIXME!! FREE GL CONTEXT AND RESOURCES!
   }
   
   return 1;

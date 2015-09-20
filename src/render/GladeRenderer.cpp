@@ -79,8 +79,8 @@ void GladeRenderer::clear(void)
 void GladeRenderer::onSurfaceCreated()
 {
   glFrontFace(GL_CCW);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	moveAllObjectsIntoVideoMemory();
@@ -277,6 +277,24 @@ void GladeRenderer::compileShaderProgram(ShaderProgram *program)
   glAttachShader(program->gpuHandle, vertexShaderPointer);
   glAttachShader(program->gpuHandle, fragmentShaderPointer);
   glLinkProgram(program->gpuHandle);
+  
+  glUseProgram(program->gpuHandle);
+  
+  GLint numberOfUniforms;
+  glGetProgramiv(program->gpuHandle, GL_ACTIVE_UNIFORMS, &numberOfUniforms);
+  
+  GLchar buffer[128];
+  GLsizei nameLength;
+  GLenum type;
+  GLint uniformSize;
+  
+  for (int i = 0; i < numberOfUniforms; ++i) {
+    memset(buffer, '\0', 128);
+    glGetActiveUniform(program->gpuHandle, i, 128, &nameLength, &uniformSize, &type, buffer);
+    int uniformHandle = glGetUniformLocation(program->gpuHandle, buffer);
+    assert(uniformHandle >= 0);
+    program->saveUniformHandle(buffer, uniformHandle) ;
+  }
 }
 
 void GladeRenderer::moveIntoVideoMemory(VertexObject *mesh)
@@ -303,7 +321,15 @@ void GladeRenderer::moveIntoVideoMemory(std::shared_ptr<Texture> texturePtr)
 {
   Texture *texture = texturePtr.get();
   
-  if (nullptr == texture || texture->hasVideoBufferHandle() || NULL == texture->getData()) {
+  if (nullptr == texture) {
+    return;
+  }
+  
+  if (texture->hasVideoBufferHandle()) {
+    return;
+  }
+  
+  if (NULL == texture->getData()) {
     return;
   }
   
@@ -465,38 +491,43 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   }
   
   Drawable::ShaderFloatUniformsCI fi = (*di)->floatUniformsBegin();
+  GLint uniformHandle = -1;
   
   while (fi != (*di)->floatUniformsEnd()) {
-    glUniform1f(fi->first, fi->second);
-    
+    uniformHandle = program->getUniformHandle(fi->first);
+    glUniform1f(uniformHandle, fi->second);
     ++fi;
   }
   
   Drawable::ShaderBoolUniformsCI bi = (*di)->boolUniformsBegin();
   
   while (bi != (*di)->boolUniformsEnd()) {
-    glUniform1i(bi->first, bi->second ? 1 : 0);
+    uniformHandle = program->getUniformHandle(bi->first);
+    glUniform1i(uniformHandle, bi->second ? 1 : 0);
     ++bi;
   }
   
   Drawable::ShaderIntUniformsCI ii = (*di)->intUniformsBegin();
   
   while (ii != (*di)->intUniformsEnd()) {
-    glUniform1i(ii->first, ii->second);
+    uniformHandle = program->getUniformHandle(ii->first);
+    glUniform1i(uniformHandle, ii->second);
     ++ii;
   }
 
   Drawable::ShaderVec3UniformsCI v3i = (*di)->vec3UniformsBegin();
   
   while (v3i != (*di)->vec3UniformsEnd()) {
-    glUniform3f(v3i->first, v3i->second.x, v3i->second.y, v3i->second.z);
+    uniformHandle = program->getUniformHandle(v3i->first);
+    glUniform3f(uniformHandle, v3i->second.x, v3i->second.y, v3i->second.z);
     ++v3i;
   }
 
   Drawable::ShaderVec4UniformsCI v4i = (*di)->vec4UniformsBegin();
   
   while (v4i != (*di)->vec4UniformsEnd()) {
-    glUniform4f(v4i->first, v4i->second.x, v4i->second.y, v4i->second.z, v4i->second.w);
+    uniformHandle = program->getUniformHandle(v4i->first);
+    glUniform4f(uniformHandle, v4i->second.x, v4i->second.y, v4i->second.z, v4i->second.w);
     ++v4i;
   }
   

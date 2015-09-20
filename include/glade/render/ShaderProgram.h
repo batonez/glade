@@ -1,17 +1,15 @@
 ﻿#pragma once
 
-// remove this (see comment below)
-#ifndef ANDROID
-#include "glade/opengl/functions.h"
-#else
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#endif
+#include <string>
+#include <unordered_map>
 
 class Drawable;
 
 class ShaderProgram
 {
+  private:
+    std::unordered_map<std::string, unsigned> uniformHandles;
+    
   public:
     int     gpuHandle;
     
@@ -23,11 +21,14 @@ class ShaderProgram
     {
     }
     
-    unsigned getUniformLocation(const std::string &uniform_name)
+    unsigned getUniformHandle(const std::string &name) const
     {
-    // FIXME maybe move to renderer (here leave a map of string->unsigned)
-    // in the renderer fill up this map at the time the drawable is added
-      return glGetUniformLocation(gpuHandle, uniform_name.c_str()); 
+      return uniformHandles.at(name);
+    }
+    
+    void saveUniformHandle(const std::string &name, unsigned handle)
+    {
+      uniformHandles[name] = handle;
     }
     
     void erase()
@@ -36,7 +37,7 @@ class ShaderProgram
       fragmentShaderSource.clear();
     }
 
-    bool hasGpuHandle()
+    bool hasGpuHandle() const
     {
       return gpuHandle >= 0;
     }

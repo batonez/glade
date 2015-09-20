@@ -52,10 +52,11 @@ public:
     }
     
     void erase() {
-      if (data != NULL) {
-        delete [] data;
-        data = NULL;
-      }
+      log("Not erasing texture for debug purposes");
+      //if (data != NULL) {
+      //  delete [] data;
+      //  data = NULL;
+      //}
     }
     
     unsigned char* getData() {

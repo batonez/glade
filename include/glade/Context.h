@@ -26,7 +26,7 @@ public:
   bool enableSimulator, enableCollisionDetector, enableAiContainer, enableSoundPlayer;
 
 private:
-	State::Unique currentState, requestedState;
+	std::unique_ptr<State> currentState, requestedState;
 	bool stopRequested, clearRequested;
 	VirtualController* controller;
 	queue<GladeObject*> objectsToAdd;
@@ -47,7 +47,7 @@ public:
 	{
 	}
 		
-	void requestStateChange(State::Unique &state) {
+	void requestStateChange(std::unique_ptr<State> &state) {
 		requestedState = std::move(state);
 	}
 
@@ -99,7 +99,7 @@ public:
 			clearNowFully();
       
       if (currentState.get() != nullptr) {
-        currentState->shutdown();
+        currentState->shutdown(*this);
         currentState.reset();
       }
       
@@ -177,13 +177,13 @@ private:
 		if (currentState.get() != nullptr) {
 			clearBeforeStateInit();
       log("Shutting down current state");
-      currentState->shutdown();
+      currentState->shutdown(*this);
       log("Current state was shut down");
       
       if (requestedState.get() != nullptr) {
         log("Initializing requested state");
         currentState = std::move(requestedState);
-        currentState->init();
+        currentState->init(*this);
       }
 			
       clearAfterStateInit();
@@ -192,7 +192,7 @@ private:
       
       if (requestedState.get() != nullptr) {
         currentState = std::move(requestedState);
-        currentState->init();
+        currentState->init(*this);
       }
 		}
 	}

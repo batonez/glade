@@ -8,14 +8,13 @@ class GridLayout : public Layout
 {
 	private:
     int rowLength;
-	
-	protected:
+    
+  public:  
     GridLayout(int rowLength = 0):
       rowLength(rowLength)
     {
     }
     
-  public:  
     virtual void calculateTransformsForDirectChildrenOf(Widget *widget)
     {
       rescaleChildrenOf(widget);

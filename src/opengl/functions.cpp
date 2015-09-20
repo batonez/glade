@@ -34,6 +34,7 @@ PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
 PFNGLGETPROGRAMIVPROC glGetProgramiv;
 PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 PFNGLDELETEPROGRAMPROC glDeleteProgram;
+PFNGLGETACTIVEUNIFORMPROC glGetActiveUniform;
 
 void loadFunctions(void) {
   glCreateProgram = (PFNGLCREATEPROGRAMPROC) wglGetProcAddress("glCreateProgram");
@@ -65,4 +66,5 @@ void loadFunctions(void) {
   glGetProgramiv = (PFNGLGETPROGRAMIVPROC) wglGetProcAddress("glGetProgramiv");
   glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC) wglGetProcAddress("glGetProgramInfoLog");
   glDeleteProgram = (PFNGLDELETEPROGRAMPROC) wglGetProcAddress("glDeleteProgram");
+  glGetActiveUniform = (PFNGLGETACTIVEUNIFORMPROC) wglGetProcAddress("glGetActiveUniform");
 }

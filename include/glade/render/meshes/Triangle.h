@@ -46,9 +46,4 @@ class Triangle : public VertexObject
     {
       return 3;
     }
-    
-    virtual void erase()
-    {
-      
-    }
 };

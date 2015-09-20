@@ -16,7 +16,7 @@ class Label : public Widget
 
       addDrawables(*font.createDrawablesForString(string));
       getTransform()->getScale()->set(font.getStringWidth(string), font.getFontSize(), 1);
-      //setTextColor(r, g, b);
+      setTextColor(r, g, b);
 
       text = string;
     }
@@ -30,7 +30,6 @@ class Label : public Widget
     void setTextColor(float r, float g, float b)
     {
       for (DrawablesI di = drawables.begin(); di != drawables.end(); ++di) {
-        (*di)->setUniform("uReplaceColor", true);
         (*di)->setUniform("uColor", Vector4f(r, g, b, 1.0f));
       }
     }

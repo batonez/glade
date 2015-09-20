@@ -36,5 +36,6 @@ extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
 extern PFNGLGETPROGRAMIVPROC glGetProgramiv;
 extern PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
+extern PFNGLGETACTIVEUNIFORMPROC glGetActiveUniform;
 
 void loadFunctions(void);

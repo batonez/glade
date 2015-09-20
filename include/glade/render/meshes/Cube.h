@@ -78,9 +78,4 @@ class Cube : public VertexObject
     {
       return 36;
     }
-    
-    virtual void erase()
-    {
-      
-    }
 };

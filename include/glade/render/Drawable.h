@@ -12,18 +12,18 @@
 
 class Drawable {
 public:
-  typedef std::map<unsigned, float>    ShaderFloatUniforms;
-  typedef std::map<unsigned, bool>     ShaderBoolUniforms;
-  typedef std::map<unsigned, int>      ShaderIntUniforms;
-  typedef std::map<unsigned, Vector3f> ShaderVec3Uniforms;
-  typedef std::map<unsigned, Vector4f> ShaderVec4Uniforms;
+  typedef std::map<std::string, float>    ShaderFloatUniforms;
+  typedef std::map<std::string, bool>     ShaderBoolUniforms;
+  typedef std::map<std::string, int>      ShaderIntUniforms;
+  typedef std::map<std::string, Vector3f> ShaderVec3Uniforms;
+  typedef std::map<std::string, Vector4f> ShaderVec4Uniforms;
   
   typedef ShaderFloatUniforms::const_iterator ShaderFloatUniformsCI;
   typedef ShaderBoolUniforms::const_iterator ShaderBoolUniformsCI;
   typedef ShaderIntUniforms::const_iterator ShaderIntUniformsCI;
   typedef ShaderVec3Uniforms::const_iterator ShaderVec3UniformsCI;
   typedef ShaderVec4Uniforms::const_iterator ShaderVec4UniformsCI;
-
+  
 	bool preservePosition, preserveRotation, preserveScale;
 	
 protected:
@@ -102,32 +102,27 @@ public:
   
   void setUniform(const std::string &name, float val)
   {
-    unsigned uniformHandle = shaderProgram->getUniformLocation(name);
-    shaderFloatUniforms[uniformHandle] = val;
+    shaderFloatUniforms[name] = val;
   }
   
   void setUniform(const std::string &name, bool val)
   {
-    unsigned uniformHandle = shaderProgram->getUniformLocation(name);
-    shaderBoolUniforms[uniformHandle] = val;
+    shaderBoolUniforms[name] = val;
   }
   
   void setUniform(const std::string &name, int val)
   {
-    unsigned uniformHandle = shaderProgram->getUniformLocation(name);
-    shaderIntUniforms[uniformHandle] = val;
+    shaderIntUniforms[name] = val;
   }
   
   void setUniform(const std::string &name, const Vector3f &val)
   {
-    unsigned uniformHandle = shaderProgram->getUniformLocation(name);
-    shaderVec3Uniforms[uniformHandle] = val;
+    shaderVec3Uniforms[name] = val;
   }
   
   void setUniform(const std::string &name, const Vector4f val)
   {
-    unsigned uniformHandle = shaderProgram->getUniformLocation(name);
-    shaderVec4Uniforms[uniformHandle] = val;
+    shaderVec4Uniforms[name] = val;
   }
   
   std::shared_ptr<ShaderProgram> getShaderProgram()

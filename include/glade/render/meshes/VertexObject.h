@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include "glade/log/log.h"
 
 class VertexObject {
   public:
@@ -10,7 +11,10 @@ class VertexObject {
     virtual unsigned short* getIndices(void) = 0;
     virtual unsigned int getIndexBufferSize(void) = 0;
     virtual unsigned int getVertexBufferSize(void) = 0;
-    virtual void erase(void) = 0;
+    
+    virtual void erase(void) {
+      log("Not erasing vertex object for debug purposes");
+    }
   
     bool hasVideoBufferHandle()
     {

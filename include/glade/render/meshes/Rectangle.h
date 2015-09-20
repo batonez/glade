@@ -50,9 +50,4 @@ class Rectangle : public VertexObject
     {
       return 6;
     }
-    
-    virtual void erase()
-    {
-      
-    }
 };

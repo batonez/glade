@@ -21,7 +21,7 @@ class TextureTransform {
           callable(callable_param)
         {}
         
-        ~AnimationCallback()
+        virtual ~AnimationCallback()
         {
           if (callable) {
             delete callable;

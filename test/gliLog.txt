@@ -1,3 +1,3 @@
-GL Intercept Log. Version : 1.20    Compile Date: Jun  3 2013    Run on: Mon Aug 04 23:48:13 2014
+GL Intercept Log. Version : 1.20    Compile Date: Jun  3 2013    Run on: Sun Aug 10 12:55:15 2014
 
 ===================================================

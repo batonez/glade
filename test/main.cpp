@@ -1,26 +1,26 @@
-#include "../os/windows-inc.h"
+#include "glade/os/windows-inc.h"
 
 #include <fstream>
 #include <stdio.h>
 #include <tchar.h>
 
-#include "../exception/GladeException.h"
-#include "../log/log.h"
-#include "../opengl/functions.h"
-#include "../render/GladeRenderer.h"
-#include "../render/DrawFrameHook.h"
-#include "../GladeObject.h"
-#include "../render/Drawable.h"
-#include "../render/meshes/Triangle.h"
-#include "../render/Texture.h"
-#include "../util/TextureLoader.h"
-#include "../render/Shader.h"
-#include "../Context.h"
-#include "../State.h"
-#include "../#ui/Panel.h"
-#include "../#ui/Label.h"
-#include "../#ui/layout/SequenceLayout.h"
-#include "../#ui/font/BitmapFont.h"
+#include "glade/exception/GladeException.h"
+#include "glade/log/log.h"
+#include "glade/opengl/functions.h"
+#include "glade/render/GladeRenderer.h"
+#include "glade/render/DrawFrameHook.h"
+#include "glade/GladeObject.h"
+#include "glade/render/Drawable.h"
+#include "glade/render/meshes/Triangle.h"
+#include "glade/render/Texture.h"
+#include "glade/util/TextureLoader.h"
+#include "glade/render/Shader.h"
+#include "glade/Context.h"
+#include "glade/State.h"
+#include "glade/ui/Panel.h"
+#include "glade/ui/Label.h"
+#include "glade/ui/layout/SequenceLayout.h"
+#include "glade/ui/font/BitmapFont.h"
 
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600

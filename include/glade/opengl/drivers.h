@@ -1,0 +1,13 @@
+#pragma once
+
+#ifdef ANDROID
+  #define GLADE_VIDEO_DRIVER VIDEO_DRIVER_OPENGLES2
+#else
+  #define GLADE_VIDEO_DRIVER VIDEO_DRIVER_OPENGL3
+#endif // ANDROID
+
+enum VideoDrivers
+{
+  VIDEO_DRIVER_OPENGL3,
+  VIDEO_DRIVER_OPENGLES2
+};

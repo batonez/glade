@@ -8,11 +8,8 @@
 class SequenceLayout : public Layout
 {
 	public:
-    static SequenceLayout INSTANCE;
-    
-    virtual void calculateTransformsForChildrenOf(Widget* widget)
+    virtual void calculateTransformsForDirectChildrenOf(Widget* widget)
     {
-      log("Calculating Sequence Layout");
       rescaleChildrenOf(widget);
       
       Transform* parentTransform = widget->getTransform();
@@ -34,11 +31,7 @@ class SequenceLayout : public Layout
         childPosition->y = currentY - parentScale->y + childScale->y;
         childPosition->z = currentZ;
         
-        (*child)->getLayout()->calculateTransformsForChildrenOf(*child);
-        
         currentX += 2 * childScale->x;
       }
-      
-      log("Calculating Sequence Layout finished");
     }
 };

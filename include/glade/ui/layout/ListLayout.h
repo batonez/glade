@@ -7,11 +7,8 @@
 class ListLayout : public Layout
 {
 	public:
-    static ListLayout INSTANCE;
-    
-    virtual void calculateTransformsForChildrenOf(Widget* widget)
+    virtual void calculateTransformsForDirectChildrenOf(Widget* widget)
     {
-      log("Calculating List Layout");
       rescaleChildrenOf(widget);
       
       Transform* parentTransform = widget->getTransform();
@@ -56,11 +53,7 @@ class ListLayout : public Layout
         childPosition->y = currentY + verticalAlignOffset;
         childPosition->z = currentZ;
         
-        (*child)->getLayout()->calculateTransformsForChildrenOf(*child);
-        
         currentY += 2 * childScale->y;
       }
-      
-      log("Calculating List Layout finished");
     }
 };

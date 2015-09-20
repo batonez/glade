@@ -207,7 +207,7 @@ void GladeRenderer::drawAll(vector<GladeObject*>::iterator i, vector<GladeObject
   GladeObject::Drawables* drawables;
   
 	while (i != end) {
-		if ((*i)->isEnabled()) {
+    if ((*i)->isEnabled()) {
 			drawables = (*i)->getDrawables();
 		
 			for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
@@ -253,7 +253,7 @@ void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
 	while (di != sceneObject.getDrawables()->end()) {
 		moveIntoVideoMemory((*di)->getVertexObject());
     moveIntoVideoMemory((*di)->getTexture());
-    compileShaderProgram((*di)->getShaderProgram());
+    compileShaderProgram((*di)->getShaderProgram().get());
 		di++;
 	}
   
@@ -262,12 +262,16 @@ void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
 
 void GladeRenderer::compileShaderProgram(ShaderProgram *program)
 {
+  if (program == nullptr || program == NULL) {
+    log("Warning: tried to compile a shader program, but it's null");
+  }
+  
   if (program->hasGpuHandle()) {
     return;
   }
     
-  GLuint vertexShaderPointer = loadShader(GL_VERTEX_SHADER, program->getVertexShader());
-	GLuint fragmentShaderPointer = loadShader(GL_FRAGMENT_SHADER, program->getFragmentShader());
+  GLuint vertexShaderPointer = loadShader(GL_VERTEX_SHADER, program->vertexShaderSource);
+	GLuint fragmentShaderPointer = loadShader(GL_FRAGMENT_SHADER, program->fragmentShaderSource);
 	
 	program->gpuHandle = glCreateProgram();
   glAttachShader(program->gpuHandle, vertexShaderPointer);
@@ -295,9 +299,11 @@ void GladeRenderer::moveIntoVideoMemory(VertexObject *mesh)
   mesh->erase();
 }
 
-void GladeRenderer::moveIntoVideoMemory(Texture *texture)
+void GladeRenderer::moveIntoVideoMemory(std::shared_ptr<Texture> texturePtr)
 {
-  if (NULL == texture || texture->hasVideoBufferHandle() || NULL == texture->getData()) {
+  Texture *texture = texturePtr.get();
+  
+  if (nullptr == texture || texture->hasVideoBufferHandle() || NULL == texture->getData()) {
     return;
   }
   
@@ -338,10 +344,10 @@ void GladeRenderer::moveIntoVideoMemory(Texture *texture)
 
 void GladeRenderer::removeFromVideoMemory(Drawable &drawable)
 {
-  Texture *texture = drawable.getTexture();
+  Texture *texture = drawable.getTexture().get();
   VertexObject *mesh = drawable.getVertexObject();
 	
-	if (NULL != texture && texture->hasVideoBufferHandle()) {
+	if (nullptr != texture && texture->hasVideoBufferHandle()) {
     GLuint texIds[1];
     texIds[0] = texture->getVideoBufferHandle();
     glDeleteTextures(1, texIds);
@@ -391,9 +397,9 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
 
 void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
 {
-  ShaderProgram *program = (*di)->getShaderProgram();
+  ShaderProgram *program = (*di)->getShaderProgram().get();
   
-  if (NULL == program) {
+  if (nullptr == program) {
     log("Could not render a drawable: no GPU program");
     return;
   }
@@ -432,10 +438,10 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   
   glEnableVertexAttribArray(aNormal);
   
-	Texture* texture = (*di)->getTexture();
+	Texture *texture = (*di)->getTexture().get();
 	
-	if (texture != NULL) {
-		if (texture->hasVideoBufferHandle()) {
+	if (texture != nullptr) {
+    if (texture->hasVideoBufferHandle()) {
       glActiveTexture(GL_TEXTURE0);
 		  glBindTexture(GL_TEXTURE_2D, texture->getVideoBufferHandle());
 
@@ -458,7 +464,41 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
     }
   }
   
-  program->setUniformValues(*di);
+  Drawable::ShaderFloatUniformsCI fi = (*di)->floatUniformsBegin();
+  
+  while (fi != (*di)->floatUniformsEnd()) {
+    glUniform1f(fi->first, fi->second);
+    
+    ++fi;
+  }
+  
+  Drawable::ShaderBoolUniformsCI bi = (*di)->boolUniformsBegin();
+  
+  while (bi != (*di)->boolUniformsEnd()) {
+    glUniform1i(bi->first, bi->second ? 1 : 0);
+    ++bi;
+  }
+  
+  Drawable::ShaderIntUniformsCI ii = (*di)->intUniformsBegin();
+  
+  while (ii != (*di)->intUniformsEnd()) {
+    glUniform1i(ii->first, ii->second);
+    ++ii;
+  }
+
+  Drawable::ShaderVec3UniformsCI v3i = (*di)->vec3UniformsBegin();
+  
+  while (v3i != (*di)->vec3UniformsEnd()) {
+    glUniform3f(v3i->first, v3i->second.x, v3i->second.y, v3i->second.z);
+    ++v3i;
+  }
+
+  Drawable::ShaderVec4UniformsCI v4i = (*di)->vec4UniformsBegin();
+  
+  while (v4i != (*di)->vec4UniformsEnd()) {
+    glUniform4f(v4i->first, v4i->second.x, v4i->second.y, v4i->second.z, v4i->second.w);
+    ++v4i;
+  }
   
 	glDrawElements(GL_TRIANGLES, (*di)->getVertexObject()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
 	
@@ -516,17 +556,16 @@ void GladeRenderer::getShaderHandles(ShaderProgram &program)
 	uTexScaleY 			= glGetUniformLocation(program.gpuHandle, "uTexCoordScaleY0");
 	uTexOffsetX 		= glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetX0");
 	uTexOffsetY 		= glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetY0");
-  
-  program.getUniformLocations();
 } 
 
-GLuint GladeRenderer::loadShader(GLuint shaderType, Shader *shader)
+GLuint GladeRenderer::loadShader(GLuint shaderType, std::vector<char> &shader_source)
 {
 	GLuint shaderHandle = glCreateShader(shaderType);
   
   if (shaderHandle) {
-    const char* source = shader->getSource();
-    glShaderSource(shaderHandle, 1, &source, NULL);
+    const char *shaderSourceLinePtr = shader_source.data();
+    GLint shaderSourceSize = shader_source.size();
+    glShaderSource(shaderHandle, 1, &shaderSourceLinePtr, &shaderSourceSize);
     glCompileShader(shaderHandle);
     GLint compiled = 0;
     glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compiled);
@@ -540,7 +579,7 @@ GLuint GladeRenderer::loadShader(GLuint shaderType, Shader *shader)
         
         if (buf) {
             glGetShaderInfoLog(shaderHandle, infoLen, NULL, buf);
-            log("shaderHandle compilation error:");
+            log("Shader compilation error:");
             log(buf);
             free(buf);
         }

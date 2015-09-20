@@ -6,9 +6,6 @@
 
 class GridLayout : public Layout
 {
-  public:
-    static GridLayout INSTANCE;
-    
 	private:
     int rowLength;
 	
@@ -19,9 +16,8 @@ class GridLayout : public Layout
     }
     
   public:  
-    virtual void calculateTransformsForChildrenOf(Widget *widget)
+    virtual void calculateTransformsForDirectChildrenOf(Widget *widget)
     {
-      log("Calculating Grid Layout");
       rescaleChildrenOf(widget);
       
       float cellWidth, cellHeight;
@@ -46,8 +42,6 @@ class GridLayout : public Layout
         (*child)->getTransform()->getPosition()->y = currentY - parentTransform->getScale()->y + childScale->y;
         (*child)->getTransform()->getPosition()->z = currentZ;
         
-        (*child)->getLayout()->calculateTransformsForChildrenOf(*child);
-        
         if (numberInARow >= rowLength) {
           currentY += cellHeight;
           currentX = homeX;
@@ -58,8 +52,6 @@ class GridLayout : public Layout
         
         ++child;
       }
-      
-      log("Calculating Grid Layout finished");
     }
     
     /**

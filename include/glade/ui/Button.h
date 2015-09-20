@@ -15,7 +15,7 @@ class Button : public Widget
     {
     }
       
-    Button(std::string *text, BitmapFont *font) : Widget(CenterLayout::INSTANCE),
+    Button(std::string *text, BitmapFont *font) : Widget(Layout::Unique(new CenterLayout())),
       label(NULL)
     {
       setFocusable(true);

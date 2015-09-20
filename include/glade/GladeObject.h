@@ -16,7 +16,8 @@ public:
 
 private:
   typedef std::map<Drawable*, bool> VisibilitySwitches;
-
+  std::string name;
+  
 protected:
   bool enabled;
 //	PhysicBody* physicBody;
@@ -26,7 +27,6 @@ protected:
   Drawables drawables;
 	VisibilitySwitches visibilitySwitches;
 //	Set<Sound> sounds;
-	char name[32];
 	bool colShapeEnabled, physicBodyEnabled, behaviorEnabled;
 	
 private:
@@ -40,15 +40,17 @@ public:
 //		behavior(NULL),
 		colShapeEnabled(true),
 		physicBodyEnabled(true),
-		behaviorEnabled(true)
-	{}
-
+		behaviorEnabled(true),
+    name("Undefined")
+	{
+  }
+  
 	void setEnabled(bool enable)
   {
 		enabled = enable;
 	}
 	
-	bool isEnabled(void)
+	bool isEnabled(void) const
   {
 		return enabled;
 	}
@@ -153,9 +155,9 @@ public:
 		physicBodyEnabled = enable;
 	}
 	
-	bool isViewEnabled(Drawable* view)
+	bool isViewEnabled(Drawable *view) const
   {
-    VisibilitySwitches::iterator i = visibilitySwitches.find(view);
+    VisibilitySwitches::const_iterator i = visibilitySwitches.find(view);
 		
     if (i != visibilitySwitches.end()) {
       return i->second;
@@ -164,36 +166,32 @@ public:
     return false;
 	}
 
-	bool isCollisionShapeEnabled()
+	bool isCollisionShapeEnabled() const
   {
 		return colShapeEnabled;
 	}
 
 	
-	bool isBehaviorEnabled()
+	bool isBehaviorEnabled() const
   {
 		return behaviorEnabled;
 	}
 
 	
-	bool isPhysicBodyEnabled()
+	bool isPhysicBodyEnabled() const
   {
 		return physicBodyEnabled;
 	}
 	
 	/** This is for debugging purposes */
-	char* getName(void)
+	const std::string* getName(void) const
   {
-		return name;
+		return &name;
 	}
 	
 	/** This is for debugging purposes */
-	void setName(const char* name)
+	void setName(const std::string &name)
   {
-		if (strlen(name) < 32) {
-			strcpy(this->name, name);
-		} else {
-      throw GladeException("GladeObject::setName() name is too long");
-    }
+    this->name = name;
 	}
 };

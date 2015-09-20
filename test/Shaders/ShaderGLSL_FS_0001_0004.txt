@@ -1,8 +1,0 @@
-
-//== SHADER COMPILE STATUS = FALSE
-/*== INFO LOG ==
-Fragment shader failed to compile with the following errors:
-ERROR: 0:1: error(#132) Syntax error: 'uniformsampler2DuTextureSampler0' parse error
-ERROR: error(#273) 1 compilation errors.  No code generated
-  == INFO LOG END ==*/
-uniformsampler2DuTextureSampler0;uniformvec4uColor;uniformintuReplaceColor=0;varyingvec4vColor;varyingvec2vTexCoord0;vec4blendColors(vec4baseColor,vec4overlayColor){returnvec4(baseColor.r*(1.0-overlayColor.a)+overlayColor.r*overlayColor.a,baseColor.g*(1.0-overlayColor.a)+overlayColor.g*overlayColor.a,baseColor.b*(1.0-overlayColor.a)+overlayColor.b*overlayColor.a,baseColor.a*(1.0-overlayColor.a)+overlayColor.a*overlayColor.a);}voidmain(void){vec4texColor=texture2D(uTextureSampler0,vTexCoord0);gl_FragColor=texColor;gl_FragColor=blendColors(gl_FragColor,uColor);};

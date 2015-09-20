@@ -1,22 +1,22 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 #ifndef ANDROID
-#include "../opengl/functions.h"
+#include "glade/opengl/functions.h"
 #else
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #endif
 
-#include "../math/globals.h"
-#include "../math/Vector.h"
-#include "../math/Transform.h"
-#include "Drawable.h"
-#include "../GladeObject.h"
-#include "../ui/Widget.h"
+#include "glade/math/globals.h"
+#include "glade/math/Vector.h"
+#include "glade/math/Transform.h"
+#include "glade/GladeObject.h"
+#include "glade/ui/Widget.h"
 #include "DrawFrameHook.h"
-#include "Shader.h"
+#include "Drawable.h"
 #include "ShaderProgram.h"
 
 using namespace std;
@@ -61,8 +61,8 @@ private:
 	float projectionMatrix[16], viewMatrix[16], worldViewMatrix[16];
 	Vector3f backgroundColor;
 	
-	vector<GladeObject*> sceneObjects; // must be set
-	vector<GladeObject*> uiElements;   // must be set
+	vector<GladeObject*> sceneObjects; // maybe set?
+	vector<GladeObject*> uiElements;   //  maybe set?
   
   DrawFrameHooks drawFrameHooks;
 /*	Comparator<GladeObject> drawingOrderComparator; */
@@ -73,7 +73,6 @@ public:
 	GladeRenderer(void);
   Transform camera;
   
-  void compileShaderProgram(ShaderProgram *program);
   void add(GladeObject *sceneObject);
 	void add(Widget *uiElement);
 	void sortDrawables(void);
@@ -95,13 +94,13 @@ public:
 	float getViewportWidthCoords(void);
 	float getViewportHeightCoords(void);
 	Vector2f getPointCoords(float screenX, float screenY);
-// vector<Widget*>::iterator getWidgets(void);
+  
 private:
 	void drawAll(vector<GladeObject*>::iterator i, vector<GladeObject*>::iterator end);
 	void moveAllObjectsIntoVideoMemory(void);
 	void moveIntoVideoMemory(GladeObject &sceneObject);
 	void moveIntoVideoMemory(VertexObject *mesh);
-  void moveIntoVideoMemory(Texture *texture);
+  void moveIntoVideoMemory(std::shared_ptr<Texture> texture);
 	void removeFromVideoMemory(Drawable &drawable);
 	void removeAllObjectsFromVideoMemory(void);
 	void draw(GladeObject::DrawablesI di, Transform &transform);
@@ -109,6 +108,7 @@ private:
 	void switchProjectionMode(ProjectionMode projectionMode, bool force);
 	void switchProjectionMode(ProjectionMode projectionMode);
 	void getShaderHandles(ShaderProgram &shaderProgram);
-	GLuint loadShader(GLuint type, Shader *shader);
+	GLuint loadShader(GLuint type, std::vector<char> &shader_source);
+  void compileShaderProgram(ShaderProgram *program);
 	int checkGLError();
 };

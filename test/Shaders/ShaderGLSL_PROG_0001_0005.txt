@@ -1,6 +1,0 @@
-
-//== PROGRAM LINK STATUS = TRUE
-//== PROGRAM VALIDATE STATUS = FALSE
-/*== INFO LOG ==
-Warning: No shaders attached to current program 
-  == INFO LOG END ==*/

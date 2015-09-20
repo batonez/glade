@@ -142,8 +142,8 @@ public:
 			widgetsToAdd.pop();
 		}
 		
-    log("Sorting drawables");
 		if (gladeObjectsListsChanged) {
+      log("Sorting drawables");
 			renderer->sortDrawables();
 		}
 	}
@@ -216,7 +216,13 @@ private:
 		// Consider this a root widget
     log("Adding root widget");
 		root->getTransform()->set(renderer->getTransformForRootWidget());
-		root->getLayout()->calculateTransformsForChildrenOf(root); // TODO this should not be a recursive call. Instead pack this into the walker
+    
+    class CalculateWidgetTransforms : public Widget::WalkFunctor {
+      public:
+        virtual void operator()(Widget &widget) {
+          widget.getLayout()->get()->calculateTransformsForDirectChildrenOf(&widget);
+        }
+    } calculateWidgetTransforms;
     
     class AddWidgetsRecursive : public Widget::WalkFunctor {
       private:
@@ -225,10 +231,12 @@ private:
         AddWidgetsRecursive(Context &context): context(context) {}
         
         virtual void operator()(Widget &widget) {
+          widget.getLayout()->get()->calculateTransformsForDirectChildrenOf(&widget);
           context.renderer->add(&widget);
         }
     } addWidgetsRecursive(*this);
     
+    Widget::walkDepthFirstPrefix(*root, calculateWidgetTransforms);
     Widget::walkDepthFirstPostfix(*root, addWidgetsRecursive);
 	}
 	

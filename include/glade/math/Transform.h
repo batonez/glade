@@ -73,19 +73,19 @@ public:
 	 */
 	static void combine(const Transform &baseTransform, const Transform &relativeTransform, bool preservePosition, bool preserveRotation, bool preserveScale, Transform &resultTransform) {
 		if (preservePosition) {
-			resultTransform.setPosition(relativeTransform.getPosition());
+			resultTransform.getPosition()->set(*relativeTransform.getPosition());
 		} else {
 			baseTransform.getPosition()->add(*relativeTransform.getPosition(), *resultTransform.getPosition());
 		}
 		
 		if (preserveRotation) {
-			resultTransform.setRotation(relativeTransform.getRotation());
+			resultTransform.getRotation()->set(*relativeTransform.getRotation());
 		} else {
 			baseTransform.getRotation()->add(*relativeTransform.getRotation(), *resultTransform.getRotation());
 		}
 		
 		if (preserveScale) {
-			resultTransform.setScale(relativeTransform.getScale());
+			resultTransform.getScale()->set(*relativeTransform.getScale());
 		} else {
 			baseTransform.getScale()->dot(*relativeTransform.getScale(), *resultTransform.getScale());
 		}

@@ -1,18 +1,23 @@
 #pragma once
 
+#include <memory>
 #include "glade/math/Vector.h"
-#include "glade/ui/Widget.h"
+#include "glade/exception/GladeException.h"
+
+class Widget;
 
 class Layout
 {
   public:
+    typedef  std::unique_ptr<Layout> Unique;
+  
     enum SizeType
     {
       MANUAL,
       PERCENT_OF_PARENT,
       PERCENT_OF_SELF_WIDTH,
       PERCENT_OF_SELF_HEIGHT,
-      WRAP_CONTENT
+      WRAP_CONTENT // TODO Not implemented
     };
     
     enum HorizontalAlign
@@ -50,7 +55,7 @@ class Layout
     {
     }
     
-    virtual void calculateTransformsForChildrenOf(Widget* widget) = 0;
+    virtual void calculateTransformsForDirectChildrenOf(Widget* widget) = 0;
     
     void setVerticalAlign(VerticalAlign verticalAlign)
     {
@@ -84,7 +89,6 @@ class Layout
     
     float getHorizontalSizePercent()
     {
-      log("Inside getHorizontalSizePercent");
       return horizontalSizePercent;
     }
     
@@ -142,58 +146,11 @@ class Layout
     }
    
   protected:
-    void rescaleChildrenOf(Widget* widget)
-    {
-      Widget::Children* children = widget->getChildren();
-      
-      for (Widget::ChildrenI child = children->begin(); child != children->end(); ++child) {
-        if (!rescaleX(*child, widget)) {
-          rescaleY(*child, widget);
-        }
-      }
-    }
+    void rescaleChildrenOf(Widget* widget);
 	
 	  /** Возвращает true если в результате были расчитаны оба размера X и Y. Если был расчитан только X - возвращает false */
-    bool rescaleX(Widget* widget, Widget* hisParent)
-    {
-      float horizontalSize = widget->getLayout()->getHorizontalSizePercent();
-      bool result = false;
-      
-      switch (widget->getLayout()->getHorizontalSizeType()) {
-        case PERCENT_OF_PARENT:
-          widget->getTransform()->getScale()->x = horizontalSize * hisParent->getTransform()->getScale()->x - ((padding.y + padding.w) / 2);
-          break;
-        case PERCENT_OF_SELF_HEIGHT:
-          rescaleY(widget, hisParent);
-          widget->getTransform()->getScale()->x = horizontalSize * widget->getTransform()->getScale()->y;
-          result = true;
-          break;
-        default:
-          break;
-      }
-      
-      return result;
-    }
+    bool rescaleX(Widget* widget, Widget* hisParent);
     
     /** Возвращает true если в результате были расчитаны оба размера X и Y. Если был расчитан только Y - возвращает false */
-    bool rescaleY(Widget* widget, Widget* hisParent)
-    {
-      float verticalSize = widget->getLayout()->getVerticalSizePercent();
-      bool result = false;
-      
-      switch (widget->getLayout()->verticalSizeType) {
-        case PERCENT_OF_PARENT:
-          widget->getTransform()->getScale()->y = verticalSize * hisParent->getTransform()->getScale()->y - ((padding.x + padding.z) / 2);
-          break;
-        case PERCENT_OF_SELF_WIDTH:
-          rescaleX(widget, hisParent);
-          widget->getTransform()->getScale()->y = verticalSize * widget->getTransform()->getScale()->x;
-          result = true;
-          break;
-        default:
-          break;
-      }
-      
-      return result;
-    }
+    bool rescaleY(Widget* widget, Widget* hisParent);
 };

@@ -2,19 +2,22 @@
 
 #include <string>
 #include <algorithm>
-#include <fstream>
+#include <fstream> // crap
+#include <memory>
 
-#include "../../render/Texture.h"
-#include "../../util/CSVReader.h"
-#include "../../util/TextureLoader.h"
-#include "../../GladeObject.h"
-#include "../../render/meshes/Rectangle.h"
-#include "../../render/BasicTextShaderProgram.h"
+#include "glade/render/Texture.h"
+#include "glade/util/CSVReader.h"
+#include "glade/util/ResourceManager.h"
+#include "glade/GladeObject.h"
+#include "glade/render/meshes/Rectangle.h"
+
+extern ResourceManager resource_manager;
 
 class BitmapFont
 {
 	private:
-    Texture* atlas;
+    std::shared_ptr<Texture> atlas;
+    std::shared_ptr<ShaderProgram> shaderProgram;
 	  int cellWidth, cellHeight;
 	  int firstGlyphAsciiCode;
 	  int glyphHeight;
@@ -24,15 +27,18 @@ class BitmapFont
    	// Desired result font height in screen coordinates
 	  float fontSize;
     
-  public:	
-    BitmapFont(const char* atlasFilename, const char* csvFilename) :
+  public:
+    // TODO move loading into resource manager
+    BitmapFont(const char* atlas_filename, const char* csv_filename, std::shared_ptr<ShaderProgram> &shader_program):
       fontSize(1)
     {
-      if (atlasFilename == NULL || csvFilename == NULL) {
+      if (atlas_filename == NULL || csv_filename == NULL || shader_program.get() == nullptr) {
         throw GladeException("Provided atlas data or CSV data is NULL");
       }
       
-      std::ifstream csvInput(csvFilename);
+      shaderProgram = shader_program;
+      
+      std::ifstream csvInput(csv_filename);
       std::vector<std::vector<std::string> > parsedCsv;
       CSVReader::read(csvInput, parsedCsv);
       
@@ -43,7 +49,7 @@ class BitmapFont
       
       numberOfGlyphsInARow    = declaredAtlasWidth / cellWidth;
       
-      atlas = TextureLoader::loadTexture(atlasFilename, cellWidth, cellHeight);
+      atlas = resource_manager.getTexture(atlas_filename, cellWidth, cellHeight);
             
       if (declaredAtlasWidth != atlas->textureWidth) {
         throw GladeException("CSV data doesn't match atlas data");
@@ -116,7 +122,7 @@ class BitmapFont
         glyphPosition = getGlyphPositionForIndex(getGlyphIndexForAsciiCode(string[i]));
         glyphWidth = getGlyphWidth(string[i]);
         
-        rectangle = new Drawable(Rectangle::INSTANCE, BasicTextShaderProgram::INSTANCE);
+        rectangle = new Drawable(Rectangle::INSTANCE, shaderProgram);
         rectangle->getTransform()->getScale()->x = ((float) glyphWidth / (float) glyphHeight) * fontSize;
         rectangle->getTransform()->getScale()->y = fontSize;
         
@@ -148,7 +154,7 @@ class BitmapFont
       return stringWidth;
     }
       
-    Texture* getAtlas()
+    std::shared_ptr<Texture> getAtlas()
     {
       return atlas;
     }

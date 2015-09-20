@@ -30,6 +30,17 @@ class Tree
       func(tree);
     }
     
+    static void walkDepthFirstPrefix(Tree<ValueType> &tree, Action &func)
+    {
+      func(tree);
+      typename Tree<ValueType>::ChildrenI child = tree.getChildren()->begin();
+          
+      while (child != tree.getChildren()->end()) {
+        walkDepthFirstPrefix(*child, func);
+        ++child;
+      }
+    }
+    
   private:
     Children  children;
     ValueType val;

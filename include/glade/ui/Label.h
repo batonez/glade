@@ -10,27 +10,18 @@ class Label : public Widget
     std::string text;
     
 	public:
-    Label(std::string &string, BitmapFont &font) : Label(string, font, 0.0f, 0.0f, 0.0f)
-    {
-    }
-    
-    Label(std::string &string, BitmapFont &font, float r, float g, float b) : Widget(CenterLayout::INSTANCE)
+    Label(std::string &string, BitmapFont &font, float r = 0.0f, float g = 0.0f, float b = 0.0f) : Widget(Layout::Unique(new CenterLayout()))
     {
       setFocusable(false);
 
       addDrawables(*font.createDrawablesForString(string));
       getTransform()->getScale()->set(font.getStringWidth(string), font.getFontSize(), 1);
-//    setTextColor(r, g, b); // MAKE SHADERS FOR TEXT AND DEBUG THEM
+      //setTextColor(r, g, b);
 
       text = string;
     }
     
-    Label() : Widget(CenterLayout::INSTANCE)
-    {
-      setFocusable(false);
-    }
-    
-    void addDrawable(Drawable* view)
+    virtual void addDrawable(Drawable* view)
     {
       Widget::addDrawable(view);
       view->preserveScale = true;
@@ -39,8 +30,8 @@ class Label : public Widget
     void setTextColor(float r, float g, float b)
     {
       for (DrawablesI di = drawables.begin(); di != drawables.end(); ++di) {
-        (*di)->shaderBoolUniforms["replaceOriginalColor"] = true;
-        (*di)->shaderVec4Uniforms["constantColor"] = Vector4f(r, g, b, 1.0f);
+        (*di)->setUniform("uReplaceColor", true);
+        (*di)->setUniform("uColor", Vector4f(r, g, b, 1.0f));
       }
     }
     

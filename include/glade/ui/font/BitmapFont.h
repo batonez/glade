@@ -2,7 +2,7 @@
 
 #include <string>
 #include <algorithm>
-#include <fstream> // crap
+#include <fstream> // crap, move to resourcemanager
 #include <memory>
 
 #include "glade/render/Texture.h"
@@ -10,6 +10,7 @@
 #include "glade/util/ResourceManager.h"
 #include "glade/GladeObject.h"
 #include "glade/render/meshes/Rectangle.h"
+#include "glade/render/Drawable.h"
 
 extern Glade::ResourceManager *resource_manager;
 

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <fstream>
+#include <assert.h>
 
 #include "glade/exception/GladeException.h"
 #include "glade/util/Path.h"

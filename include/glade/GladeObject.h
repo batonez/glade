@@ -83,6 +83,7 @@ public:
     return &transform;
   }
 
+  // should be unique_ptr<Drawable>
   virtual void addDrawable(Drawable* view)
   {
     drawables.insert(view);

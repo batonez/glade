@@ -4,9 +4,13 @@
 #include <lodepng.h>
 #include <unordered_map>
 
-#include "glade/exception/GladeException.h"
 #include "Path.h"
 #include "FileManager.h"
+#include "glade/render/ShaderProgram.h"
+#include "glade/render/Texture.h"
+#include "glade/audio/Sound.h"
+#include "glade/util/RIFFReader.h"
+#include "glade/exception/GladeException.h"
 
 namespace Glade
 {
@@ -22,8 +26,12 @@ namespace Glade
       typedef std::unordered_map<Path, std::shared_ptr<ShaderProgram>, Path::Hasher>  ShaderPrograms;
       typedef ShaderPrograms::iterator                                                ShaderProgramsI;
       
+      typedef std::unordered_map<Path, std::shared_ptr<Sound>, Path::Hasher>          Sounds;
+      typedef Sounds::iterator                                                        SoundsI;
+      
       Textures        textures;
       ShaderPrograms  shaderPrograms;
+      Sounds          sounds;
  
     public:
       ResourceManager(const Path &base_path):
@@ -60,6 +68,19 @@ namespace Glade
         std::shared_ptr<ShaderProgram> shaderProgram = loadShaderProgram(vertex_shader_filename, fragment_shader_filename);
         shaderPrograms[key] = shaderProgram;
         return shaderProgram;
+      }
+    
+      std::shared_ptr<Sound> getSound(const Path &filename)
+      {
+        SoundsI i = sounds.find(filename);
+        
+        if (i != sounds.end()) {
+          return i->second;
+        }
+        
+        std::shared_ptr<Sound> sound = loadSound(filename);
+        sounds[filename] = sound;
+        return sound;
       }
     
     private:
@@ -115,6 +136,12 @@ namespace Glade
           numberOfFrames,
           pixels
         ));
+      }
+      
+      std::shared_ptr<Sound> loadSound(const Path &filename)
+      {
+        // todo implement
+        return std::shared_ptr<Sound>(new Sound());
       }
   };
 }

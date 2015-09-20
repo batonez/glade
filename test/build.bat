@@ -15,6 +15,7 @@ main.cpp ^
 ..\src\log\log.cpp ^
 ..\src\opengl\functions.cpp ^
 %DEVTOOLS%\lodepng\lodepng.cpp ^
+/D_USING_V110_SDK71_=1 ^
 /link /LIBPATH:"%DEVTOOLS%\Microsoft Visual Studio 12.0\VC\lib" ^
 /LIBPATH:"%DEVTOOLS%\Microsoft SDKs\Windows\v7.1A\Lib" ^
 /WX ^

@@ -1,4 +1,4 @@
-#include "glade/opengl/functions.h"
+
 #include "glade/log/log.h"
 #include "glade/math/Matrix.h"
 #include "glade/render/GladeRenderer.h"

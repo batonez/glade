@@ -1,5 +1,6 @@
 #include "../os/windows-inc.h"
 
+#include <fstream>
 #include <stdio.h>
 #include <tchar.h>
 
@@ -7,12 +8,95 @@
 #include "../log/log.h"
 #include "../opengl/functions.h"
 #include "../render/GladeRenderer.h"
+#include "../render/DrawFrameHook.h"
 #include "../GladeObject.h"
 #include "../render/Drawable.h"
-#include "../render/samples/Cube.h"
-#include "../render/samples/Triangle.h"
+#include "../render/meshes/Triangle.h"
 #include "../render/Texture.h"
-#include "../#util/TextureLoader.h"
+#include "../util/TextureLoader.h"
+#include "../render/Shader.h"
+#include "../Context.h"
+#include "../State.h"
+#include "../#ui/Panel.h"
+#include "../#ui/Label.h"
+#include "../#ui/layout/SequenceLayout.h"
+#include "../#ui/font/BitmapFont.h"
+
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+
+// todo implement
+class StandardDrawFrameHook : public DrawFrameHook
+{
+  virtual void onBeforeDraw(void)
+  {
+    
+  }
+  
+	virtual void onAfterDraw(void)
+  {
+  }
+};
+
+class MyState : public State
+{
+  private:
+    Texture* tex = NULL;
+    Widget* wi = NULL;
+    Drawable* wiView = NULL;
+    Layout* layout = NULL;
+    
+  public:
+    MyState(Context* context) : State(context)
+    {
+    }
+
+    virtual void init()
+    {
+      log("State init");
+      
+      layout = new SequenceLayout();
+     // wi = new Panel(layout);
+     // wiView = new Drawable(Rectangle::INSTANCE);
+      
+     // tex = TextureLoader::loadTexture("notexture.png");
+     // wiView->setTexture(tex);
+     // wiView->setConstantColor(0.0f, 1.0f, 0.0f, 0.4f);
+     // wi->getTransform()->setScale(0.5f, 0.5f, 1.0f);
+     // wi->addDrawable(wiView);
+      
+      BitmapFont font("fonts/exo.gigantic.png", "fonts/exo.gigantic.csv");
+      font.setFontSize(0.3f);
+     
+      wi = Label::forString(std::string("iuuuu"), font, layout, 0.0f, 1.0f, 0.0f);
+      context->renderer->setBackgroundColor(0.05f, 0.4f, 0.2f);
+      context->add(wi);
+    }
+    
+    virtual void applyRules()
+    {
+      if (tex)
+        delete tex;
+      //if (wi)
+      //  delete wi;
+      if (wiView)
+        delete wiView;
+      if (layout)
+        delete layout;
+        
+      if (wi) {
+        for (GladeObject::DrawablesI di = wi->getDrawables()->begin(); di != wi->getDrawables()->end(); ++di)
+          delete *di;
+          
+        delete wi;
+      }
+    }
+    
+    virtual void shutdown()
+    {
+    
+    }
+};
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -79,7 +163,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
         szTitle,
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        500, 500,
+        SCREEN_WIDTH, SCREEN_HEIGHT,
         NULL,
         NULL,
         hInstance,
@@ -159,13 +243,20 @@ int WINAPI WinMain(HINSTANCE hInstance,
     
     // Create renderer and objects
     GladeRenderer renderer;
-    renderer.onSurfaceCreated();
-    renderer.onSurfaceChanged(500, 500);
-    renderer.setBackgroundColor(1.0, 1.0, 1.0);
+    
+    std::ifstream inVertexShader("vertex.glsl");
+    std::ifstream inFragmentShader("fragment.glsl");
+    
+    renderer.onSurfaceCreated(
+      Shader(inVertexShader),
+      Shader(inFragmentShader)
+    );
         
+    renderer.onSurfaceChanged(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    /* 
     GladeObject object;
     Drawable view(Triangle::INSTANCE);
- //   view.setConstantColor(1.0f, 0.0f, 0.0f, 0.1f);
     view.setConstantColor(1.0f, 0.0f, 0.0f, 0.5f);
     view.setLit(false);
     
@@ -175,10 +266,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
     object.addDrawable(&view);
     renderer.add(&object);
     
-    renderer.setSceneProjectionMode(PERSPECTIVE);
-    renderer.camera.setPosition(0.0f, 0.0f, 2.0f);
-    
-    float param = 0.0f;
+    renderer.setSceneProjectionMode(ORTHO);
+    */
+  
+    Context context(&renderer);
+    MyState state(&context);
+    context.requestStateChange(&state);
     
     // The parameters to ShowWindow explained:
     // hWnd: the value returned from CreateWindow
@@ -192,23 +285,20 @@ int WINAPI WinMain(HINSTANCE hInstance,
     for (;;) {
       while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
         if (msg.message == WM_QUIT)
-          break;
+          goto cleanup;
         
         TranslateMessage(&msg);
         DispatchMessage(&msg);
       }
-      
-      if (msg.message == WM_QUIT)
-        break;
-      
+            
       renderer.onDrawFrame();
       SwapBuffers(hdc);
+      context.processRequests();
       
-      //view.getTransform()->setRotation(param, param, 0.0f);
-      renderer.camera.setPosition(0.0f, 0.0f, 2.0f);
-      param -= 0.1f;
       Sleep(100);
     }
+    
+    cleanup:
     
     renderer.clear();
     
@@ -222,7 +312,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
     wglDeleteContext(renderingContext); 
     
     OutputDebugString("Program is finishing");
+    
     return (int) msg.wParam;
+    
   } catch (GladeException e) {
     log("Uncaught GladeException: %s", e.getMessage()); // FIXME!! FREE GL CONTEXT AND RESOURCES!
   } catch (...) {
@@ -230,4 +322,15 @@ int WINAPI WinMain(HINSTANCE hInstance,
   }
   
   return 1;
+}
+
+namespace gladen
+{
+  namespace system
+  {
+    void exit()
+    {
+      ::PostQuitMessage(0);
+    }
+  }
 }

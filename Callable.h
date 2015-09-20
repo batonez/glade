@@ -2,5 +2,9 @@
 
 class Callable
 {
-	virtual void call() = 0;
-}
+  public:
+    typedef std::set<Callable*> Callables;
+    typedef Callables::iterator CallablesI;
+    
+    virtual void call() = 0;
+};

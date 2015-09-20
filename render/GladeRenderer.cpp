@@ -4,134 +4,19 @@
 #include "../math/Matrix.h"
 #include "GladeRenderer.h"
 
-const GLuint GladeRenderer::POS_SIZE_FLOATS   		= 3;
-const GLuint GladeRenderer::COLOR_SIZE_FLOATS 		= 4;
-const GLuint GladeRenderer::NORMAL_SIZE_FLOATS 		= 3;
-const GLuint GladeRenderer::TEXCOORD_SIZE_FLOATS 	= 2;
-const GLuint GladeRenderer::POS_OFFSET_FLOATS 		= 0;
-const GLuint GladeRenderer::COLOR_OFFSET_FLOATS 	= POS_SIZE_FLOATS;
-const GLuint GladeRenderer::NORMAL_OFFSET_FLOATS 	= POS_SIZE_FLOATS + COLOR_SIZE_FLOATS;
-const GLuint GladeRenderer::TEXCOORD_OFFSET_FLOATS 	= POS_SIZE_FLOATS + COLOR_SIZE_FLOATS + NORMAL_SIZE_FLOATS;
-const GLuint GladeRenderer::VERTEX_STRIDE_FLOATS 	= POS_SIZE_FLOATS + COLOR_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
-const GLsizei GladeRenderer::POS_OFFSET_BYTES 	  = POS_OFFSET_FLOATS * sizeof(float);
-const GLsizei GladeRenderer::COLOR_OFFSET_BYTES 	= COLOR_OFFSET_FLOATS * sizeof(float);
-const GLsizei GladeRenderer::NORMAL_OFFSET_BYTES 	= NORMAL_OFFSET_FLOATS * sizeof(float);
-const GLsizei GladeRenderer::TEXCOORD_OFFSET_BYTES 	= TEXCOORD_OFFSET_FLOATS * sizeof(float);
-const GLsizei GladeRenderer::VERTEX_STRIDE_BYTES 	= VERTEX_STRIDE_FLOATS * sizeof(float);
+const GLuint  GladeRenderer::POS_SIZE_FLOATS        = 3;
+const GLuint  GladeRenderer::NORMAL_SIZE_FLOATS     = 3;
+const GLuint  GladeRenderer::TEXCOORD_SIZE_FLOATS   = 2;
+const GLuint  GladeRenderer::POS_OFFSET_FLOATS      = 0;
+const GLuint  GladeRenderer::NORMAL_OFFSET_FLOATS   = POS_SIZE_FLOATS;
+const GLuint  GladeRenderer::TEXCOORD_OFFSET_FLOATS = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS;
+const GLuint  GladeRenderer::VERTEX_STRIDE_FLOATS 	= POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
+const GLsizei GladeRenderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS * sizeof(float);
+const GLsizei GladeRenderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS * sizeof(float);
+const GLsizei GladeRenderer::TEXCOORD_OFFSET_BYTES  = TEXCOORD_OFFSET_FLOATS * sizeof(float);
+const GLsizei GladeRenderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS * sizeof(float);
 
 const double GladeRenderer::DOUBLE_CUBE_DIAGONAL = sqrt(3.0);
-
-static const char vertexShaderSource[] =
-"const float ZERO = 0.0, ONE = 1.0;\n"
-
-"uniform mat4 uProjectionMatrix;\n"
-"uniform mat4 uWorldViewMatrix;\n"
-
-"uniform float uTexCoordScaleX0;\n"
-"uniform float uTexCoordScaleY0;\n"
-"uniform float uTexCoordOffsetX0;\n"
-"uniform float uTexCoordOffsetY0;\n"
-
-"uniform int     uLight;\n"
-"uniform vec3    uLightDirection;\n"
-"uniform vec3    uLightHalfplane;\n"
-"uniform vec4    uLightAmbient;\n"
-"uniform vec4    uLightDiffuse;\n"
-"uniform vec4    uLightSpecular;\n"
-"uniform vec4    uMaterialAmbient;\n"
-"uniform vec4    uMaterialDiffuse;\n"
-"uniform vec4    uMaterialSpecular;\n"
-"uniform float   uMaterialShininess;\n"
-
-"attribute vec4  aPosition;\n"
-"attribute vec3  aNormal;\n"
-"attribute vec2  aTexCoord0;\n"
-
-"varying vec2    vTexCoord0;\n"
-"varying vec4    vColor;\n"
-
-"vec4 calculateLight(vec3 normal) {\n"
-   "vec4 computedColor = vec4(ZERO, ZERO, ZERO, ZERO);\n"
-   "float ndotl;\n"
-   "float ndoth;\n"
-   "ndotl = max(ZERO, dot(normal, uLightDirection));\n"
-   "ndoth = max(ZERO, dot(normal, uLightHalfplane));\n"
-   "computedColor += (uLightAmbient * uMaterialAmbient);\n"
-   "computedColor += (ndotl * uLightDiffuse * uMaterialDiffuse);\n"
-   
-   "if (ndoth > ZERO) {\n"
-      "computedColor += (pow(ndoth, uMaterialShininess) *\n"
-      "uMaterialSpecular *\n"
-      "uLightSpecular);\n"
-   "}\n"
-   
-   "return computedColor;\n"
-"}\n"
-
-"vec4 transformTexCoords(vec2 texCoord, vec2 offset, vec2 scale) {\n"
-   "vec4 result;\n"
-   "result.y = 0;\n"
-   "result.z = 0;\n"
-   
-   "if (scale.x < ZERO) {\n"
-      "result.x = ONE + texCoord.x * scale.x - offset.x;\n"
-   "} else {\n"
-      "result.x = texCoord.x * scale.x + offset.x;\n"
-   "}\n"
-      
-   "if (scale.y < ZERO) {\n"
-      "result.y = ONE + texCoord.y * scale.y - offset.y;\n"
-   "} else {\n"
-      "result.y = texCoord.y * scale.y + offset.y;\n"
-   "}\n"
-      "\n"
-   "return result;\n"
-"}\n"
-
-"void main() {\n"
-  "gl_Position = uProjectionMatrix * uWorldViewMatrix * aPosition;\n"
-  "vTexCoord0 = transformTexCoords(aTexCoord0, vec2(uTexCoordOffsetX0, uTexCoordOffsetY0), vec2(uTexCoordScaleX0, uTexCoordScaleY0));\n"
-  
-  "if (uLight != ZERO) {\n"
-     "vec4 rotatedNormal = normalize(uWorldViewMatrix * vec4(aNormal.xyz, ZERO));\n"
-     "vColor = calculateLight(rotatedNormal.xyz);\n"
-  "} else {\n"
-     "vColor = vec4(ZERO, ZERO, ZERO, ZERO);\n"
-  "}\n"
-"}\n";
-
-static char fragmentShaderSource[] = 
-"uniform sampler2D uTextureSampler0;\n"
-"uniform vec4 uColor;\n"
-"uniform int uReplaceColor = 0;\n"
-
-"varying vec4 vColor;\n"
-"varying vec2 vTexCoord0;\n"
-
-"vec4 blendColors(vec4 baseColor, vec4 overlayColor) {\n"
-   "return vec4(\n"
-      "baseColor.r * (1.0 - overlayColor.a) + overlayColor.r * overlayColor.a, \n"
-      "baseColor.g * (1.0 - overlayColor.a) + overlayColor.g * overlayColor.a, \n"
-      "baseColor.b * (1.0 - overlayColor.a) + overlayColor.b * overlayColor.a, \n"
-      "baseColor.a * (1.0 - overlayColor.a) + overlayColor.a * overlayColor.a);\n"
-"}\n"
-
-"void main(void)\n"
-"{\n"
-  "vec4 texColor = texture2D(uTextureSampler0, vTexCoord0);\n"
-
-//"if (uReplaceColor == 1) {\n"
-//		"gl_FragColor = vec4(uColor.r, uColor.g, uColor.b, texColor.a);\n"
-//	"} else {\n"
-  	"gl_FragColor = texColor;\n"
-//	"}\n"
-  
-  "gl_FragColor = blendColors(gl_FragColor, uColor);\n"
-	
-//	"if (uReplaceColor == 0) {\n"
-//		"gl_FragColor = blendColors(gl_FragColor, uColor);\n"
-//	"}\n"
-"}\n";
 
 GladeRenderer::GladeRenderer(void)
 {
@@ -155,55 +40,52 @@ void GladeRenderer::add(GladeObject* pSceneObject)
 	
 	sceneObjects.push_back(pSceneObject);
 }
-/*
-void GladeRenderer::add(Widget uiElement)
+
+void GladeRenderer::add(Widget* uiElement)
 {
-	if (uiElement.getDrawables() != NULL) {
-		if (this->initialized) {
-			moveIntoVideoMemory(uiElement);
-		}
-		
-		uiElements.add(uiElement);
-	}
+  if (this->initialized) {
+    moveIntoVideoMemory(*uiElement);
+  }
+  
+  uiElements.push_back(uiElement);
 }
-*/
+
 void GladeRenderer::clear(void)
 {
 	log("Clearing renderer");
 	removeAllObjectsFromVideoMemory();
-  vector<Drawable*>* drawables;
-  vector<GladeObject*>::iterator oi = sceneObjects.begin();
+  GladeObject::Drawables* drawables;
+  vector<GladeObject*>::iterator oi = sceneObjects.begin(); // must be set
   
   while (oi != sceneObjects.end()) {
   	drawables = (*oi)->getDrawables();
 		
-    for (vector<Drawable*>::iterator di = drawables->begin(); di != drawables->end(); di++) {
+    for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
 			(*di)->getTextureTransform()->removeAnimationCallbacks();
 		}
     
 		oi = sceneObjects.erase(oi);
   }
   
-	/*
-	i = uiElements.iterator();
-	
-	while (i.hasNext()) {
-		object = i.next();
+  vector<GladeObject*>::iterator wi = uiElements.begin(); // must be set
+  
+  while (wi != uiElements.end()) {
+  	drawables = (*wi)->getDrawables();
 		
-		for (Drawable drawable: object.getDrawables()) {
-			drawable.getTextureTransform().removeAnimationCallbacks();
+    for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
+			(*di)->getTextureTransform()->removeAnimationCallbacks();
 		}
-		
-		i.remove();
-	}*/
+    
+		wi = uiElements.erase(wi);
+  }
 	
 	log("Done clearing renderer");
 }
 
-void GladeRenderer::onSurfaceCreated(void)
+void GladeRenderer::onSurfaceCreated(Shader &vertexShader, Shader &fragmentShader)
 {
-  GLuint vertexShaderPointer = loadShader(GL_VERTEX_SHADER, vertexShaderSource);
-	GLuint fragmentShaderPointer = loadShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+  GLuint vertexShaderPointer = loadShader(GL_VERTEX_SHADER, vertexShader);
+	GLuint fragmentShaderPointer = loadShader(GL_FRAGMENT_SHADER, fragmentShader);
 	
 	program = glCreateProgram();
   glAttachShader(program, vertexShaderPointer);
@@ -235,10 +117,9 @@ void GladeRenderer::onSurfaceChanged(int width, int height)
 
 void GladeRenderer::onDrawFrame(void)
 {
-/*		for (DrawFrameHook hook: drawFrameHooks) {
-		hook.onBeforeDraw();
-	}
-*/		
+/*	for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
+		(*hook)->onBeforeDraw();
+	}*/	
 
 	glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -247,14 +128,13 @@ void GladeRenderer::onDrawFrame(void)
   
 	drawAll(sceneObjects.begin(), sceneObjects.end());
 	
-  /*
 	switchProjectionMode(ORTHO);
 	Matrix::setIdentityM(viewMatrix, 0);
 	
-	drawAll(uiElements.iterator());*/
+	drawAll(uiElements.begin(), uiElements.end());
 	
-/*		for (DrawFrameHook hook: drawFrameHooks) {
-		hook.onAfterDraw();
+/*  for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
+		(*hook)->onAfterDraw();
 	}*/
 }
 
@@ -288,15 +168,14 @@ float GladeRenderer::pixelsToPercent(float pixels)
 	return pixels / (viewportWidth < viewportHeight ? viewportWidth / 2 : viewportHeight / 2);
 }
 
-/*
 Transform GladeRenderer::getTransformForRootWidget(void)
 {
-	return new Transform(
-			new Vector3f(),
-			new Vector3f(),
-			new Vector3f(getHalfViewportWidthCoords(), getHalfViewportHeightCoords(), 1)
+	return Transform(
+			0.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.0f,
+			getHalfViewportWidthCoords(), getHalfViewportHeightCoords(), 1.0f
 	);
-}*/
+}
 
 void GladeRenderer::moveZeroToUpperLeftCorner(void)
 {
@@ -342,13 +221,13 @@ vector<GladeObject>::iterator GladeRenderer::getWidgets(void)
 void GladeRenderer::drawAll(vector<GladeObject*>::iterator i, vector<GladeObject*>::iterator end)
 {
 	Transform finalWorldTransformForDrawable;
-  vector<Drawable*>* drawables;
+  GladeObject::Drawables* drawables;
   
 	while (i != end) {
 		if ((*i)->isEnabled()) {
 			drawables = (*i)->getDrawables();
 		
-			for (vector<Drawable*>::iterator di = drawables->begin(); di != drawables->end(); di++) {
+			for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
 				if ((*i)->isViewEnabled(*di)) {
           (*i)->getTransform()->combineWith(
 						*(*di)->getTransform(),
@@ -376,17 +255,17 @@ void GladeRenderer::moveAllObjectsIntoVideoMemory(void)
 		i++;
 	}
 	
-	/*
-	i = uiElements.iterator();
-		
-	while (i.hasNext()) {
-		moveIntoVideoMemory(i.next());
-	}*/
+	vector<GladeObject*>::iterator wi = uiElements.begin();
+	
+	while (wi != uiElements.end()) {
+		moveIntoVideoMemory(**wi);
+		wi++;
+	}
 }
 
 void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
 {
-	vector<Drawable*>::iterator di = sceneObject.getDrawables()->begin();
+	GladeObject::DrawablesI di = sceneObject.getDrawables()->begin();
 	
 	while (di != sceneObject.getDrawables()->end()) {
 		if (!(**di).isInitialized()) {
@@ -401,15 +280,6 @@ void GladeRenderer::moveIntoVideoMemory(Drawable &drawable)
 {
   log("Moving drawable into video memory");
 	Texture* texture = drawable.getTexture();
-	
-  if (texture == NULL)
-    log("Texture is null");
-    
-  if (texture->hasVideoBufferHandle())
-    log("Has video buffer handle");
-    
-  if (texture->getData() == NULL)
-    log("Texture data is null");
     
 	if (texture != NULL && !texture->hasVideoBufferHandle() && texture->getData() != NULL) {
     log("Loading texture into video memory");
@@ -497,8 +367,8 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
 	vector<GladeObject*>::iterator i = sceneObjects.begin();
 	
 	while (i != sceneObjects.end()) {
-		vector<Drawable*>* drawables = (*i)->getDrawables();
-		vector<Drawable*>::iterator di = drawables->begin();
+		GladeObject::Drawables* drawables = (*i)->getDrawables();
+		GladeObject::DrawablesI di = drawables->begin();
 		
 		while (di != drawables->end()) {
 			removeFromVideoMemory(**di);
@@ -507,17 +377,23 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
 		
 		i++;
 	}
-/*
-	i = uiElements.iterator();
+
+  vector<GladeObject*>::iterator wi = uiElements.begin();
 	
-	while (i.hasNext()) {
-		for (Drawable drawable: i.next().getDrawables()) {
-			removeFromVideoMemory(drawable);
+	while (wi != uiElements.end()) {
+		GladeObject::Drawables* drawables = (*wi)->getDrawables();
+		GladeObject::DrawablesI di = drawables->begin();
+		
+		while (di != drawables->end()) {
+			removeFromVideoMemory(**di);
+      di++;
 		}
-	}*/
+		
+		wi++;
+	}
 }
 
-void GladeRenderer::draw(vector<Drawable*>::iterator di, Transform &transform)
+void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
 {
 	static float worldMatrix[16];
 	
@@ -673,32 +549,38 @@ void GladeRenderer::setLightUniforms(void)
 	glUniform4f(uLightSpecular, lightSpecular[0], lightSpecular[1], lightSpecular[2], lightSpecular[3]);
 }
 
-GLuint GladeRenderer::loadShader(GLuint shaderType, const char* shaderCode)
+GLuint GladeRenderer::loadShader(GLuint shaderType, Shader &shader)
 {
-	GLuint shader = glCreateShader(shaderType);
-    if (shader) {
-        glShaderSource(shader, 1, &shaderCode, NULL);
-        glCompileShader(shader);
-        GLint compiled = 0;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-        if (!compiled) {
-            GLint infoLen = 0;
-            glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
-            if (infoLen) {
-                char* buf = (char*) malloc(infoLen);
-                if (buf) {
-                    glGetShaderInfoLog(shader, infoLen, NULL, buf);
-                    log("Shader compilation error:");
-                    log(buf);
-                    free(buf);
-                }
-                glDeleteShader(shader);
-                shader = 0;
-            }
+	GLuint shaderHandle = glCreateShader(shaderType);
+  
+  if (shaderHandle) {
+    const char* source = shader.getSource();
+    glShaderSource(shaderHandle, 1, &source, NULL);
+    glCompileShader(shaderHandle);
+    GLint compiled = 0;
+    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compiled);
+    
+    if (!compiled) {
+      GLint infoLen = 0;
+      glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &infoLen);
+      
+      if (infoLen) {
+        char* buf = (char*) malloc(infoLen);
+        
+        if (buf) {
+            glGetShaderInfoLog(shaderHandle, infoLen, NULL, buf);
+            log("shaderHandle compilation error:");
+            log(buf);
+            free(buf);
         }
+        
+        glDeleteShader(shaderHandle);
+        shaderHandle = 0;
+      }
     }
-	
-    return shader;
+  }
+
+  return shaderHandle;
 }
 
 int GladeRenderer::checkGLError(void)
@@ -723,23 +605,21 @@ int GladeRenderer::checkGLError(void)
 	return errorCode;
 }
 
+void GladeRenderer::addDrawFrameHook(DrawFrameHook* hook)
+{
+	drawFrameHooks.insert(hook);
+}
+
 /*
 void GladeRenderer::setDrawingOrderComparator(Comparator<GladeObject> drawingOrderComparator)
 {
 	this->drawingOrderComparator = drawingOrderComparator;
 }
-	
+*/	
 void GladeRenderer::sortDrawables()
 {
+  /*
 	if (drawingOrderComparator != NULL) {
 		Collections.sort(sceneObjects, drawingOrderComparator);
-	}
+	}*/
 }
-
-	
-void GladeRenderer::addDrawFrameHook(DrawFrameHook hook)
-{
-	
-}
-
-*/

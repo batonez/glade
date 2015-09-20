@@ -53,8 +53,8 @@ class TextureLoader
       return result;
     }
     
-    static Texture* loadTexture(const char* path)
+    static Texture* loadTexture(const char* filename)
     {
-      return loadTexture(path, 0, 0);
+      return loadTexture(filename, 0, 0);
     }
 };

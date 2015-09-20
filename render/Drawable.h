@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VertexObject.h"
+#include "meshes/VertexObject.h"
 #include "Texture.h"
 #include "TextureTransform.h"
 #include "Material.h"

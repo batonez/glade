@@ -7,30 +7,34 @@
 
 class Graph
 {
+public:
+  typedef std::set<GraphNode*>           GraphNodes;
+  typedef std::set<GraphNode*>::iterator GraphNodesI;
+  
 private:
-  std::set<GraphNode*> nodes;
-	std::set<GraphEdge*> edges;
+  GraphNodes nodes;
+	GraphNode::GraphEdges edges;
 	
 public:
   ~Graph()
   {
-    for (nodes::iterator inode = nodes.begin(); inode != nodes.end(); ++inode) {
+    for (GraphNodesI inode = nodes.begin(); inode != nodes.end(); ++inode) {
       delete *inode;
     }
     
-    for (edges::iterator iedge = edges.begin(); iedge != edges.end(); ++iedge) {
-      delete *inode;
+    for (GraphNode::GraphEdgesI iedge = edges.begin(); iedge != edges.end(); ++iedge) {
+      delete *iedge;
     }
   }
   
-  std::set<GraphNode*>* getNodes(void)
+  GraphNodes* getNodes(void)
 	{
-		return nodes;
+		return &nodes;
 	}
 	
-	std::set<GraphEdge*>* getEdges(void)
+	GraphNode::GraphEdges* getEdges(void)
 	{
-		return edges;
+		return &edges;
 	}
   
   GraphNode* newNode(void)

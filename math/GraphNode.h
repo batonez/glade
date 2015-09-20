@@ -1,22 +1,27 @@
 #pragma once
 
 #include <set>
-#include "GraphEdge.h"
+
+class GraphEdge;
 
 class GraphNode
 {
-private:
-  std::set<GraphEdge*> waysOut;
-  std::set<GraphEdge*> waysIn;
+  public:
+    typedef std::set<GraphEdge*>           GraphEdges;
+    typedef std::set<GraphEdge*>::iterator GraphEdgesI;
+    
+  private:
+    GraphEdges waysOut;
+    GraphEdges waysIn;
 
-public:
-  std::set<GraphEdge*>* getWaysOut(void)
-	{
-		return &waysOut;
-	}
-	
-	std::set<GraphEdge*>* getWaysIn(void)
-	{
-		return &waysIn;
-	}
+  public:
+    GraphEdges* getWaysOut(void)
+    {
+      return &waysOut;
+    }
+    
+    GraphEdges* getWaysIn(void)
+    {
+      return &waysIn;
+    }
 };

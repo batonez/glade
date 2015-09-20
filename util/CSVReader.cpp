@@ -1,6 +1,8 @@
 #include "../exception/GladeException.h"
 
 #include "CSVReader.h"
+#include "../log/log.h"
+#include "../exception/GladeException.h"
 
 using namespace std;
 
@@ -8,6 +10,10 @@ const char DELIMITER = ',';
 
 void CSVReader::read(istream &input, vector<vector<string> > &output)
 {
+  if (!input.good()) {
+    throw GladeException("CSVReader: input stream is broken");
+  }
+  
   char ch = 0, previousChar = 0, nextChar = 0;
   bool insideQuotedField = false;
   string field;

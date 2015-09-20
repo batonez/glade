@@ -6,7 +6,9 @@
 #include "../math/Transform.h"
 #include "Drawable.h"
 #include "../GladeObject.h"
+#include "../#ui/Widget.h"
 #include "DrawFrameHook.h"
+#include "../render/Shader.h"
 
 using namespace std;
 
@@ -31,6 +33,9 @@ public:
 	
 	static const double DOUBLE_CUBE_DIAGONAL;
 	
+  typedef std::set<DrawFrameHook*> DrawFrameHooks;
+  typedef DrawFrameHooks::iterator DrawFrameHooksI;
+  
 private:
     // shader program handle
 	GLuint program;
@@ -54,9 +59,10 @@ private:
 	float projectionMatrix[16], viewMatrix[16], worldViewMatrix[16];
 	Vector3f backgroundColor;
 	
-	vector<GladeObject*> sceneObjects;
-//	vector<GladeObject> uiElements;
-	vector<DrawFrameHook*> drawFrameHooks;
+	vector<GladeObject*> sceneObjects; // must be set
+	vector<GladeObject*> uiElements;   // must be set
+  
+  DrawFrameHooks drawFrameHooks;
 /*	Comparator<GladeObject> drawingOrderComparator; */
 	
 	bool initialized;
@@ -66,10 +72,10 @@ public:
   Transform camera;
   
   void add(GladeObject* sceneObject);
-//	void add(Widget uiElement);
+	void add(Widget* uiElement);
 	void sortDrawables(void);
 	void clear(void);
-	void onSurfaceCreated(void);
+	void onSurfaceCreated(Shader &vertexShader, Shader &fragmentShader);
 	void onSurfaceChanged(int width, int height);
 	void onDrawFrame(void);
 	void setSceneProjectionMode(ProjectionMode projectionMode);
@@ -79,14 +85,14 @@ public:
 	void setBackgroundColor(float r, float g, float b);
 	int percentToPixels(float percent);
 	float pixelsToPercent(float pixels);
-//	Transform getTransformForRootWidget(void);
+  Transform getTransformForRootWidget(void);
 	void moveZeroToUpperLeftCorner(void);
 	float getHalfViewportWidthCoords(void);
 	float getHalfViewportHeightCoords(void);
 	float getViewportWidthCoords(void);
 	float getViewportHeightCoords(void);
 	Vector2f getPointCoords(float screenX, float screenY);
-//	vector<GladeObject>::iterator getWidgets(void);
+// vector<Widget*>::iterator getWidgets(void);
 private:
 	void drawAll(vector<GladeObject*>::iterator i, vector<GladeObject*>::iterator end);
 	void moveAllObjectsIntoVideoMemory(void);
@@ -94,12 +100,12 @@ private:
 	void moveIntoVideoMemory(Drawable &drawable);
 	void removeFromVideoMemory(Drawable &drawable);
 	void removeAllObjectsFromVideoMemory(void);
-	void draw(vector<Drawable*>::iterator di, Transform &transform);
+	void draw(GladeObject::DrawablesI di, Transform &transform);
 	void bindBuffers(Drawable &drawable);
 	void switchProjectionMode(ProjectionMode projectionMode, bool force);
 	void switchProjectionMode(ProjectionMode projectionMode);
 	void getShaderHandles(void);
 	void setLightUniforms(void);
-	GLuint loadShader(GLuint type, const char* shaderCode);
+	GLuint loadShader(GLuint type, Shader &shader);
 	int checkGLError();
 };

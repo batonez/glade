@@ -1,7 +1,10 @@
 #pragma once
 
-namespace gladen::system
+namespace gladen
 {
-  void exit();
-  void pollInput();
+  namespace system
+  {
+    void exit();
+    void pollInput();
+  }
 }

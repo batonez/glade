@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string.h>
-#include <vector>
+#include <set>
 #include <map>
 
 #include "log/log.h"
@@ -10,16 +10,20 @@
 #include "exception/GladeException.h"
 
 class GladeObject {
+public:
+  typedef std::set<Drawable*>    Drawables;
+  typedef Drawables::iterator    DrawablesI;
+
+private:
+  typedef std::map<Drawable*, bool> VisibilitySwitches;
+
 protected:
-	bool enabled;
+  bool enabled;
 //	PhysicBody* physicBody;
 //	CollisionShape* collisionShape;
 //	Behavior* behavior;
   
-  typedef std::vector<Drawable*>    Drawables;
-  typedef std::map<Drawable*, bool> VisibilitySwitches;
-  
-	Drawables drawables;
+  Drawables drawables;
 	VisibilitySwitches visibilitySwitches;
 //	Set<Sound> sounds;
 	char name[32];
@@ -69,12 +73,19 @@ public:
 		return &transform;
 	}
 	
-	void addDrawable(Drawable* view)
+	virtual void addDrawable(Drawable* view)
   {
-		drawables.push_back(view);
+		drawables.insert(view);
 		visibilitySwitches[view] = true;
 	}
 
+  void addDrawables(Drawables &drawables)
+  {
+    for (DrawablesI di = drawables.begin(); di != drawables.end(); ++di) {
+      addDrawable(*di);
+    }
+  }
+  
 	Drawables* getDrawables(void)
   {
 		return &drawables;
@@ -111,9 +122,9 @@ public:
 		this->collisionShape = &collisionShape;
 	}
 	*/
-	void toggleView(Drawable* view, bool enable)
+	void toggleView(Drawable& view, bool enable)
   {
-  	VisibilitySwitches::iterator i = visibilitySwitches.find(view);
+  	VisibilitySwitches::iterator i = visibilitySwitches.find(&view);
     
     if (i != visibilitySwitches.end()) {
       i->second = enable;
@@ -122,8 +133,8 @@ public:
 
 	void toggleView(bool enable)
   {
-		for (Drawables::iterator i = drawables.begin(); i != drawables.end(); i++) {
-			toggleView(*i, enable);
+		for (DrawablesI i = drawables.begin(); i != drawables.end(); i++) {
+			toggleView(**i, enable);
 		}
 	}
 	

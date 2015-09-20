@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Context.h"
+class Context;
 
 class State
 {
@@ -12,19 +12,16 @@ class State
     {
       this->context = context;
     }
-     
-    Context* getContext()
-    {
-      return context;
-    }
     
     virtual void init()
-    {
-    
+    {    
     }
     
     virtual void applyRules()
+    { 
+    }
+    
+    virtual void shutdown()
     {
-      
     }
 };

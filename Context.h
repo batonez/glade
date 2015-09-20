@@ -3,22 +3,30 @@
 #include <queue>
 
 #include "system.h"
+#include "render/GladeRenderer.h"
+#include "State.h"
+#include "#ui/layout/Layout.h"
+#include "controls/VirtualController.h"
+//#include "../physics/Simulator.h"
+//#include "../physics/CollisionDetector.h"
+//#include "../ai/AiContainer.h"
+//#include "#audio/SoundPlayer.h"
 
 class Context {
 public:
   Timer timer;
 	GladeRenderer* renderer;
-	SoundPlayer* soundPlayer;
+	//SoundPlayer* soundPlayer;
   
   // these are instantiated here becouse there's only one implementation now
-	Simulator simulator;
-	CollisionDetector collisionDetector;
-	AiContainer aiContainer;
+	//Simulator simulator;
+	//CollisionDetector collisionDetector;
+  //AiContainer aiContainer;
 	
   bool enableSimulator, enableCollisionDetector, enableAiContainer, enableSoundPlayer;
 
 private:
-	State* currentState, requestedState;
+	State *currentState, *requestedState;
 	bool stopRequested, clearRequested;
 	VirtualController* controller;
 	queue<GladeObject*> objectsToAdd;
@@ -27,9 +35,9 @@ private:
 	queue<Widget*> widgetsToRemove;
 	
 public:
-	Context(GladeRenderer* renderer, SoundPlayer* soundPlayer):
+	Context(GladeRenderer* renderer/*, SoundPlayer* soundPlayer*/):
     renderer(renderer),
-    soundPlayer(soundPlayer),
+    //soundPlayer(soundPlayer),
 		enableSimulator(true),
 		enableCollisionDetector(true),
 		enableAiContainer(true),
@@ -48,36 +56,38 @@ public:
 	}
 	
 	void add(GladeObject* object) {
-		objectsToAdd.addLast(object);
+		objectsToAdd.push(object);
 	}
 	
 	void add(Widget* widget) {
-		widgetsToAdd.addLast(widget);
+    log("adding widget");
+		widgetsToAdd.push(widget);
 	}
 	
-	void remove(GladeObject* object) 
-		objectsToRemove.add(object);
+	void remove(GladeObject* object) {
+		objectsToRemove.push(object);
 	}
 	
 	void remove(Widget* widget) {
-		widgetsToRemove.add(widget);
+		widgetsToRemove.push(widget);
 	}
 	
 	State* getCurrentState(void) {
 		return currentState;
 	}
-	
+	/*
 	Simulator* getSimulator(void) {
 		return &simulator;
 	}
 	
 	CollisionDetector* getCollisionDetector(void) {
 		return &collisionDetector;
-	}
+	}*/
 	
+  /*
 	AiContainer* getAiContainer(void) {
 		return &aiContainer;
-	}
+	}*/
 	
 	/**
 	 * Should be called only from a rendering thread
@@ -116,7 +126,7 @@ public:
 		}
 		
 		if (gladeObjectsListsChanged) {
-			renderer.sortDrawables();
+			renderer->sortDrawables();
 		}
 	}
 	
@@ -124,16 +134,16 @@ public:
 		return renderer;
 	}
 	
-	SoundPlayer* getSoundPlayer(void) {
+/*	SoundPlayer* getSoundPlayer(void) {
 		return soundPlayer;
-	}
+	}*/
 	
 	void clear(void) {
 		clearRequested = true;
 	}
 	
 	void setController(VirtualController* controller) {
-		controller.init();
+		controller->init();
 		this->controller = controller;
 	}
 	
@@ -154,7 +164,7 @@ private:
 			log("You should request a state before activating it");
       return;
 		}
-		
+    
 		currentState = requestedState;
 		requestedState = NULL;
 		
@@ -170,36 +180,36 @@ private:
 	/**
 	 * Should be called only from rendering thread
 	 */
-	void addWidgetsRecursive(Widget &widget) {
-		renderer->add(widget);
-		Iterator<Widget> children = widget.getChildrenIterator(); // ? TODO (Implement ui first)
-		
-		while (children.hasNext()) {
-			addWidgetsRecursive(children.next());
-		}
+  void addWidgetsRecursive(Widget* widget) {
+    renderer->add(widget);
+    Widget::Widgets* children = widget->getChildren(); 
+
+    for (Widget::WidgetsI child = children->begin(); child != children->end(); ++child) {
+      addWidgetsRecursive(*child);
+    }
+  }
+	
+	/**
+	 * Should be called only from rendering thread
+	 */
+	void addNow(GladeObject* object) {
+    renderer->add(object);
+    //simulator->add(object);
+    //collisionDetector->add(object);
+    //aiContainer->add(object);
+
+    //soundPlayer->hold(object.getSounds());
 	}
 	
 	/**
 	 * Should be called only from rendering thread
 	 */
-	void addNow(GladeObject &object) {
-		renderer->add(object);
-		simulator->add(object);
-		collisionDetector->add(object);
-		aiContainer->add(object);
+	void addNow(Widget* widget) {
+	//	if (widget.getParent() == NULL) {
+	//		widget.getTransform()->set(&renderer->getTransformForRootWidget());
+	//	}
 		
-		soundPlayer->hold(object.getSounds());
-	}
-	
-	/**
-	 * Should be called only from rendering thread
-	 */
-	void addNow(Widget &widget) {
-		if (widget.getParent() == NULL) {
-			widget.getTransform().setComponentsTo(renderer.getTransformForRootWidget());
-		}
-		
-		widget.getLayout()->calculateTransformsForChildrenOf(widget);
+	//	widget.getLayout()->calculateTransformsForChildrenOf(&widget);
 		addWidgetsRecursive(widget);
 	}
 	
@@ -210,10 +220,10 @@ private:
 		log("Clearing fully");
 		
 		renderer->clear();
-		soundPlayer->clear(true);
-		simulator.clear();
-		collisionDetector.clear();
-		aiContainer.clear();
+		//soundPlayer->clear(true);
+		//simulator.clear();
+		//collisionDetector.clear();
+		//aiContainer.clear();
 		
 		clearRequested = false;
 	}
@@ -225,11 +235,11 @@ private:
 		log("Clearing before state init");
 		
 		renderer->clear();
-		simulator.clear();
-		collisionDetector.clear();
-		aiContainer.clear();
+		//simulator.clear();
+		//collisionDetector.clear();
+		//aiContainer.clear();
 		
-		soundPlayer->unholdAll();
+		//soundPlayer->unholdAll();
 	}
 	
 	/**
@@ -238,6 +248,6 @@ private:
 	 */
 	void clearAfterStateInit(void) {
 		log("Clearing after state init");
-		soundPlayer->clear(false);
+		//soundPlayer->clear(false);
 	}
 };

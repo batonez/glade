@@ -6,8 +6,10 @@
 /EHsc ^
 main.cpp ^
 ..\render\GladeRenderer.cpp ^
-..\render\samples\Cube.cpp ^
-..\render\samples\Triangle.cpp ^
+..\render\meshes\Cube.cpp ^
+..\render\meshes\Triangle.cpp ^
+..\render\meshes\Rectangle.cpp ^
+..\util\CSVReader.cpp ^
 ..\math\Matrix.cpp ^
 ..\log\log.cpp ^
 ..\opengl\functions.cpp ^

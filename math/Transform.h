@@ -40,6 +40,12 @@ public:
 	void setRotation(const Vector3f &rotation) { this->rotation.set (rotation); }
 	void setScale	(const Vector3f &scale   ) { this->scale.set	(scale   ); }
 	
+  void set(Transform* transform) {
+    setPosition(transform->getPosition());
+    setRotation(transform->getRotation());
+    setScale(transform->getScale());
+  }
+  
 	void invertTranslation(bool invert) { invertor = invert ? -1 : 1; }
 	bool isInvertedTranslation(void) { return invertor < 0; }
 		

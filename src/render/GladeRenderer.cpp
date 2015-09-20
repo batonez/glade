@@ -82,16 +82,7 @@ void GladeRenderer::clear(void)
 
 void GladeRenderer::onSurfaceCreated(Shader &vertexShader, Shader &fragmentShader)
 {
-  GLuint vertexShaderPointer = loadShader(GL_VERTEX_SHADER, vertexShader);
-	GLuint fragmentShaderPointer = loadShader(GL_FRAGMENT_SHADER, fragmentShader);
-	
-	program = glCreateProgram();
-  glAttachShader(program, vertexShaderPointer);
-  glAttachShader(program, fragmentShaderPointer);
-  glLinkProgram(program);
-  glReleaseShaderCompiler();
-	glUseProgram(program);
-	glFrontFace(GL_CW);
+  glFrontFace(GL_CW);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   //glEnable(GL_BLEND);
 //	glEnable(GL_CULL_FACE);
@@ -268,8 +259,23 @@ void GladeRenderer::moveIntoVideoMemory(GladeObject &sceneObject)
 	while (di != sceneObject.getDrawables()->end()) {
 		moveIntoVideoMemory((*di)->getVertexObject());
     moveIntoVideoMemory((*di)->getTexture());
+    compileShaderProgram((*di)->getShaderProgram());
 		di++;
 	}
+  
+  glReleaseShaderCompiler();
+}
+
+void GladeRenderer::compileShaderProgram(ShaderProgram *program)
+{
+  GLuint vertexShaderPointer = loadShader(GL_VERTEX_SHADER, program->vertexShader);
+	GLuint fragmentShaderPointer = loadShader(GL_FRAGMENT_SHADER, program->fragmentShader);
+	
+	programHandle = glCreateProgram();
+  glAttachShader(programHandle, vertexShaderPointer);
+  glAttachShader(programHandle, fragmentShaderPointer);
+  glLinkProgram(programHandle);
+  program.gpuHandle = programHandle;
 }
 
 void GladeRenderer::moveIntoVideoMemory(VertexObject *mesh)
@@ -388,6 +394,20 @@ void GladeRenderer::removeAllObjectsFromVideoMemory(void)
 
 void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
 {
+  ShaderProgram *program = di->getShaderProgram();
+  
+  if (NULL == program) {
+    log("Could not render a drawable: no GPU program");
+    return;
+  }
+  
+  if (program->gpuHandle < 0) {
+    log("Could not render a drawable: GPU program was not loaded to video memory");
+    return;
+  }
+  
+  glUseProgram(program->gpuHandle);
+  
 	static float worldMatrix[16];
 	
   transform.getMatrix(worldMatrix);
@@ -395,11 +415,6 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   
   glUniformMatrix4fv(uProjectionMatrix, 4, GL_FALSE, projectionMatrix);
   glUniformMatrix4fv(uWorldViewMatrix, 4, GL_FALSE, worldViewMatrix);
-  
-  Vector4f* constantColor = (*di)->getConstantColor();
-	glUniform4f(uColor, constantColor->x, constantColor->y, constantColor->z, constantColor->w);
-  
-	glUniform1i(uReplaceColor, (*di)->replaceOriginalColor ? 1 : 0);
   
 	bindBuffers(*(*di)->getVertexObject());
 	
@@ -411,6 +426,14 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   
 	glEnableVertexAttribArray(aPosition);
 	
+  glVertexAttribPointer(
+    aNormal, NORMAL_SIZE_FLOATS,
+    GL_FLOAT, GL_FALSE,
+    VERTEX_STRIDE_BYTES, (const GLvoid *)NORMAL_OFFSET_BYTES
+  );
+  
+  glEnableVertexAttribArray(aNormal);
+  
 	Texture* texture = (*di)->getTexture();
 	
 	if (texture != NULL) {
@@ -436,7 +459,13 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
 			glEnableVertexAttribArray(aTexCoord);
     }
   }
-
+  
+  /*
+  Vector4f* constantColor = (*di)->getConstantColor();
+	glUniform4f(uColor, constantColor->x, constantColor->y, constantColor->z, constantColor->w);
+  
+	glUniform1i(uReplaceColor, (*di)->replaceOriginalColor ? 1 : 0);
+  
   if ((*di)->isLit()) {
     Material* material = (*di)->getMaterial();
 		
@@ -454,14 +483,9 @@ void GladeRenderer::draw(GladeObject::DrawablesI di, Transform &transform)
   } else {
 		glUniform1i(uLight, 0);
 	}
-	
-  glVertexAttribPointer(
-    aNormal, NORMAL_SIZE_FLOATS,
-    GL_FLOAT, GL_FALSE,
-    VERTEX_STRIDE_BYTES, (const GLvoid *)NORMAL_OFFSET_BYTES
-  );
+  */
   
-  glEnableVertexAttribArray(aNormal);
+  program->setUniforms();
   
 	glDrawElements(GL_TRIANGLES, (*di)->getVertexObject()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
 	
@@ -505,36 +529,40 @@ void GladeRenderer::switchProjectionMode(ProjectionMode projectionMode)
 	switchProjectionMode(projectionMode, false);
 }
 
-void GladeRenderer::getShaderHandles(void)
+void GladeRenderer::getShaderHandles(ShaderProgram &program)
 {
-	uProjectionMatrix 	= glGetUniformLocation(program, "uProjectionMatrix");
-	uWorldViewMatrix	= glGetUniformLocation(program, "uWorldViewMatrix");
-	
-	uColor				= glGetUniformLocation(program, "uColor");
-	uReplaceColor		= glGetUniformLocation(program, "uReplaceColor");
-	uLight 				= glGetUniformLocation(program, "uLight");
-	uLightDirection 	= glGetUniformLocation(program, "uLightDirection");
-	uLightHalfplane		= glGetUniformLocation(program, "uLightHalfplane");
-	uLightAmbient 		= glGetUniformLocation(program, "uLightAmbient");
-	uLightDiffuse 		= glGetUniformLocation(program, "uLightDiffuse");
-	uLightSpecular 		= glGetUniformLocation(program, "uLightSpecular");
-	uMaterialAmbient 	= glGetUniformLocation(program, "uMaterialAmbient");
-	uMaterialDiffuse 	= glGetUniformLocation(program, "uMaterialDiffuse");
-	uMaterialSpecular 	= glGetUniformLocation(program, "uMaterialSpecular");
-	uMaterialShininess 	= glGetUniformLocation(program, "uMaterialShininess");
+  uProjectionMatrix 	= glGetUniformLocation(program.gpuHandle, "uProjectionMatrix");
+	uWorldViewMatrix	= glGetUniformLocation(program.gpuHandle, "uWorldViewMatrix");
 
-	aPosition			= glGetAttribLocation(program, "aPosition");
-	aNormal				= glGetAttribLocation(program, "aNormal");
-	aTexCoord			= glGetAttribLocation(program, "aTexCoord0");
+/*	
+	uColor				= glGetUniformLocation(program.gpuHandle, "uColor");
+	uReplaceColor		= glGetUniformLocation(program.gpuHandle, "uReplaceColor");
+	uLight 				= glGetUniformLocation(program.gpuHandle, "uLight");
+	uLightDirection 	= glGetUniformLocation(program.gpuHandle, "uLightDirection");
+	uLightHalfplane		= glGetUniformLocation(program.gpuHandle, "uLightHalfplane");
+	uLightAmbient 		= glGetUniformLocation(program.gpuHandle, "uLightAmbient");
+	uLightDiffuse 		= glGetUniformLocation(program.gpuHandle, "uLightDiffuse");
+	uLightSpecular 		= glGetUniformLocation(program.gpuHandle, "uLightSpecular");
+	uMaterialAmbient 	= glGetUniformLocation(program.gpuHandle, "uMaterialAmbient");
+	uMaterialDiffuse 	= glGetUniformLocation(program.gpuHandle, "uMaterialDiffuse");
+	uMaterialSpecular 	= glGetUniformLocation(program.gpuHandle, "uMaterialSpecular");
+	uMaterialShininess 	= glGetUniformLocation(program.gpuHandle, "uMaterialShininess");
+*/
+
+	aPosition			= glGetAttribLocation(program.gpuHandle, "aPosition");
+	aNormal				= glGetAttribLocation(program.gpuHandle, "aNormal");
+	aTexCoord			= glGetAttribLocation(program.gpuHandle, "aTexCoord0");
 	
-	uSamplerNumber 		= glGetUniformLocation(program, "uTextureSampler0");
-	uTexScaleX 			= glGetUniformLocation(program, "uTexCoordScaleX0");
-	uTexScaleY 			= glGetUniformLocation(program, "uTexCoordScaleY0");
-	uTexOffsetX 		= glGetUniformLocation(program, "uTexCoordOffsetX0");
-	uTexOffsetY 		= glGetUniformLocation(program, "uTexCoordOffsetY0");
+	uSamplerNumber 		= glGetUniformLocation(program.gpuHandle, "uTextureSampler0");
+	uTexScaleX 			= glGetUniformLocation(program.gpuHandle, "uTexCoordScaleX0");
+	uTexScaleY 			= glGetUniformLocation(program.gpuHandle, "uTexCoordScaleY0");
+	uTexOffsetX 		= glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetX0");
+	uTexOffsetY 		= glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetY0");
+  
+  program.getUniformLocations();
 } 
 
-void GladeRenderer::setLightUniforms(void)
+//void GladeRenderer::setLightUniforms(void)
 {
 	glUniform3f(uLightDirection, lightDirection[0], lightDirection[1], lightDirection[2]);
 	glUniform4f(uLightAmbient, lightAmbient[0], lightAmbient[1], lightAmbient[2], lightAmbient[3]);

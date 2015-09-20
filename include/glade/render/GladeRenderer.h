@@ -82,7 +82,7 @@ public:
 	void onSurfaceChanged(int width, int height);
 	void onDrawFrame(void);
 	void setSceneProjectionMode(ProjectionMode projectionMode);
-	void addDrawFrameHook(DrawFrameHook* hook);
+	void addDrawFrameHook(DrawFrameHook &hook);
 	int getViewportWidth(void);
 	int getViewportHeight(void);
 	void setBackgroundColor(float r, float g, float b);

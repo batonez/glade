@@ -10,10 +10,10 @@
 #include "glade/opengl/functions.h"
 #include <fstream>
 
-class BasicTextShaderProgram : public DefaultShaderProgram
+class LitShapeShaderProgram : public DefaultShaderProgram
 {
   public:
-    static BasicTextShaderProgram INSTANCE;
+    static LitShapeShaderProgram INSTANCE;
     
     Material material;
     Vector4f constantColor;
@@ -30,15 +30,15 @@ class BasicTextShaderProgram : public DefaultShaderProgram
     // directional light (hardcoded)
     float lightDirection[3], lightAmbient[4], lightDiffuse[4], lightSpecular[4];
   
-    BasicTextShaderProgram():
+    LitShapeShaderProgram():
       DefaultShaderProgram(),
       vertexShader(NULL),
       fragmentShader(NULL),
       replaceOriginalColor(false),
-      lit(false)
+      lit(true)
     {
-      std::ifstream vertexInput("D:/Codespace/Gladen/res/shaders/gl/vertex_text.glsl");
-      std::ifstream fragmentInput("D:/Codespace/Gladen/res/shaders/gl/fragment_text.glsl");
+      std::ifstream vertexInput("D:/Codespace/Gladen/res/shaders/gl/vertex_lit_shape.glsl");
+      std::ifstream fragmentInput("D:/Codespace/Gladen/res/shaders/gl/fragment_lit_shape.glsl");
       
       if (!fragmentInput.good() || !vertexInput.good()) {
         throw GladeException("Shader input is broken");
@@ -55,7 +55,7 @@ class BasicTextShaderProgram : public DefaultShaderProgram
     }
     
   public:
-    ~BasicTextShaderProgram()
+    ~LitShapeShaderProgram()
     {
       if (vertexShader) {
         delete vertexShader;

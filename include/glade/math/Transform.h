@@ -10,6 +10,9 @@ private:
 	Vector3f position;
 	Vector3f rotation;
 	Vector3f scale;
+  /*std::shared_ptr<Vector3f> position;
+  std::shared_ptr<Vector3f> rotation;
+  std::shared_ptr<Vector3f> scale;*/
 	char invertor;
 	
 public:

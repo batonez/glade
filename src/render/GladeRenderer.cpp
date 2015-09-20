@@ -99,9 +99,9 @@ void GladeRenderer::onSurfaceChanged(int width, int height)
 
 void GladeRenderer::onDrawFrame(void)
 {
-/*	for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
+	for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
 		(*hook)->onBeforeDraw();
-	}*/	
+	}
 
 	glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -115,9 +115,9 @@ void GladeRenderer::onDrawFrame(void)
 	
 	drawAll(uiElements.begin(), uiElements.end());
 	
-/*  for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
+  for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
 		(*hook)->onAfterDraw();
-	}*/
+	}
 }
 
 void GladeRenderer::setSceneProjectionMode(ProjectionMode projectionMode)
@@ -575,9 +575,9 @@ int GladeRenderer::checkGLError(void)
 	return errorCode;
 }
 
-void GladeRenderer::addDrawFrameHook(DrawFrameHook* hook)
+void GladeRenderer::addDrawFrameHook(DrawFrameHook &hook)
 {
-	drawFrameHooks.insert(hook);
+	drawFrameHooks.insert(&hook);
 }
 
 /*

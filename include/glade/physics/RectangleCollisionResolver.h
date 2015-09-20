@@ -30,16 +30,10 @@ class RectangleCollisionResolver: public CollisionEventListener
       if (axis == HORIZONTAL) {
         if (firstColShape->getType() == CollisionShape::STATIC) {
           secondCorrection.x = distance * direction;
-          
-          if (collisionEvent.secondObject->getPhysicBody()->velocity.x < 0) {
-            collisionEvent.secondObject->getPhysicBody()->velocity.x = 0;
-          }
+          collisionEvent.secondObject->getPhysicBody()->velocity.x = 0;
         } else if (secondColShape->getType() == CollisionShape::STATIC) {
           firstCorrection.x = - distance * direction;
-          
-          if (collisionEvent.firstObject->getPhysicBody()->velocity.x > 0) {
-            collisionEvent.firstObject->getPhysicBody()->velocity.x = 0;
-          }
+          collisionEvent.firstObject->getPhysicBody()->velocity.x = 0;
         } else {
           firstCorrection.x = - distance * direction / 2;
           secondCorrection.x =  distance * direction / 2;
@@ -47,17 +41,10 @@ class RectangleCollisionResolver: public CollisionEventListener
       } else if (axis == VERTICAL) {
         if (firstColShape->getType() == CollisionShape::STATIC) {
           secondCorrection.y = distance * direction;
-          
-          if (collisionEvent.secondObject->getPhysicBody()->velocity.y < 0) {
-            collisionEvent.secondObject->getPhysicBody()->velocity.y = 0;
-          }
+          collisionEvent.secondObject->getPhysicBody()->velocity.y = 0;
         } else if (secondColShape->getType() == CollisionShape::STATIC) {
           firstCorrection.y = - distance * direction;
-    
-          if (collisionEvent.firstObject->getPhysicBody()->velocity.y > 0) {
-            collisionEvent.firstObject->getPhysicBody()->velocity.y = 0;
-          }
-          
+          collisionEvent.firstObject->getPhysicBody()->velocity.y = 0;
         } else {
           firstCorrection.y = - distance * direction / 2;
           secondCorrection.y =  distance * direction / 2;

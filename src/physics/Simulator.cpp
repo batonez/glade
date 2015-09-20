@@ -93,5 +93,4 @@ void Simulator::stepSimulation(double deltaTime)
     
     ++i;
   }
-log("FINISH");
 }

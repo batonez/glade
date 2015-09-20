@@ -42,6 +42,8 @@ namespace Glade
       std::shared_ptr<ShaderProgram> getShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename);
       std::shared_ptr<Sound> getSound(const Path &filename);
       std::shared_ptr<BitmapFont> getFont(const Path &atlas_filename, const Path &csv_filename);
+      
+      Path getShadersSubfolder() const;
     
     private:
       std::shared_ptr<ShaderProgram> loadShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename);

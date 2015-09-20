@@ -18,10 +18,10 @@ const GLuint  GladeRenderer::POS_OFFSET_FLOATS      = 0;
 const GLuint  GladeRenderer::NORMAL_OFFSET_FLOATS   = POS_SIZE_FLOATS;
 const GLuint  GladeRenderer::TEXCOORD_OFFSET_FLOATS = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS;
 const GLuint  GladeRenderer::VERTEX_STRIDE_FLOATS   = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
-const GLsizei GladeRenderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS * sizeof(float);
-const GLsizei GladeRenderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS * sizeof(float);
+const GLsizei GladeRenderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS      * sizeof(float);
+const GLsizei GladeRenderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS   * sizeof(float);
 const GLsizei GladeRenderer::TEXCOORD_OFFSET_BYTES  = TEXCOORD_OFFSET_FLOATS * sizeof(float);
-const GLsizei GladeRenderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS * sizeof(float);
+const GLsizei GladeRenderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS   * sizeof(float);
 
 GladeRenderer::GladeRenderer(void)
 {

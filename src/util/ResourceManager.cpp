@@ -5,6 +5,7 @@
 #include <glade/ui/font/BitmapFont.h>
 #include <glade/audio/Sound.h>
 #include <glade/exception/GladeException.h>
+#include <glade/opengl/drivers.h>
 
 #include <lodepng.h>
 
@@ -34,16 +35,28 @@ std::shared_ptr<Texture> Glade::ResourceManager::getTexture(const Path &filename
 
 std::shared_ptr<ShaderProgram> Glade::ResourceManager::getShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename)
 {
-  Path key = vertex_shader_filename + ";" + fragment_shader_filename;
+  Path fullPathToVertexShader = getShadersSubfolder() + vertex_shader_filename;
+  Path fullPathToFragmentShader = getShadersSubfolder() + fragment_shader_filename;
+  Path key = fullPathToVertexShader + ";" + fullPathToFragmentShader;
   ShaderProgramsI i = shaderPrograms.find(key);
   
   if (i != shaderPrograms.end()) {
     return i->second;
   }
   
-  std::shared_ptr<ShaderProgram> shaderProgram = loadShaderProgram(vertex_shader_filename, fragment_shader_filename);
+  std::shared_ptr<ShaderProgram> shaderProgram = loadShaderProgram(fullPathToVertexShader, fullPathToFragmentShader);
   shaderPrograms[key] = shaderProgram;
   return shaderProgram;
+}
+
+Path Glade::ResourceManager::getShadersSubfolder() const
+{
+  switch (GLADE_VIDEO_DRIVER) {
+    case VIDEO_DRIVER_OPENGL3:
+      return Path("shaders/gl");
+    case VIDEO_DRIVER_OPENGLES2:
+      return Path("shaders/gles2");
+  }
 }
 
 std::shared_ptr<Sound> Glade::ResourceManager::getSound(const Path &filename)

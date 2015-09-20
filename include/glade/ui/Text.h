@@ -7,15 +7,19 @@
 
 extern Glade::ResourceManager *resource_manager;
 
-class Label : public Widget
+class Text: public Widget
 {
   private:
     std::string text;
+    std::shared_ptr font;
     
   public:
-    Label(const std::string &string, std::shared_ptr<Font> &font, float r = 0.0f, float g = 0.0f, float b = 0.0f):
-      Widget(),
-      text(string)
+    Text(const std::string &string, std::shared_ptr<Font> &font_param,
+      float r = 0.0f, float g = 0.0f, float b = 0.0f
+      float scaleX = 1.0f, float scaleY = 1.0f):
+        Widget(),
+        font(font_param),
+        text(string)
     {
       assert(font != nullptr);
       
@@ -30,16 +34,20 @@ class Label : public Widget
       debug->preserveScale = false;
       */
       
-      addDrawables(*font->createDrawablesForString(text));
-      
-      log("SCALE X: %3.3f  Y: %3.3f", font->getLastStringScaleX(), font->getLastStringScaleY());
-      getTransform()->getScale()->set(font->getLastStringScaleX(),font->getLastStringScaleY(), 1.0f);
       setTextColor(r, g, b);
+      
+      setScale(scaleX, scaleY);
     }
     
-    virtual ~Label()
+    virtual ~Text()
     {
-      // TODO delete drawables
+      // FIXME delete drawables
+    }
+    
+    void setScale(float scaleX, float scaleY)
+    {
+      getTransform()->setScale(scaleX, scaleY, 1.0f);
+      addDrawables(*font->createDrawablesWordWrapped(string, scaleX));
     }
     
     virtual void addDrawable(Drawable* view)

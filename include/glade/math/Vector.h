@@ -19,6 +19,21 @@ public:
   bool operator<(const Vector2i &other) const { return this->y == other.y ? this->x < other.x : this->y < other.y; }
 };
 
+class Vector3i {
+public:
+  int x, y, z;
+
+  Vector3i(void) { setIdentity(); }
+  Vector3i(int x, int y, int z) { this->x = x; this->y = y; this->z = z; }
+  void setIdentity(void) { x = y = z = 0; }
+  void set(const Vector3i &vector) { x  = vector.x; y  = vector.y; z  = vector.z; }
+  void set(int x, int y, int z) { this->x = x; this->y = y; this->z = z; }
+  void add(const Vector3i &vector) { x += vector.x; y += vector.y; z += vector.z; }
+  void dot(const Vector3i &vector) { x *= vector.x; y *= vector.y; z *= vector.z; }
+  void add(const Vector3i &vector, Vector3i &result) { result.x = x + vector.x; result.y = y + vector.y; result.z = z + vector.z; }
+  void dot(const Vector3i &vector, Vector3i &result) { result.x = x * vector.x; result.y = y * vector.y; result.z = z * vector.z; }
+};
+
 class Vector2f {
 public:
   float x, y;

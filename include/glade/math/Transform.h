@@ -94,8 +94,7 @@ public:
   }
   
   /**
-   * Возвращает матрицу трансформации в пространстве.
-   * Поворот вокруг оси Z пока не поддерживается из-за gimbal lock
+   * Возвращает матрицу трансформации в пространстве
    */
   void getMatrix(float* result) {
     Matrix::setIdentityM(result, 0);
@@ -103,5 +102,16 @@ public:
     Matrix::rotateM(result, 0, rotation->x, 1, 0, 0);
     Matrix::rotateM(result, 0, rotation->y, 0, 1, 0);
     Matrix::scaleM(result, 0, scale->x, scale->y, scale->z);
+  }
+
+  /**
+   * Возвращает матрицу трансформации в пространстве для камеры
+   */
+  void getCameraMatrix(float* result) {
+    Matrix::setIdentityM(result, 0);
+    Matrix::scaleM(result, 0, scale->x, scale->y, scale->z);
+    Matrix::rotateM(result, 0, rotation->y, 0, 1, 0);
+    Matrix::rotateM(result, 0, rotation->x, 1, 0, 0);
+    Matrix::translateM(result, 0, -invertor * position->x, -invertor * position->y, -invertor * position->z);
   }
 };

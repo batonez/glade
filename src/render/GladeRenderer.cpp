@@ -25,8 +25,6 @@ const GLsizei Glade::Renderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS   *
 
 Glade::Renderer::Renderer(void)
 {
-  camera.invertTranslation(true);
-    
   sceneProjectionMode = PERSPECTIVE;
   initialized = false;
 }
@@ -144,7 +142,7 @@ void Glade::Renderer::onDrawFrame(void)
   glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   switchProjectionMode(sceneProjectionMode);
-  camera.getMatrix(viewMatrix);
+  camera.getCameraMatrix(viewMatrix);
   
   drawAll(sceneObjects.begin(), sceneObjects.end());
   

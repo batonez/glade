@@ -654,7 +654,7 @@ void Glade::Renderer::switchProjectionMode(ProjectionMode projectionMode, bool f
   if (force || projectionMode != currentProjectionMode) {
     switch (projectionMode) {
       case ORTHO:
-        Matrix::orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, 1, -1, -(float)DOUBLE_CUBE_DIAGONAL, (float)DOUBLE_CUBE_DIAGONAL);
+        Matrix::orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1, 1, -(float)DOUBLE_CUBE_DIAGONAL, (float)DOUBLE_CUBE_DIAGONAL);
         glDisable(GL_DEPTH_TEST);
         break;
       case PERSPECTIVE:

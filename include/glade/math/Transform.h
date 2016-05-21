@@ -18,8 +18,8 @@ private:
   char invertor;
   
 public:
-  static float constrainAngle(float angle) { return angle < 360.0f ? angle : fmod(angle, 360.0f); }
-  
+  static float constrainAngle(float angle) { return abs(angle) < 360.0f ? angle : fmod(angle, 360.0f); }
+
   Transform(void):
     invertor(1),
     position(new Vector3f()),

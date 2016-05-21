@@ -4,6 +4,7 @@
 #include <map>
 
 #include "FileManager.h"
+#include "Path.h"
 
 class Path;
 class ShaderProgram;

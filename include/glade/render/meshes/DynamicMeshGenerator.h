@@ -13,8 +13,8 @@ class DynamicMeshGenerator
 
   public:
     DynamicMeshGenerator():
-      tileSize(1.0f),
-      meshSizeTiles(12)
+      tileSize(0.5f),
+      meshSizeTiles(30)
     {}
   
     void extractVertexCoordsFromArray(int vertex_number, DynamicMesh::Vertices &vertices, Vector3f &result)
@@ -67,17 +67,25 @@ class DynamicMeshGenerator
 
       for (int i = 0; i < meshSizeVertices * meshSizeVertices; ++i)
       {
+        bool leftBorder   = false,
+             rightBorder  = false,
+             bottomBorder = false,
+             topBorder    = false;
+        // left border
         if ((i + 1) % meshSizeVertices == 0)
-          continue;
+          leftBorder = true;
 
+        // right border
         if (i  % meshSizeVertices == 0)
-          continue;
+          rightBorder = true;
         
+        // bottom border
         if (i / meshSizeVertices == meshSizeVertices - 1)
-          continue;
+          bottomBorder = true;
         
+        // top border
         if (i / meshSizeVertices == 0)
-          continue;
+          topBorder = true;
 
        // Triangles adjancent to current vertex
        // (components are vertex numbers and should be multiplied by the size of the data of one vertex):
@@ -90,38 +98,52 @@ class DynamicMeshGenerator
 
         // calculate normals of each adjancent triangle
         // TODO Optimize, perhaps. Normals are being calculated many times for each triangle
-        
-        Vector3f v1, v2, v3, nA, nB, nC, nD, nE, nF;
 
-        extractVertexCoordsFromArray(i - meshSizeVertices    , mesh.vertices, v1);
-        extractVertexCoordsFromArray(i - 1                   , mesh.vertices, v2);
-        extractVertexCoordsFromArray(i                       , mesh.vertices, v3);
-        surfaceNormalFromThreeVertices(v1, v2, v3, nA);
+        Vector3f v1, v2, v3, nA, nB, nC, nD, nE, nF;
+        nA.setIdentity();
+        nB.setIdentity();
+        nC.setIdentity();
+        nD.setIdentity();
+        nE.setIdentity();
+        nF.setIdentity();
+
+        if (!leftBorder && !topBorder) {
+          extractVertexCoordsFromArray(i - meshSizeVertices    , mesh.vertices, v1);
+          extractVertexCoordsFromArray(i - 1                   , mesh.vertices, v2);
+          extractVertexCoordsFromArray(i                       , mesh.vertices, v3);
+          surfaceNormalFromThreeVertices(v1, v2, v3, nA);
+        }
+
+        if (!rightBorder && !topBorder) {
+          extractVertexCoordsFromArray(i - meshSizeVertices    , mesh.vertices, v1);
+          extractVertexCoordsFromArray(i                       , mesh.vertices, v2);
+          extractVertexCoordsFromArray(i - meshSizeVertices + 1, mesh.vertices, v3);
+          surfaceNormalFromThreeVertices(v1, v2, v3, nB);
         
-        extractVertexCoordsFromArray(i - meshSizeVertices    , mesh.vertices, v1);
-        extractVertexCoordsFromArray(i                       , mesh.vertices, v2);
-        extractVertexCoordsFromArray(i - meshSizeVertices + 1, mesh.vertices, v3);
-        surfaceNormalFromThreeVertices(v1, v2, v3, nB);
+          extractVertexCoordsFromArray(i - meshSizeVertices + 1, mesh.vertices, v1);
+          extractVertexCoordsFromArray(i                       , mesh.vertices, v2);
+          extractVertexCoordsFromArray(i + 1                   , mesh.vertices, v3);
+          surfaceNormalFromThreeVertices(v1, v2, v3, nC);
+        }
         
-        extractVertexCoordsFromArray(i - meshSizeVertices + 1, mesh.vertices, v1);
-        extractVertexCoordsFromArray(i                       , mesh.vertices, v2);
-        extractVertexCoordsFromArray(i + 1                   , mesh.vertices, v3);
-        surfaceNormalFromThreeVertices(v1, v2, v3, nC);
+        if (!rightBorder && !bottomBorder) {
+          extractVertexCoordsFromArray(i                       , mesh.vertices, v1);
+          extractVertexCoordsFromArray(i + meshSizeVertices    , mesh.vertices, v2);
+          extractVertexCoordsFromArray(i + 1                   , mesh.vertices, v3);
+          surfaceNormalFromThreeVertices(v1, v2, v3, nD);
+        }
         
-        extractVertexCoordsFromArray(i                       , mesh.vertices, v1);
-        extractVertexCoordsFromArray(i + meshSizeVertices    , mesh.vertices, v2);
-        extractVertexCoordsFromArray(i + 1                   , mesh.vertices, v3);
-        surfaceNormalFromThreeVertices(v1, v2, v3, nD);
-        
-        extractVertexCoordsFromArray(i                       , mesh.vertices, v1);
-        extractVertexCoordsFromArray(i + meshSizeVertices - 1, mesh.vertices, v2);
-        extractVertexCoordsFromArray(i + meshSizeVertices    , mesh.vertices, v3);
-        surfaceNormalFromThreeVertices(v1, v2, v3, nE);
-        
-        extractVertexCoordsFromArray(i - 1                   , mesh.vertices, v1);
-        extractVertexCoordsFromArray(i + meshSizeVertices - 1, mesh.vertices, v2);
-        extractVertexCoordsFromArray(i                       , mesh.vertices, v3);
-        surfaceNormalFromThreeVertices(v1, v2, v3, nF);
+        if (!leftBorder && !bottomBorder) {
+          extractVertexCoordsFromArray(i                       , mesh.vertices, v1);
+          extractVertexCoordsFromArray(i + meshSizeVertices - 1, mesh.vertices, v2);
+          extractVertexCoordsFromArray(i + meshSizeVertices    , mesh.vertices, v3);
+          surfaceNormalFromThreeVertices(v1, v2, v3, nE);
+          
+          extractVertexCoordsFromArray(i - 1                   , mesh.vertices, v1);
+          extractVertexCoordsFromArray(i + meshSizeVertices - 1, mesh.vertices, v2);
+          extractVertexCoordsFromArray(i                       , mesh.vertices, v3);
+          surfaceNormalFromThreeVertices(v1, v2, v3, nF);
+        }
         
         // sum all triangle normals
         Vector3f currentVertexNormal;

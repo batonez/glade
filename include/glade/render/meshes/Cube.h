@@ -67,7 +67,7 @@ namespace Glade {
 
       virtual unsigned int getVertexBufferSize()
       {
-        return 96;
+        return 64;
       }
       
       virtual unsigned int getIndexBufferSize()

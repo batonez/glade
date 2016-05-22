@@ -23,7 +23,8 @@ namespace Glade
       enum MeshType {
         MESH_TRIANGLE,
         MESH_RECTANGLE,
-        MESH_CUBE
+        MESH_CUBE,
+        MESH_SQUARE,
       };
     
     protected:

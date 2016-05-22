@@ -5,6 +5,7 @@
 #include <glade/render/meshes/Triangle.h>
 #include <glade/render/meshes/Rectangle.h>
 #include <glade/render/meshes/Cube.h>
+#include <glade/render/meshes/Square.h>
 #include <glade/ui/font/BitmapFont.h>
 #include <glade/ui/font/FreetypeFont.h>
 #include <glade/audio/Sound.h>
@@ -179,6 +180,8 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMesh(MeshType type)
       return std::shared_ptr<Mesh>(new Rectangle());
     case MESH_CUBE:
       return std::shared_ptr<Mesh>(new Cube());
+    case MESH_SQUARE:
+      return std::shared_ptr<Mesh>(new Square());
     default:
       throw GladeException("Unsupported mesh type requested");
   }

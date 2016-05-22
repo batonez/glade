@@ -100,6 +100,7 @@ public:
     Matrix::translateM(result, 0, invertor * position->x, invertor * position->y, invertor * position->z);
     Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->x), 1, 0, 0);
     Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->y), 0, 1, 0);
+    Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->z), 0, 0, 1);
     Matrix::scaleM(result, 0, scale->x, scale->y, scale->z);
   }
 

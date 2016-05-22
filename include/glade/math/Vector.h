@@ -1,7 +1,6 @@
 #pragma once
 
-// FIXME: better use templates
-// FIXME: initializators
+// FIXME: make overloaded operators pls
 
 class Vector2i {
 public:
@@ -59,9 +58,26 @@ public:
   void set(const Vector3f &vector) { x  = vector.x; y  = vector.y; z  = vector.z; }
   void set(float x, float y, float z) { this->x = x; this->y = y; this->z = z; }
   void add(const Vector3f &vector) { x += vector.x; y += vector.y; z += vector.z; }
+  void subtract(const Vector3f &vector) { x -= vector.x; y -= vector.y; z -= vector.z; }
   void dot(const Vector3f &vector) { x *= vector.x; y *= vector.y; z *= vector.z; }
   void add(const Vector3f &vector, Vector3f &result) { result.x = x + vector.x; result.y = y + vector.y; result.z = z + vector.z; }
   void dot(const Vector3f &vector, Vector3f &result) { result.x = x * vector.x; result.y = y * vector.y; result.z = z * vector.z; }
+  float magnitude() { return ::sqrt(x*x + y*y + z*z); }
+  
+  void cross(const Vector3f &vector, Vector3f &result)
+  {
+    result.x = y * vector.z - z * vector.y;
+    result.y = z * vector.x - x * vector.z;
+    result.z = x * vector.y - y * vector.x;
+  }
+
+  void normalize()
+  {
+    float mag = magnitude();
+    x /= mag;
+    y /= mag;
+    z /= mag;
+  }
 };
 
 class Vector4f {
@@ -93,3 +109,4 @@ public:
   void add(const Vector4i &vector, Vector4i &result) { result.x = x + vector.x; result.y = y + vector.y; result.z = z + vector.z; result.w = w + vector.w; }
   void dot(const Vector4i &vector, Vector4i &result) { result.x = x * vector.x; result.y = y * vector.y; result.z = z * vector.z; result.w = w * vector.w; }
 };
+

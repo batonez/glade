@@ -6,52 +6,42 @@
 class DynamicMeshGenerator
 {
   private:
+    static int const    VERTEX_SIZE = 8;
+
     float        tileSize;
     unsigned int meshSizeTiles;
 
   public:
     DynamicMeshGenerator():
       tileSize(1.0f),
-      meshSizeTiles(10)
+      meshSizeTiles(12)
     {}
+  
+    void extractVertexCoordsFromArray(int vertex_number, DynamicMesh::Vertices &vertices, Vector3f &result)
+    {
+      result.x = vertices[vertex_number * VERTEX_SIZE + 0];
+      result.y = vertices[vertex_number * VERTEX_SIZE + 1];
+      result.z = vertices[vertex_number * VERTEX_SIZE + 2];
+    }
+  
+    void surfaceNormalFromThreeVertices(Vector3f &a, Vector3f &b, Vector3f &c, Vector3f &result)
+    {
+      Vector3f first, second;
+      first.set(a);
+      first.subtract(b);
+      second.set(a);
+      second.subtract(c);
+      first.cross(second, result);
+    }
   
     void generate(DynamicMesh &mesh)
     {
       mesh.vertices.clear();
       mesh.indices.clear();
-      float halfTileSize = tileSize / 2.0f;
-        /*
-      static float vertices[] = {
-        -halfTileSize, halfTileSize, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f,
-        
-        halfTileSize, halfTileSize, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 0.0f,
-
-        -halfTileSize, -halfTileSize, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        1.0f, 0.0f,
-        
-        halfTileSize, -halfTileSize, 0.0f,
-        0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f,
-      };
-
-      
-    
-      static unsigned short indices[] = {
-        2, 1, 0,
-        2, 0, 3,
-      };
-      
-      for (int i = 0; i < 32; ++i)
-        mesh.vertices.push_back(vertices[i]);
-      */
       
       int meshSizeVertices = meshSizeTiles + 1;
-      int lastVertex = meshSizeVertices * meshSizeVertices - meshSizeVertices;
+      
+      // calculate vertex positions
       float z;
       
       for (int i = 0; i < meshSizeVertices * meshSizeVertices; ++i)
@@ -63,7 +53,7 @@ class DynamicMeshGenerator
         mesh.vertices.push_back(- i / meshSizeVertices);
         mesh.vertices.push_back(z);
 
-        // normal (TODO)
+        // normals will be calculated on the second path
         mesh.vertices.push_back(0.0f);
         mesh.vertices.push_back(0.0f);
         mesh.vertices.push_back(1.0f);
@@ -72,15 +62,98 @@ class DynamicMeshGenerator
         mesh.vertices.push_back(0.0f);
         mesh.vertices.push_back(0.0f);
       }
+
+      // calculate normals (TODO border & corner cases)
+
+      for (int i = 0; i < meshSizeVertices * meshSizeVertices; ++i)
+      {
+        if ((i + 1) % meshSizeVertices == 0)
+          continue;
+
+        if (i  % meshSizeVertices == 0)
+          continue;
+        
+        if (i / meshSizeVertices == meshSizeVertices - 1)
+          continue;
+        
+        if (i / meshSizeVertices == 0)
+          continue;
+
+       // Triangles adjancent to current vertex
+       // (components are vertex numbers and should be multiplied by the size of the data of one vertex):
+       // A:(i - meshSizeVertices    , i - 1                   , i                       )
+       // B:(i - meshSizeVertices    , i                       , i - meshSizeVertices + 1)
+       // C:(i - meshSizeVertices + 1, i                       , i + 1                   )
+       // D:(i                       , i + meshSizeVertices    , i + 1                   )
+       // E:(i                       , i + meshSizeVertices - 1, i + meshSizeVertices    )
+       // F:(i - 1                   , i + meshSizeVertices - 1, i                       )
+
+        // calculate normals of each adjancent triangle
+        // TODO Optimize, perhaps. Normals are being calculated many times for each triangle
+        
+        Vector3f v1, v2, v3, nA, nB, nC, nD, nE, nF;
+
+        extractVertexCoordsFromArray(i - meshSizeVertices    , mesh.vertices, v1);
+        extractVertexCoordsFromArray(i - 1                   , mesh.vertices, v2);
+        extractVertexCoordsFromArray(i                       , mesh.vertices, v3);
+        surfaceNormalFromThreeVertices(v1, v2, v3, nA);
+        
+        extractVertexCoordsFromArray(i - meshSizeVertices    , mesh.vertices, v1);
+        extractVertexCoordsFromArray(i                       , mesh.vertices, v2);
+        extractVertexCoordsFromArray(i - meshSizeVertices + 1, mesh.vertices, v3);
+        surfaceNormalFromThreeVertices(v1, v2, v3, nB);
+        
+        extractVertexCoordsFromArray(i - meshSizeVertices + 1, mesh.vertices, v1);
+        extractVertexCoordsFromArray(i                       , mesh.vertices, v2);
+        extractVertexCoordsFromArray(i + 1                   , mesh.vertices, v3);
+        surfaceNormalFromThreeVertices(v1, v2, v3, nC);
+        
+        extractVertexCoordsFromArray(i                       , mesh.vertices, v1);
+        extractVertexCoordsFromArray(i + meshSizeVertices    , mesh.vertices, v2);
+        extractVertexCoordsFromArray(i + 1                   , mesh.vertices, v3);
+        surfaceNormalFromThreeVertices(v1, v2, v3, nD);
+        
+        extractVertexCoordsFromArray(i                       , mesh.vertices, v1);
+        extractVertexCoordsFromArray(i + meshSizeVertices - 1, mesh.vertices, v2);
+        extractVertexCoordsFromArray(i + meshSizeVertices    , mesh.vertices, v3);
+        surfaceNormalFromThreeVertices(v1, v2, v3, nE);
+        
+        extractVertexCoordsFromArray(i - 1                   , mesh.vertices, v1);
+        extractVertexCoordsFromArray(i + meshSizeVertices - 1, mesh.vertices, v2);
+        extractVertexCoordsFromArray(i                       , mesh.vertices, v3);
+        surfaceNormalFromThreeVertices(v1, v2, v3, nF);
+        
+        // sum all triangle normals
+        Vector3f currentVertexNormal;
+        currentVertexNormal.setIdentity();
+        currentVertexNormal.add(nA);
+        currentVertexNormal.add(nB);
+        currentVertexNormal.add(nC);
+        currentVertexNormal.add(nD);
+        currentVertexNormal.add(nE);
+        currentVertexNormal.add(nF);
+        currentVertexNormal.normalize();
+        
+        // set the normal to vertex
+        mesh.vertices[i * VERTEX_SIZE + 3] = currentVertexNormal.x;
+        mesh.vertices[i * VERTEX_SIZE + 4] = currentVertexNormal.y;
+        mesh.vertices[i * VERTEX_SIZE + 5] = currentVertexNormal.z;
+      }
       
+      // fill index array
+      int lastVertex = meshSizeVertices * meshSizeVertices - meshSizeVertices;
+
       for (int i = 0; i < lastVertex; ++i)
       {
         if ((i + 1) % meshSizeVertices == 0)
           continue;
 
+        // upper triangle
         mesh.indices.push_back(i);
         mesh.indices.push_back(i + meshSizeVertices);
         mesh.indices.push_back(i + 1);
+
+        // lower triangle
         mesh.indices.push_back(i + 1);
         mesh.indices.push_back(i + meshSizeVertices);
         mesh.indices.push_back(i + meshSizeVertices + 1);

@@ -15,7 +15,7 @@ public:
   /**
    * Returns number of milliseconds have passed since the last call to the function reset() or 0 if the timer is paused or reset() was never called
    */
-  unsigned long int getDeltaTime(void) {
+  float getDeltaTime(void) {
     if (baseClockstamp == 0L) { // reset was never called
       return 0;
     }
@@ -23,7 +23,7 @@ public:
     clock_t currentClockstamp = clock();
     clock_t deltaClock = currentClockstamp - baseClockstamp;
         
-    return paused ? 0L : (unsigned long int) (1000 * deltaClock / CLOCKS_PER_SEC);
+    return paused ? 0.0f: ((float)(1000 * deltaClock) / (float) CLOCKS_PER_SEC);
   }
   
   void reset(void) {

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <memory>
 
+#include <glade/math/util.h>
 #include "Vector.h"
 #include "Matrix.h"
 
@@ -18,8 +19,6 @@ private:
   char invertor;
   
 public:
-  static float constrainAngle(float angle) { return abs(angle) < 360.0f ? angle : fmod(angle, 360.0f); }
-
   Transform(void):
     invertor(1),
     position(new Vector3f()),
@@ -99,8 +98,8 @@ public:
   void getMatrix(float* result) {
     Matrix::setIdentityM(result, 0);
     Matrix::translateM(result, 0, invertor * position->x, invertor * position->y, invertor * position->z);
-    Matrix::rotateM(result, 0, rotation->x, 1, 0, 0);
-    Matrix::rotateM(result, 0, rotation->y, 0, 1, 0);
+    Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->x), 1, 0, 0);
+    Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->y), 0, 1, 0);
     Matrix::scaleM(result, 0, scale->x, scale->y, scale->z);
   }
 
@@ -110,8 +109,8 @@ public:
   void getCameraMatrix(float* result) {
     Matrix::setIdentityM(result, 0);
     Matrix::scaleM(result, 0, scale->x, scale->y, scale->z);
-    Matrix::rotateM(result, 0, rotation->y, 0, 1, 0);
-    Matrix::rotateM(result, 0, rotation->x, 1, 0, 0);
+    Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->y), 0, 1, 0);
+    Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->x), ::cos(rotation->y), 0, ::sin(rotation->y));
     Matrix::translateM(result, 0, -invertor * position->x, -invertor * position->y, -invertor * position->z);
   }
 };

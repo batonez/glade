@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <string.h>
+#include "Vector.h"
 
 // Index of the matrix element
 #define  I(_i, _j) ((_j)+ 4*(_i))
@@ -19,6 +20,11 @@ public:
   // FIXME: add offsets (just like in the multiplyMM)
   static void multiplyMV(float* r, const float* lhs, const float* rhs) {
     mx4transform(rhs[0], rhs[1], rhs[2], rhs[3], lhs, r);
+  }
+  
+  static void multiplyMV(Vector4f &result, const float* lhs, const Vector4f &rhs) {
+    float dest[4] = {0};
+    mx4transform(rhs.x, rhs.y, rhs.z, rhs.w, lhs, dest);
   }
   
   static float length(float x, float y, float z) {

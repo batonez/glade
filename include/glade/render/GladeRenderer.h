@@ -11,6 +11,7 @@
 #include <GLES2/gl2ext.h>
 #endif
 
+#include "glade/render/Drawable.h"
 #include "glade/math/Transform.h"
 #include "glade/GladeObject.h"
 
@@ -19,7 +20,6 @@ class DrawFrameHook;
 class ShaderProgram;
 class Texture;
 class Widget;
-class Drawable;
 
 namespace Glade {
   class Mesh;
@@ -45,9 +45,7 @@ namespace Glade {
     
     typedef std::set<DrawFrameHook*> DrawFrameHooks;
     typedef DrawFrameHooks::iterator DrawFrameHooksI;
-    
-    Transform camera;
-    
+
   private:
       // shader program handle
     GLuint program;
@@ -59,6 +57,7 @@ namespace Glade {
     // handles to shader attributes
       GLuint aPosition, aNormal, aTexCoord;
     
+    Drawable  *perception;
     unsigned short viewportWidth, viewportHeight;
     float aspectRatio;
     ProjectionMode currentProjectionMode, sceneProjectionMode;
@@ -99,6 +98,13 @@ namespace Glade {
     float getViewportHeightCoords(void);
     Vector2f getPointCoords(float screenX, float screenY);
     void setDrawingOrderComparator(std::unique_ptr<GladeObject::Comparator> &comparator);
+    Transform *getCamera()
+    {
+      return perception ? perception->getTransform() : NULL;
+    }
+    
+    Drawable  *getPerception() { return perception; }
+    void setPerception(Drawable *perception) { this->perception = perception; }
     
   private:
     void moveAllObjectsIntoVideoMemory(void);
@@ -109,6 +115,7 @@ namespace Glade {
     GLuint loadShader(GLuint type, std::vector<char> &shader_source);
     void moveIntoVideoMemory(std::shared_ptr<Mesh> mesh);
     void moveIntoVideoMemory(std::shared_ptr<Texture> texture);
+    void writeUniformsToVideoMemory(Drawable *drawable, ShaderProgram &program);
 
     int checkGLError();
     

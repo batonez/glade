@@ -23,11 +23,11 @@ const GLsizei Glade::Renderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS   *
 const GLsizei Glade::Renderer::TEXCOORD_OFFSET_BYTES  = TEXCOORD_OFFSET_FLOATS * sizeof(float);
 const GLsizei Glade::Renderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS   * sizeof(float);
 
-Glade::Renderer::Renderer(void)
-{
-  sceneProjectionMode = PERSPECTIVE;
-  initialized = false;
-}
+Glade::Renderer::Renderer(void):
+  perception(NULL),
+  initialized(false),
+  sceneProjectionMode(PERSPECTIVE)
+{}
 
 
 void Glade::Renderer::onSurfaceCreated()
@@ -142,7 +142,7 @@ void Glade::Renderer::onDrawFrame(void)
   glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   switchProjectionMode(sceneProjectionMode);
-  camera.getCameraMatrix(viewMatrix);
+  getCamera()->getCameraMatrix(viewMatrix);
   
   drawAll(sceneObjects.begin(), sceneObjects.end());
   
@@ -197,7 +197,7 @@ Transform Glade::Renderer::getTransformForRootWidget(void)
 
 void Glade::Renderer::moveZeroToUpperLeftCorner(void)
 {
-  camera.setPosition(getHalfViewportWidthCoords(),  getHalfViewportHeightCoords(), 0);
+  getCamera()->setPosition(getHalfViewportWidthCoords(),  getHalfViewportHeightCoords(), 0);
 }
 
 float Glade::Renderer::getHalfViewportWidthCoords(void)
@@ -463,6 +463,9 @@ void Glade::Renderer::removeAllObjectsFromVideoMemory(void)
 
 void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
 {
+  if (!perception)
+    return;
+
   static bool firstCycle = true;
 
   if (firstCycle) {
@@ -494,7 +497,7 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
   transform.getMatrix(worldMatrix);
   Matrix::multiplyMM(worldViewMatrix, 0, viewMatrix, 0, worldMatrix, 0);
   
-  glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, projectionMatrix);// WHY it worked with 4 in GL?
+  glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, projectionMatrix);
   glUniformMatrix4fv(uWorldViewMatrix, 1, GL_FALSE, worldViewMatrix);
   
   if (firstCycle) {
@@ -570,60 +573,9 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
       glEnableVertexAttribArray(aTexCoord);
     }
   }
-  
-  Drawable::ShaderFloatUniformsCI fi = (*di)->floatUniformsBegin();
-  GLint uniformHandle = -1;
-  
-  while (fi != (*di)->floatUniformsEnd()) {
-    uniformHandle = program->getUniformHandle(fi->first);
-    glUniform1f(uniformHandle, fi->second);
-    ++fi;
-  }
-  
-  if (firstCycle) {
-    checkGLError();
-  }
-  
-  Drawable::ShaderBoolUniformsCI bi = (*di)->boolUniformsBegin();
-  
-  while (bi != (*di)->boolUniformsEnd()) {
-    uniformHandle = program->getUniformHandle(bi->first);
-    glUniform1i(uniformHandle, bi->second ? 1 : 0);
-    ++bi;
-  }
-  
-  if (firstCycle) {
-    checkGLError();
-  }
-  
-  Drawable::ShaderIntUniformsCI ii = (*di)->intUniformsBegin();
-  
-  while (ii != (*di)->intUniformsEnd()) {
-    uniformHandle = program->getUniformHandle(ii->first);
-    glUniform1i(uniformHandle, ii->second);
-    ++ii;
-  }
 
-  Drawable::ShaderVec3UniformsCI v3i = (*di)->vec3UniformsBegin();
-  
-  if (firstCycle) {
-    checkGLError();
-  }
-  
-  while (v3i != (*di)->vec3UniformsEnd()) {
-    uniformHandle = program->getUniformHandle(v3i->first);
-    glUniform3f(uniformHandle, v3i->second.x, v3i->second.y, v3i->second.z);
-    ++v3i;
-  }
-  
-  Drawable::ShaderVec4UniformsCI v4i = (*di)->vec4UniformsBegin();
-  
-  while (v4i != (*di)->vec4UniformsEnd()) {
-    uniformHandle = program->getUniformHandle(v4i->first);
-    glUniform4f(uniformHandle, v4i->second.x, v4i->second.y, v4i->second.z, v4i->second.w);
-    ++v4i;
-  }
-
+  writeUniformsToVideoMemory(perception, *program);
+  writeUniformsToVideoMemory(*di, *program);
   glDrawElements(GL_TRIANGLES, (*di)->getMesh()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
   
   glDisableVertexAttribArray(aPosition);
@@ -635,6 +587,53 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
   }
   
   firstCycle = false;
+}
+
+void Glade::Renderer::writeUniformsToVideoMemory(Drawable *drawable, ShaderProgram &program)
+{
+  if (drawable == NULL)
+    return;
+
+  Drawable::ShaderFloatUniformsCI fi = drawable->floatUniformsBegin();
+  GLint uniformHandle = -1;
+  
+  while (fi != drawable->floatUniformsEnd()) {
+    uniformHandle = program.getUniformHandle(fi->first);
+    glUniform1f(uniformHandle, fi->second);
+    ++fi;
+  }
+
+  Drawable::ShaderBoolUniformsCI bi = drawable->boolUniformsBegin();
+  
+  while (bi != drawable->boolUniformsEnd()) {
+    uniformHandle = program.getUniformHandle(bi->first);
+    glUniform1i(uniformHandle, bi->second ? 1 : 0);
+    ++bi;
+  }
+
+  Drawable::ShaderIntUniformsCI ii = drawable->intUniformsBegin();
+  
+  while (ii != drawable->intUniformsEnd()) {
+    uniformHandle = program.getUniformHandle(ii->first);
+    glUniform1i(uniformHandle, ii->second);
+    ++ii;
+  }
+
+  Drawable::ShaderVec3UniformsCI v3i = drawable->vec3UniformsBegin();
+
+  while (v3i != drawable->vec3UniformsEnd()) {
+    uniformHandle = program.getUniformHandle(v3i->first);
+    glUniform3f(uniformHandle, v3i->second.x, v3i->second.y, v3i->second.z);
+    ++v3i;
+  }
+  
+  Drawable::ShaderVec4UniformsCI v4i = drawable->vec4UniformsBegin();
+  
+  while (v4i != drawable->vec4UniformsEnd()) {
+    uniformHandle = program.getUniformHandle(v4i->first);
+    glUniform4f(uniformHandle, v4i->second.x, v4i->second.y, v4i->second.z, v4i->second.w);
+    ++v4i;
+  }
 }
 
 void Glade::Renderer::bindBuffers(Mesh &mesh)

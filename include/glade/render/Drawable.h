@@ -41,6 +41,12 @@ private:
   ShaderVec4Uniforms  shaderVec4Uniforms;
   
 public:
+  Drawable():
+    preservePosition(false),
+    preserveRotation(false),
+    preserveScale(false)
+  {}
+
   Drawable(std::shared_ptr<Glade::Mesh> &mesh, std::shared_ptr<ShaderProgram> &shaderProgram):
     mesh(mesh),
     shaderProgram(shaderProgram),

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 // FIXME: make overloaded operators pls
 
 class Vector2i {
@@ -15,7 +17,6 @@ public:
   void dot(const Vector2i &vector) { x *= vector.x; y *= vector.y; }
   void add(const Vector2i &vector, Vector2i &result) { result.x = x + vector.x; result.y = y + vector.y; }
   void dot(const Vector2i &vector, Vector2i &result) { result.x = x * vector.x; result.y = y * vector.y; }
-  bool operator<(const Vector2i &other) const { return this->y == other.y ? this->x < other.x : this->y < other.y; }
 };
 
 class Vector3i {
@@ -59,6 +60,7 @@ public:
   void set(float x, float y, float z) { this->x = x; this->y = y; this->z = z; }
   void add(const Vector3f &vector) { x += vector.x; y += vector.y; z += vector.z; }
   void subtract(const Vector3f &vector) { x -= vector.x; y -= vector.y; z -= vector.z; }
+  void subtract(const Vector3f &vector, Vector3f &result) { result.x = x - vector.x; result.y = y - vector.y; result.z = z - vector.z; }
   void dot(const Vector3f &vector) { x *= vector.x; y *= vector.y; z *= vector.z; }
   void add(const Vector3f &vector, Vector3f &result) { result.x = x + vector.x; result.y = y + vector.y; result.z = z + vector.z; }
   void dot(const Vector3f &vector, Vector3f &result) { result.x = x * vector.x; result.y = y * vector.y; result.z = z * vector.z; }

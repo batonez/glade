@@ -9,6 +9,7 @@
 #include "glade/render/Drawable.h"
 #include "glade/render/ShaderProgram.h"
 #include "glade/render/DrawFrameHook.h"
+#include "glade/render/Perception.h"
 #include "glade/math/Vector.h"
 
 const GLuint  Glade::Renderer::POS_SIZE_FLOATS        = 3;
@@ -100,10 +101,10 @@ void Glade::Renderer::clear(void)
 {
   log("Clearing renderer");
   removeAllObjectsFromVideoMemory();
-  
+
   GladeObject::Drawables* drawables;
   std::vector<GladeObject*>::iterator oi = sceneObjects.begin(); // must be a 'set'
-  
+
   while (oi != sceneObjects.end()) {
     drawables = (*oi)->getDrawables();
     
@@ -115,9 +116,9 @@ void Glade::Renderer::clear(void)
   }
 
   checkGLError();
-  
+
   std::vector<GladeObject*>::iterator wi = uiElements.begin(); // must be a 'set'
-  
+
   while (wi != uiElements.end()) {
     drawables = (*wi)->getDrawables();
     
@@ -574,6 +575,7 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
     }
   }
 
+  perception->adjust();
   writeUniformsToVideoMemory(perception, *program);
   writeUniformsToVideoMemory(*di, *program);
   glDrawElements(GL_TRIANGLES, (*di)->getMesh()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);

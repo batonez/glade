@@ -25,6 +25,10 @@ public:
   static void multiplyMV(Vector4f &result, const float* lhs, const Vector4f &rhs) {
     float dest[4] = {0};
     mx4transform(rhs.x, rhs.y, rhs.z, rhs.w, lhs, dest);
+    result.x = dest[0];
+    result.y = dest[1];
+    result.z = dest[2];
+    result.w = dest[3];
   }
   
   static float length(float x, float y, float z) {

@@ -11,7 +11,7 @@
 #include <GLES2/gl2ext.h>
 #endif
 
-#include "glade/render/Drawable.h"
+#include "glade/render/Perception.h"
 #include "glade/math/Transform.h"
 #include "glade/GladeObject.h"
 
@@ -20,6 +20,7 @@ class DrawFrameHook;
 class ShaderProgram;
 class Texture;
 class Widget;
+class Perception;
 
 namespace Glade {
   class Mesh;
@@ -57,7 +58,7 @@ namespace Glade {
     // handles to shader attributes
       GLuint aPosition, aNormal, aTexCoord;
     
-    Drawable  *perception;
+    Perception  *perception;
     unsigned short viewportWidth, viewportHeight;
     float aspectRatio;
     ProjectionMode currentProjectionMode, sceneProjectionMode;
@@ -103,8 +104,8 @@ namespace Glade {
       return perception ? perception->getTransform() : NULL;
     }
     
-    Drawable  *getPerception() { return perception; }
-    void setPerception(Drawable *perception) { this->perception = perception; }
+    Perception  *getPerception() { return perception; }
+    void setPerception(Perception *perception) { this->perception = perception; }
     
   private:
     void moveAllObjectsIntoVideoMemory(void);

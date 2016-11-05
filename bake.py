@@ -13,6 +13,7 @@ os.path.join(os.environ['HATCHERY_SOURCES'], 'lodepng'),
 
 baker.compilerSources = [
 os.path.join(os.environ['HATCHERY_SOURCES'], 'glade', 'src', 'render', 'GladeRenderer.cpp'),
+os.path.join(os.environ['HATCHERY_SOURCES'], 'glade', 'src', 'render', 'Perception.cpp'),
 os.path.join(os.environ['HATCHERY_SOURCES'], 'glade', 'src', 'GladeObject.cpp'),
 os.path.join(os.environ['HATCHERY_SOURCES'], 'glade', 'src', 'physics', 'CollisionDetector.cpp'),
 os.path.join(os.environ['HATCHERY_SOURCES'], 'glade', 'src', 'physics', 'Simulator.cpp'),

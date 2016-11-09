@@ -19,37 +19,39 @@ namespace Glade
   class ResourceManager
   {
     public:
-      // TODO Meshes should be loaded from file like any other resource
       enum MeshType {
         MESH_TRIANGLE,
         MESH_RECTANGLE,
         MESH_CUBE,
         MESH_SQUARE,
       };
-    
+
     protected:
       FileManager *fileManager;
-      
+
     private:
       typedef std::map<Path, std::shared_ptr<Texture> >        Textures;
       typedef Textures::iterator                               TexturesI;
-      
-      typedef std::map<MeshType, std::shared_ptr<Mesh> >       Meshes;
+
+      typedef std::map<MeshType, std::shared_ptr<Mesh> >       BuiltinMeshes;
+      typedef BuiltinMeshes::iterator                          BuiltinMeshesI;
+      typedef std::map<Path, std::shared_ptr<Mesh> >           Meshes;
       typedef Meshes::iterator                                 MeshesI;
-      
+
       typedef std::map<Path, std::shared_ptr<ShaderProgram> >  ShaderPrograms;
       typedef ShaderPrograms::iterator                         ShaderProgramsI;
-      
+
       typedef std::map<Path, std::shared_ptr<Sound> >          Sounds;
       typedef Sounds::iterator                                 SoundsI;
-      
+
       typedef std::map<Path, std::shared_ptr<Font> >           BitmapFonts;
       typedef BitmapFonts::iterator                            BitmapFontsI;
-      
+
       typedef std::map<Path, std::shared_ptr<Font> >           DynamicFonts;
       typedef DynamicFonts::iterator                           DynamicFontsI;
-      
+
       Textures        textures;
+      BuiltinMeshes   builtInMeshes;
       Meshes          meshes;
       ShaderPrograms  shaderPrograms;
       Sounds          sounds;
@@ -60,6 +62,7 @@ namespace Glade
       ResourceManager(FileManager *file_manager);
       std::shared_ptr<Texture> getTexture(const Path &filename, int frameWidth = 0, int frameHeight = 0);
       std::shared_ptr<Mesh> getMesh(MeshType type);
+      std::shared_ptr<Mesh> getMesh(const Path &filename);
       std::shared_ptr<ShaderProgram> getShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename);
       std::shared_ptr<Sound> getSound(const Path &filename);
       std::shared_ptr<Font> getBitmapFont(const Path &atlas_filename, const Path &csv_filename, float viewport_width, float viewport_height);
@@ -71,6 +74,7 @@ namespace Glade
       std::shared_ptr<ShaderProgram> loadShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename);
       std::shared_ptr<Texture> loadTexture(const Path &filename, int frameWidth = 0, int frameHeight = 0);
       std::shared_ptr<Mesh> loadMesh(MeshType type);
+      std::shared_ptr<Mesh> loadMesh(const Path &type);
       std::shared_ptr<Sound> loadSound(const Path &filename);
       std::shared_ptr<Font> loadBitmapFont(const Path &atlas_filename, const Path &csv_filename, float viewport_width, float viewport_height);
       std::shared_ptr<Font> loadDynamicFont(const Path &font_filename, float viewport_width, float viewport_height);

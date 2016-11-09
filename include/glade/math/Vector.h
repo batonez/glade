@@ -76,9 +76,14 @@ public:
   void normalize()
   {
     float mag = magnitude();
-    x /= mag;
-    y /= mag;
-    z /= mag;
+
+    if (mag != 0) {
+      x /= mag;
+      y /= mag;
+      z /= mag;
+    } else {
+      x = y = z = 0.0f;
+    }
   }
 };
 

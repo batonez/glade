@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "glade/debug/log.h"
 
+// FIXME Melt into DynamicMesh class
 namespace Glade {
   class Mesh {
     public:
@@ -14,7 +15,7 @@ namespace Glade {
       virtual unsigned int getVertexBufferSize(void) = 0;
       
       virtual void erase(void) {
-        log("FIXME: Not erasing mesh for debug purposes");
+        log("FIXME: Not erasing mesh for no reason");
       }
     
       bool hasVideoBufferHandle()

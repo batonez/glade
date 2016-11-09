@@ -1,11 +1,13 @@
 #include <glade/util/ResourceManager.h>
 #include <glade/util/Path.h>
+#include <glade/util/WavefrontObjReader.h>
 #include <glade/render/ShaderProgram.h>
 #include <glade/render/Texture.h>
 #include <glade/render/meshes/Triangle.h>
 #include <glade/render/meshes/Rectangle.h>
 #include <glade/render/meshes/Cube.h>
 #include <glade/render/meshes/Square.h>
+#include <glade/render/meshes/DynamicMesh.h>
 #include <glade/ui/font/BitmapFont.h>
 #include <glade/ui/font/FreetypeFont.h>
 #include <glade/audio/Sound.h>
@@ -40,14 +42,27 @@ std::shared_ptr<Texture> Glade::ResourceManager::getTexture(const Path &filename
 
 std::shared_ptr<Glade::Mesh> Glade::ResourceManager::getMesh(MeshType type)
 {
-  MeshesI i = meshes.find(type);
+  BuiltinMeshesI i = builtInMeshes.find(type);
+  
+  if (i != builtInMeshes.end()) {
+    return i->second;
+  }
+  
+  std::shared_ptr<Mesh> mesh = loadMesh(type);
+  builtInMeshes[type] = mesh;
+  return mesh;
+}
+
+std::shared_ptr<Glade::Mesh> Glade::ResourceManager::getMesh(const Path &filename)
+{
+  MeshesI i = meshes.find(filename);
   
   if (i != meshes.end()) {
     return i->second;
   }
   
-  std::shared_ptr<Mesh> mesh = loadMesh(type);
-  meshes[type] = mesh;
+  std::shared_ptr<Mesh> mesh = loadMesh(filename);
+  meshes[filename] = mesh;
   return mesh;
 }
 
@@ -185,6 +200,19 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMesh(MeshType type)
     default:
       throw GladeException("Unsupported mesh type requested");
   }
+}
+
+std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMesh(const Path &filename)
+{
+  std::vector<char> objData;
+  fileManager->getFileContents(filename, objData);
+  DynamicMesh *mesh = new DynamicMesh();
+
+  if (!WavefrontObjReader::read(objData, mesh)) {
+    throw GladeException("Failed to read Wavefront OBJ file");
+  }
+
+  return std::shared_ptr<Mesh>(mesh);
 }
 
 std::shared_ptr<Font> Glade::ResourceManager::loadBitmapFont(const Path &atlas_filename, const Path &csv_filename, float viewport_width, float viewport_height)

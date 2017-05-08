@@ -1,41 +1,95 @@
 #include <math.h>
 #include <assert.h>
+#include <algorithm>
 
-#include "glade/debug/log.h"
-#include "glade/math/util.h"
-#include "glade/math/Matrix.h"
-#include "glade/ui/Widget.h"
-#include "glade/render/GladeRenderer.h"
-#include "glade/render/Drawable.h"
-#include "glade/render/ShaderProgram.h"
-#include "glade/render/DrawFrameHook.h"
-#include "glade/render/Perception.h"
-#include "glade/math/Vector.h"
+//#include <glad/glad.h>
+#include <glade/opengl/functions.h>
 
-const GLuint  Glade::Renderer::POS_SIZE_FLOATS        = 3;
-const GLuint  Glade::Renderer::NORMAL_SIZE_FLOATS     = 3;
-const GLuint  Glade::Renderer::TEXCOORD_SIZE_FLOATS   = 2;
-const GLuint  Glade::Renderer::POS_OFFSET_FLOATS      = 0;
-const GLuint  Glade::Renderer::NORMAL_OFFSET_FLOATS   = POS_SIZE_FLOATS;
-const GLuint  Glade::Renderer::TEXCOORD_OFFSET_FLOATS = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS;
-const GLuint  Glade::Renderer::VERTEX_STRIDE_FLOATS   = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
-const GLsizei Glade::Renderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS      * sizeof(float);
-const GLsizei Glade::Renderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS   * sizeof(float);
-const GLsizei Glade::Renderer::TEXCOORD_OFFSET_BYTES  = TEXCOORD_OFFSET_FLOATS * sizeof(float);
-const GLsizei Glade::Renderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS   * sizeof(float);
+#include <glade/debug/log.h>
+#include <glade/math/util.h>
+#include <glade/math/Matrix.h>
+#include <glade/ui/Widget.h>
+#include <glade/render/GladeRenderer.h>
+#include <glade/render/Drawable.h>
+#include <glade/render/ShaderProgram.h>
+#include <glade/render/Perception.h>
+#include <glade/render/definitions.h>
+#include <glade/math/Vector.h>
+
+static const GLuint  POS_SIZE_FLOATS        = GLADE_POS_SIZE_FLOATS;
+static const GLuint  NORMAL_SIZE_FLOATS     = GLADE_NORMAL_SIZE_FLOATS;
+static const GLuint  TEXCOORD_SIZE_FLOATS   = GLADE_TEXCOORD_SIZE_FLOATS;
+static const GLuint  POS_OFFSET_FLOATS      = GLADE_POS_OFFSET_FLOATS;
+static const GLuint  NORMAL_OFFSET_FLOATS   = GLADE_NORMAL_OFFSET_FLOATS;
+static const GLuint  TEXCOORD_OFFSET_FLOATS = GLADE_TEXCOORD_OFFSET_FLOATS;
+static const GLuint  VERTEX_STRIDE_FLOATS   = GLADE_VERTEX_STRIDE_FLOATS;
+static const GLsizei POS_OFFSET_BYTES       = GLADE_POS_OFFSET_BYTES;
+static const GLsizei NORMAL_OFFSET_BYTES    = GLADE_NORMAL_OFFSET_BYTES;
+static const GLsizei TEXCOORD_OFFSET_BYTES  = GLADE_TEXCOORD_OFFSET_BYTES;
+static const GLsizei VERTEX_STRIDE_BYTES    = GLADE_VERTEX_STRIDE_BYTES;
+
+// shader program handle
+static GLuint program;
+
+// handles to shader uniforms
+static GLuint  uProjectionMatrix, uWorldViewMatrix,
+    uSamplerNumber, uTexOffsetX, uTexOffsetY, uTexScaleX, uTexScaleY;
+
+// handles to shader attributes
+static GLuint aPosition, aNormal, aTexCoord;
+
+
+static GLuint loadShader(GLuint shaderType, std::vector<char> &shader_source)
+{
+  GLuint shaderHandle = glCreateShader(shaderType);
+  
+  if (shaderHandle) {
+    const char *shaderSourceLinePtr = shader_source.data();
+    GLint shaderSourceSize = shader_source.size();
+    glShaderSource(shaderHandle, 1, &shaderSourceLinePtr, &shaderSourceSize);
+    glCompileShader(shaderHandle);
+    GLint compiled = 0;
+    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compiled);
+    
+    if (!compiled) {
+      GLint infoLen = 0;
+      glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &infoLen);
+      
+      if (infoLen) {
+        char* buf = (char*) malloc(infoLen);
+        
+        if (buf) {
+            glGetShaderInfoLog(shaderHandle, infoLen, NULL, buf);
+            log("Shader compilation error:");
+            log(buf);
+            free(buf);
+            throw GladeException("Shader compilation error");
+        }
+        
+        glDeleteShader(shaderHandle);
+        shaderHandle = 0;
+      }
+    } else {
+      log("Shaders compiled successfully");
+    }
+  }
+
+  return shaderHandle;
+}
 
 Glade::Renderer::Renderer(void):
   perception(NULL),
   initialized(false),
-  sceneProjectionMode(PERSPECTIVE)
+  sceneProjectionMode(PERSPECTIVE),
+  zNear(1.0f), zFar(70.f)
 {}
 
 
 void Glade::Renderer::onSurfaceCreated()
 {
   glFrontFace(GL_CCW);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_BLEND);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //glEnable(GL_BLEND);
   glEnable(GL_CULL_FACE);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   moveAllObjectsIntoVideoMemory();
@@ -80,7 +134,7 @@ void Glade::Renderer::remove(GladeObject *sceneObject)
 {
   std::vector<GladeObject*>::iterator oi =
     std::find(sceneObjects.begin(), sceneObjects.end(), sceneObject);
-    
+
   if (oi == sceneObjects.end()) {
     log("Warning: couldn't remove object, because it's not in the renderer");
     return;
@@ -136,25 +190,13 @@ void Glade::Renderer::clear(void)
 
 void Glade::Renderer::onDrawFrame(void)
 {
-  for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
-    (*hook)->onBeforeDraw();
-  }
-
   glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   switchProjectionMode(sceneProjectionMode);
-  getCamera()->getCameraMatrix(viewMatrix);
-  
-  drawAll(sceneObjects.begin(), sceneObjects.end());
-  
+
+  drawAll(sceneObjects.begin(), sceneObjects.end(), false);
   switchProjectionMode(ORTHO);
-  Matrix::setIdentityM(viewMatrix, 0);
-  
-  drawAll(uiElements.begin(), uiElements.end());
-  
-  for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
-    (*hook)->onAfterDraw();
-  }
+  drawAll(uiElements.begin(), uiElements.end(), true);
 }
 
 void Glade::Renderer::setSceneProjectionMode(ProjectionMode projectionMode)
@@ -232,12 +274,39 @@ Vector2f Glade::Renderer::getPointCoords(float screenX, float screenY)
 }
 
 
+// The z=0 corresponds to near plane, and the z=1 corresponds to the far plane of the frustum
+bool Glade::Renderer::unprojectPoint(float x, float y, float z, Vector3f &result)
+{
+  switchProjectionMode(sceneProjectionMode);
+  getCamera()->getCameraMatrix(viewMatrix);
+
+  float invertedProjectionMatrix[16], invertedViewMatrix[16];
+
+  if (!Matrix::invertM(invertedProjectionMatrix, 0, projectionMatrix, 0)) {
+    return false;
+  }
+
+  if (!Matrix::invertM(invertedViewMatrix, 0, viewMatrix, 0)) {
+    return false;
+  }
+
+  float r1[4], r2[4], rhs[4];
+  rhs[0] = x; rhs[1] = y; rhs[2] = z; rhs[3] = 1.0f;
+
+  Matrix::multiplyMV(r1, invertedProjectionMatrix, rhs);
+  Matrix::multiplyMV(r2, invertedViewMatrix, r1);
+
+  result.set(r2[0] / r2[3], r2[1] / r2[3], r2[2] / r2[3]);
+
+  return true;
+}
+
 //std::vector<GladeObject>::iterator Glade::Renderer::getWidgets(void)
 //{
 //  return uiElements.begin();
 //}
 
-void Glade::Renderer::drawAll(std::vector<GladeObject*>::iterator i, std::vector<GladeObject*>::iterator end)
+void Glade::Renderer::drawAll(std::vector<GladeObject*>::iterator i, std::vector<GladeObject*>::iterator end, bool ui)
 {
   Transform finalWorldTransformForDrawable;
   GladeObject::Drawables* drawables;
@@ -256,7 +325,7 @@ void Glade::Renderer::drawAll(std::vector<GladeObject*>::iterator i, std::vector
             finalWorldTransformForDrawable
           );
           
-          draw(di, finalWorldTransformForDrawable);
+          draw(di, finalWorldTransformForDrawable, ui);
         }
       }
     }
@@ -344,18 +413,22 @@ void Glade::Renderer::moveIntoVideoMemory(std::shared_ptr<Mesh> mesh)
     return;
   }
   
-  log("Creating VBO");
   GLuint vboIds[2];
   glGenBuffers(2, vboIds);
+
   mesh->vertexVboId = vboIds[0];
   mesh->indexVboId = vboIds[1];
-    
   bindBuffers(*mesh);
-  
-  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->getVertexBufferSize(), mesh->getVertices(), GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * mesh->getIndexBufferSize(), mesh->getIndices(), GL_STATIC_DRAW);
-  
-  mesh->erase();
+
+  GLenum usage = mesh->isDynamic() ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
+
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->getVertexBufferSize(), mesh->getVertices(), usage);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mesh->getIndexBufferSize(), mesh->getIndices(), usage);
+
+  // FIXME! On my machine erasing the mesh on client side causes it not to display on the screen
+  // This could be a bug in opengl drivers, or I am not using VBOs somehow
+  // UPD: More like the VBOs are created, but not instantly after glBufferData call
+  //mesh->erase();
 }
 
 void Glade::Renderer::moveIntoVideoMemory(std::shared_ptr<Texture> texturePtr)
@@ -462,7 +535,7 @@ void Glade::Renderer::removeAllObjectsFromVideoMemory(void)
   }
 }
 
-void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
+void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform, bool ui)
 {
   if (!perception)
     return;
@@ -492,44 +565,61 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
   if (firstCycle) {
     checkGLError();
   }
-  
+
+  if ((*di)->stickToCamera || ui)
+    Matrix::setIdentityM(viewMatrix, 0);
+  else
+    getCamera()->getCameraMatrix(viewMatrix);
+
   static float worldMatrix[16];
-  
   transform.getMatrix(worldMatrix);
-  Matrix::multiplyMM(worldViewMatrix, 0, viewMatrix, 0, worldMatrix, 0);
+  Matrix::multiplyMM(viewWorldMatrix, 0, viewMatrix, 0, worldMatrix, 0);
   
   glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, projectionMatrix);
-  glUniformMatrix4fv(uWorldViewMatrix, 1, GL_FALSE, worldViewMatrix);
+  glUniformMatrix4fv(uWorldViewMatrix, 1, GL_FALSE, viewWorldMatrix);
   
   if (firstCycle) {
     checkGLError();
   }
-  
-  bindBuffers(*(*di)->getMesh());
-  
+
+  std::shared_ptr<Mesh> mesh = (*di)->getMesh();
+
+  bindBuffers(*mesh);
+
+  for (Mesh::RegionsI i = mesh->updateRegions.begin(); i != mesh->updateRegions.end(); ++i) {
+    glBufferSubData(
+      GL_ARRAY_BUFFER,
+      i->first * VERTEX_STRIDE_BYTES,
+      i->second * VERTEX_STRIDE_BYTES,
+      mesh->getVertices() + i->first * VERTEX_STRIDE_FLOATS
+    );
+  }
+
+  mesh->updateRegions.clear();
+
   if (firstCycle) {
     checkGLError();
   }
-  
+
   glVertexAttribPointer(
     aPosition, POS_SIZE_FLOATS,
     GL_FLOAT, GL_FALSE,
     VERTEX_STRIDE_BYTES, (const GLvoid *)POS_OFFSET_BYTES
   );
-  
-  glEnableVertexAttribArray(aPosition);
-  
+
   if (firstCycle) {
     checkGLError();
   }
-  
-  if (aNormal >= 0) {
+
+  glEnableVertexAttribArray(aPosition);
+
+  if (aNormal >= 0 && !ui) {
     glVertexAttribPointer(
       aNormal, NORMAL_SIZE_FLOATS,
       GL_FLOAT, GL_FALSE,
       VERTEX_STRIDE_BYTES, (const GLvoid *)NORMAL_OFFSET_BYTES
     );
-    
+
     glEnableVertexAttribArray(aNormal);
   }
   
@@ -575,19 +665,29 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
     }
   }
 
-  perception->adjust();
-  writeUniformsToVideoMemory(perception, *program);
+  if (!ui) {
+    perception->adjust();
+    writeUniformsToVideoMemory(perception, *program);
+  }
+
   writeUniformsToVideoMemory(*di, *program);
-  glDrawElements(GL_TRIANGLES, (*di)->getMesh()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
-  
+
+  glDrawElements(GL_TRIANGLES, mesh->getIndexBufferSize(), GL_UNSIGNED_INT, 0);
+
   glDisableVertexAttribArray(aPosition);
-  glDisableVertexAttribArray(aNormal);
-  glDisableVertexAttribArray(aTexCoord);
+
+  if (aNormal >= 0 && !ui) {
+    glDisableVertexAttribArray(aNormal);
+  }
+
+  if (texture != nullptr) {
+    glDisableVertexAttribArray(aTexCoord);
+  }
 
   if (firstCycle) {
     checkGLError();
   }
-  
+
   firstCycle = false;
 }
 
@@ -657,13 +757,13 @@ void Glade::Renderer::switchProjectionMode(ProjectionMode projectionMode, bool f
         glDisable(GL_DEPTH_TEST);
         break;
       case PERSPECTIVE:
-        Matrix::perspectiveM(projectionMatrix, 0, 45, aspectRatio, 1, 150);
+        Matrix::perspectiveM(projectionMatrix, 0, 45, aspectRatio, zNear, zFar);
         glEnable(GL_DEPTH_TEST);
         break;
       default: ;
         //throw new RuntimeException("Unexpected projection mode. Use ORTHO or PERSPECTIVE constants");
     }
-    
+
     currentProjectionMode = projectionMode;
   }
 }
@@ -689,41 +789,6 @@ void Glade::Renderer::getShaderHandles(ShaderProgram &program)
   uTexOffsetY     = glGetUniformLocation(program.gpuHandle, "uTexCoordOffsetY0");
 } 
 
-GLuint Glade::Renderer::loadShader(GLuint shaderType, std::vector<char> &shader_source)
-{
-  GLuint shaderHandle = glCreateShader(shaderType);
-  
-  if (shaderHandle) {
-    const char *shaderSourceLinePtr = shader_source.data();
-    GLint shaderSourceSize = shader_source.size();
-    glShaderSource(shaderHandle, 1, &shaderSourceLinePtr, &shaderSourceSize);
-    glCompileShader(shaderHandle);
-    GLint compiled = 0;
-    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compiled);
-    
-    if (!compiled) {
-      GLint infoLen = 0;
-      glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &infoLen);
-      
-      if (infoLen) {
-        char* buf = (char*) malloc(infoLen);
-        
-        if (buf) {
-            glGetShaderInfoLog(shaderHandle, infoLen, NULL, buf);
-            log("Shader compilation error:");
-            log(buf);
-            free(buf);
-            throw GladeException("Shader compilation error");
-        }
-        
-        glDeleteShader(shaderHandle);
-        shaderHandle = 0;
-      }
-    }
-  }
-
-  return shaderHandle;
-}
 
 int Glade::Renderer::checkGLError(void)
 {
@@ -749,12 +814,6 @@ int Glade::Renderer::checkGLError(void)
   
   return errorCode;
 }
-
-void Glade::Renderer::addDrawFrameHook(DrawFrameHook &hook)
-{
-  drawFrameHooks.insert(&hook);
-}
-
 
 void Glade::Renderer::setDrawingOrderComparator(std::unique_ptr<GladeObject::Comparator> &comparator)
 {

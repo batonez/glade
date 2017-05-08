@@ -110,6 +110,7 @@ public:
   void getCameraMatrix(float* result) {
     Matrix::setIdentityM(result, 0);
     Matrix::scaleM(result, 0, scale->x, scale->y, scale->z);
+    Matrix::translateM(result, 0, 0, 0, -invertor * 15);
     Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->y), 0, 1, 0);
     Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->x), ::cos(rotation->y), 0, ::sin(rotation->y));
     Matrix::translateM(result, 0, -invertor * position->x, -invertor * position->y, -invertor * position->z);

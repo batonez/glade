@@ -1,7 +1,8 @@
 #include <map>
 
-#include "glade/util/WavefrontObjReader.h"
-#include "glade/render/meshes/DynamicMesh.h"
+#include <glade/util/WavefrontObjReader.h>
+#include <glade/render/definitions.h>
+#include <glade/render/meshes/Mesh.h>
 
 static std::vector<char>::const_iterator readPos;
 static int positionInsideTheLine;
@@ -89,7 +90,7 @@ static void parseVertexTexCoord(std::string &line)
   texCoords.push_back(texCoord);
 }
 
-bool WavefrontObjReader::putFace(std::string &face, DynamicMesh *mesh)
+bool WavefrontObjReader::putFace(std::string &face, Glade::Mesh *mesh)
 {
   std::string token;
   positionInsideTheLine = 0;
@@ -129,7 +130,7 @@ bool WavefrontObjReader::putFace(std::string &face, DynamicMesh *mesh)
     int vertexIndexInMesh;
     
     if (vertexInMesh == vertexMap.end()) {
-      vertexIndexInMesh = mesh->vertices.size() / 8;
+      vertexIndexInMesh = mesh->vertices.size() / GLADE_VERTEX_STRIDE_FLOATS;
 
       //log(">>> %f  %f  %f", positions[positionIndex]->at(0), positions[positionIndex]->at(1), positions[positionIndex]->at(2));
       if (positions.size() <= positionIndex) {
@@ -153,6 +154,9 @@ bool WavefrontObjReader::putFace(std::string &face, DynamicMesh *mesh)
         mesh->vertices.push_back(0.0f);
       }
 
+      // vertex visibility flag
+      mesh->vertices.push_back(1.0f);
+
       if (texCoords.size() > texCoordIndex) {
         mesh->vertices.push_back(texCoords[texCoordIndex]->at(0));
         mesh->vertices.push_back(texCoords[texCoordIndex]->at(1));
@@ -172,7 +176,7 @@ bool WavefrontObjReader::putFace(std::string &face, DynamicMesh *mesh)
   return true;
 }
 
-bool WavefrontObjReader::read(const std::vector<char> &in, DynamicMesh *mesh)
+bool WavefrontObjReader::read(const std::vector<char> &in, Glade::Mesh *mesh)
 {
   positions.clear();
   normals.clear();

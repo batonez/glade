@@ -3,10 +3,10 @@
 #include "Mesh.h"
 
 namespace Glade {
-  class Rectangle: public Mesh
+  class RectangleClockwise: public Mesh
   {
     public:
-      Rectangle() : Mesh() {
+      RectangleClockwise() : Mesh() {
         vertices.insert(vertices.begin(), {
           -1.0, -1.0, 0.0,
           0.0, 0.0, 0.0, 1.0f,
@@ -25,7 +25,7 @@ namespace Glade {
           0.0, 1.0,   
         });
 
-        indices.insert(indices.begin(), { 0, 1, 2, 0, 2, 3 });
+        indices.insert(indices.begin(), { 2, 1, 0, 3, 2, 0 });
       }
   };
 }

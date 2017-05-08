@@ -22,6 +22,7 @@ namespace Glade
       enum MeshType {
         MESH_TRIANGLE,
         MESH_RECTANGLE,
+        MESH_RECTANGLE_CLOCKWISE,
         MESH_CUBE,
         MESH_SQUARE,
       };

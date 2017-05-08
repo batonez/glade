@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <cstring>
 
 #include "../exception/GladeException.h"
 #include "../debug/log.h"
@@ -13,8 +14,8 @@ public:
     const unsigned char numberOfAnimations;
     const float frameWidth;
     const float frameHeight;
-    const float texCoordFrameWidth;  // Ширина кадра в координатах S
-    const float texCoordFrameHeight; // Высота кадра в координатах T
+    const float texCoordFrameWidth;
+    const float texCoordFrameHeight;
   
 private:
   unsigned char* data;

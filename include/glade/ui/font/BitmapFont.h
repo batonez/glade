@@ -33,7 +33,7 @@ class BitmapFont: public Font
     BitmapFont(std::shared_ptr<Texture> &atlas,
       std::vector<std::vector<std::string> > &parsed_csv,
       float viewport_width, float viewport_height):
-        fontSize(1),
+        fontSize(0.2),
         atlas(atlas),
         minViewportDimension(
           (float) (viewport_width < viewport_height ? viewport_width : viewport_height)
@@ -87,34 +87,34 @@ class BitmapFont: public Font
       for (size_t i = 0; i < string.length(); ++i) {
         glyphPosition = getGlyphPositionForIndex(getGlyphIndexForAsciiCode(string[i]));
         glyphWidth = getGlyphWidth(string[i]);
-        
-        rectangle = new Drawable(resource_manager->getMesh(Glade::ResourceManager::MESH_RECTANGLE), shaderProgram);
+
+        std::shared_ptr<Glade::Mesh> mesh = resource_manager->getMesh(Glade::ResourceManager::MESH_RECTANGLE_CLOCKWISE);
+        rectangle = new Drawable(mesh, shaderProgram);
         rectangle->getTransform()->getScale()->x = ((float) glyphWidth / (float) glyphHeight) * fontSize;
-        rectangle->getTransform()->getScale()->y = fontSize;
+        rectangle->getTransform()->getScale()->y = -fontSize;
         
         nextOffsetX += rectangle->getTransform()->getScale()->x;
         rectangle->getTransform()->getPosition()->x = nextOffsetX - stringScaleX;
         nextOffsetX += rectangle->getTransform()->getScale()->x;
 
         rectangle->setTexture(atlas);
-//      rectangle->setConstantColor((float)(rand() % 100)/100.0f, (float)(rand() % 100)/100.0f, (float)(rand() % 100)/100.0f, 0.5f);
         rectangle->getTextureTransform()->setCurrentFrameNumber(glyphPosition.x);
         rectangle->getTextureTransform()->setCurrentAnimationNumber(glyphPosition.y);
         rectangle->getTextureTransform()->setCurrentFrameWidth(glyphWidth);
         rectangle->getTextureTransform()->setCurrentFrameHeight(glyphHeight);
-        
+
         text->push_back(rectangle);
       }
 
       return text;
     }
     
-    void setFontSize(float fontSize)
+    virtual void setFontSize(float fontSize)
     {
       this->fontSize = fontSize;
     }
     
-    float getFontSize() const
+    virtual float getFontSize() const
     {
       return fontSize;
     }

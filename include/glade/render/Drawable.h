@@ -19,18 +19,18 @@ public:
   typedef std::map<std::string, Vector4f> ShaderVec4Uniforms;
   
   typedef ShaderFloatUniforms::const_iterator ShaderFloatUniformsCI;
-  typedef ShaderBoolUniforms::const_iterator ShaderBoolUniformsCI;
-  typedef ShaderIntUniforms::const_iterator ShaderIntUniformsCI;
-  typedef ShaderVec3Uniforms::const_iterator ShaderVec3UniformsCI;
-  typedef ShaderVec4Uniforms::const_iterator ShaderVec4UniformsCI;
+  typedef ShaderBoolUniforms::const_iterator  ShaderBoolUniformsCI;
+  typedef ShaderIntUniforms::const_iterator   ShaderIntUniformsCI;
+  typedef ShaderVec3Uniforms::const_iterator  ShaderVec3UniformsCI;
+  typedef ShaderVec4Uniforms::const_iterator  ShaderVec4UniformsCI;
   
-  bool preservePosition, preserveRotation, preserveScale;
-  
+  bool preservePosition, preserveRotation, preserveScale, stickToCamera;
+
 protected:
-  Transform transform;
-  std::shared_ptr<Glade::Mesh> mesh;
-  std::shared_ptr<Texture> texture;
-  TextureTransform textureTransform;
+  Transform                      transform;
+  std::shared_ptr<Glade::Mesh>   mesh;
+  std::shared_ptr<Texture>       texture;
+  TextureTransform               textureTransform;
   std::shared_ptr<ShaderProgram> shaderProgram;
   
 private:
@@ -39,12 +39,13 @@ private:
   ShaderIntUniforms   shaderIntUniforms;
   ShaderVec3Uniforms  shaderVec3Uniforms;
   ShaderVec4Uniforms  shaderVec4Uniforms;
-  
+
 public:
   Drawable():
     preservePosition(false),
     preserveRotation(false),
-    preserveScale(false)
+    preserveScale(false),
+    stickToCamera(false)
   {}
 
   Drawable(std::shared_ptr<Glade::Mesh> &mesh, std::shared_ptr<ShaderProgram> &shaderProgram):
@@ -52,8 +53,17 @@ public:
     shaderProgram(shaderProgram),
     preservePosition(false),
     preserveRotation(false),
-    preserveScale(false)
+    preserveScale(false),
+    stickToCamera(false)
   {
+  }
+
+  // Merges another drawable's mesh into this drawable's mesh
+  // Returns the offset (in vertices) of the first vertex of the new mesh part in the combined mesh
+  int merge(Drawable &drawable);
+
+  std::shared_ptr<Glade::Mesh> getMesh(void) {
+    return mesh;
   }
   
   ShaderFloatUniformsCI floatUniformsBegin()
@@ -158,9 +168,5 @@ public:
   
   Transform* getTransform(void) {
     return &transform;
-  }
-  
-  std::shared_ptr<Glade::Mesh> getMesh(void) {
-    return mesh;
   }
 };

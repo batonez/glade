@@ -5,20 +5,16 @@
 #include <glade/render/Texture.h>
 #include <glade/render/meshes/Triangle.h>
 #include <glade/render/meshes/Rectangle.h>
+#include <glade/render/meshes/RectangleClockwise.h>
 #include <glade/render/meshes/Cube.h>
 #include <glade/render/meshes/Square.h>
-#include <glade/render/meshes/DynamicMesh.h>
+#include <glade/render/meshes/Mesh.h>
 #include <glade/ui/font/BitmapFont.h>
-#include <glade/ui/font/FreetypeFont.h>
+#include <glade/ui/font/Font.h>
 #include <glade/audio/Sound.h>
 #include <glade/exception/GladeException.h>
-#include <glade/opengl/drivers.h>
 
 #include <lodepng.h>
-
-#ifdef _WIN32 // FIXME these should be crossplatform
-#include <glade/util/RIFFReader.h>
-#endif
 
 Glade::ResourceManager::ResourceManager(FileManager *file_manager):
   fileManager(file_manager)
@@ -84,12 +80,7 @@ std::shared_ptr<ShaderProgram> Glade::ResourceManager::getShaderProgram(const Pa
 
 Path Glade::ResourceManager::getShadersSubfolder() const
 {
-  switch (GLADE_VIDEO_DRIVER) {
-    case VIDEO_DRIVER_OPENGLES2:
-      return Path("shaders/gles2");
-    default: // VIDEO_DRIVER_OPENGL3
-      return Path("shaders/gl");
-  }
+  return Path("shaders/gl");
 }
 
 std::shared_ptr<Sound> Glade::ResourceManager::getSound(const Path &filename)
@@ -193,6 +184,8 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMesh(MeshType type)
       return std::shared_ptr<Mesh>(new Triangle());
     case MESH_RECTANGLE:
       return std::shared_ptr<Mesh>(new Rectangle());
+    case MESH_RECTANGLE_CLOCKWISE:
+      return std::shared_ptr<Mesh>(new RectangleClockwise());
     case MESH_CUBE:
       return std::shared_ptr<Mesh>(new Cube());
     case MESH_SQUARE:
@@ -206,7 +199,7 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMesh(const Path &filena
 {
   std::vector<char> objData;
   fileManager->getFileContents(filename, objData);
-  DynamicMesh *mesh = new DynamicMesh();
+  Glade::Mesh *mesh = new Glade::Mesh();
 
   if (!WavefrontObjReader::read(objData, mesh)) {
     throw GladeException("Failed to read Wavefront OBJ file");
@@ -251,8 +244,8 @@ std::shared_ptr<Font> Glade::ResourceManager::loadDynamicFont(const Path &font_f
   std::vector<unsigned char> *faceBuffer = new std::vector<unsigned char>();
   fileManager->getFileContents(font_filename, *faceBuffer, true);
   std::unique_ptr<std::vector<unsigned char> > faceBufferPtr(faceBuffer);
-  
-  std::shared_ptr<FreetypeFont> font(new FreetypeFont(
+
+  std::shared_ptr<Font> font(new Font(
     faceBufferPtr,
     viewport_width,
     viewport_height

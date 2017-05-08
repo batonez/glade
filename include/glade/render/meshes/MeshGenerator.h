@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cmath>
-#include "DynamicMesh.h"
+#include "Mesh.h"
 
-class DynamicMeshGenerator
+class MeshGenerator
 {
   private:
     static int const    VERTEX_SIZE = 8;
@@ -12,12 +12,12 @@ class DynamicMeshGenerator
     unsigned int meshSizeTiles;
 
   public:
-    DynamicMeshGenerator():
+    MeshGenerator():
       tileSize(0.5f),
       meshSizeTiles(30)
     {}
   
-    void extractVertexCoordsFromArray(int vertex_number, DynamicMesh::Vertices &vertices, Vector3f &result)
+    void extractVertexCoordsFromArray(int vertex_number, Glade::Mesh::Vertices &vertices, Vector3f &result)
     {
       result.x = vertices[vertex_number * VERTEX_SIZE + 0];
       result.y = vertices[vertex_number * VERTEX_SIZE + 1];
@@ -34,7 +34,7 @@ class DynamicMeshGenerator
       first.cross(second, result);
     }
   
-    void generate(DynamicMesh &mesh)
+    void generate(Glade::Mesh &mesh)
     {
       mesh.vertices.clear();
       mesh.indices.clear();
@@ -100,12 +100,12 @@ class DynamicMeshGenerator
         // TODO Optimize, perhaps. Normals are being calculated many times for each triangle
 
         Vector3f v1, v2, v3, nA, nB, nC, nD, nE, nF;
-        nA.setIdentity();
-        nB.setIdentity();
-        nC.setIdentity();
-        nD.setIdentity();
-        nE.setIdentity();
-        nF.setIdentity();
+        nA.setZero();
+        nB.setZero();
+        nC.setZero();
+        nD.setZero();
+        nE.setZero();
+        nF.setZero();
 
         if (!leftBorder && !topBorder) {
           extractVertexCoordsFromArray(i - meshSizeVertices    , mesh.vertices, v1);
@@ -147,7 +147,7 @@ class DynamicMeshGenerator
         
         // sum all triangle normals
         Vector3f currentVertexNormal;
-        currentVertexNormal.setIdentity();
+        currentVertexNormal.setZero();
         currentVertexNormal.add(nA);
         currentVertexNormal.add(nB);
         currentVertexNormal.add(nC);

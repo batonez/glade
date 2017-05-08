@@ -1,6 +1,6 @@
 #include <assert.h>
-#include "glade/ui/layout/Layout.h"
-#include "glade/ui/Widget.h"
+#include <glade/ui/layout/Layout.h>
+#include <glade/ui/Widget.h>
 
 void Layout::rescaleChildrenOf(Widget* widget) const
 {

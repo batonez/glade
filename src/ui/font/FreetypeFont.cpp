@@ -184,7 +184,7 @@ FreetypeFont::FreetypeFont(std::unique_ptr<std::vector<unsigned char> > &face_bu
     faceBuffer->data(),
     faceBuffer->size(),
     0,
-    &face
+    &((FT_Face) face)
   );
   
   log("ERROR: %d", error);
@@ -197,7 +197,7 @@ FreetypeFont::~FreetypeFont()
 {
   --instances;
   
-  FT_Done_Face(face);
+  FT_Done_Face((FT_Face)face);
   
   if (instances == 0) {
     error = FT_Done_FreeType(freeType);
@@ -207,8 +207,18 @@ FreetypeFont::~FreetypeFont()
 
 void FreetypeFont::setFontSizePixels(unsigned int width, unsigned int height)
 {
-  error = FT_Set_Pixel_Sizes(face, width, height);
+  error = FT_Set_Pixel_Sizes((FT_Face)face, width, height);
   checkFreeTypeError(error);
+}
+
+void FreetypeFont::setFontSize(float fontSize)
+{
+  // TODO implement
+}
+
+float FreetypeFont::getFontSize() const
+{
+  // TODO implement
 }
 
 // Should be manually freed after use
@@ -218,7 +228,7 @@ GladeObject::Drawables* FreetypeFont::createDrawablesForString(const std::string
   std::vector<FT_Vector> pos;
   int verticalCorrection;
   
-  measureString(string, face, glyphs, pos, verticalCorrection);
+  measureString(string, (FT_Face)face, glyphs, pos, verticalCorrection);
   
   /* compute string dimensions in integer pixels */
   FT_BBox string_bbox;

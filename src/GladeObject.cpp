@@ -1,4 +1,8 @@
 #include <glade/GladeObject.h>
+#include <glade/math/Matrix.h>
+#include <glade/render/definitions.h>
+#include <glade/render/Drawable.h>
+#include <glade/render/meshes/Mesh.h>
 #include <glade/debug/log.h>
 #include <glade/exception/GladeException.h>
 
@@ -12,6 +16,53 @@ GladeObject::GladeObject(void):
   behaviorEnabled(true),
   name("Undefined")
 {
+}
+
+int GladeObject::merge(GladeObject &object)
+{
+  if (drawables.begin() == drawables.end()) {
+    log("Warning: failed to merge object meshes, because destination object doesn't have any drawable");
+    return 0;
+  }
+
+  Drawable * firstDrawableOfSelf = *drawables.begin();
+  Drawables* otherDrawables = object.getDrawables();  
+
+  int numberOfVerticesBeforeMergingTheObject = (*drawables.begin())->getMesh()->vertices.size() / GLADE_VERTEX_STRIDE_FLOATS;
+  int numberOfVerticesBeforeMergingTheDrawable = numberOfVerticesBeforeMergingTheObject;
+
+  for (DrawablesI di = otherDrawables->begin(); di != otherDrawables->end(); ++di) {
+    Glade::Mesh otherMeshCopy = *(*di)->getMesh();
+    float worldMatrix[16], drawableMatrix[16];
+    object.getTransform()->getMatrix(worldMatrix);
+    (*di)->getTransform()->getMatrix(drawableMatrix);
+    float initialMeshVertexPos[4], worldVertexPos[4], drawableVertexPos[4];
+
+    for (int i = 0; i < otherMeshCopy.vertices.size(); i += GLADE_VERTEX_STRIDE_FLOATS) {
+      initialMeshVertexPos[0] = otherMeshCopy.vertices[i + 0];
+      initialMeshVertexPos[1] = otherMeshCopy.vertices[i + 1];
+      initialMeshVertexPos[2] = otherMeshCopy.vertices[i + 2];
+      initialMeshVertexPos[3] = 1.0f;
+
+      Matrix::multiplyMV(worldVertexPos, worldMatrix, initialMeshVertexPos);
+      Matrix::multiplyMV(drawableVertexPos, drawableMatrix, worldVertexPos);
+
+      otherMeshCopy.vertices[i + 0] = drawableVertexPos[0];
+      otherMeshCopy.vertices[i + 1] = drawableVertexPos[1];
+      otherMeshCopy.vertices[i + 2] = drawableVertexPos[2];
+    }
+
+    for (int i = 0; i < otherMeshCopy.indices.size(); ++i) {
+      otherMeshCopy.indices[i] += numberOfVerticesBeforeMergingTheDrawable;
+    }
+
+    firstDrawableOfSelf->getMesh()->vertices.insert(firstDrawableOfSelf->getMesh()->vertices.end(), otherMeshCopy.vertices.begin(), otherMeshCopy.vertices.end());
+    firstDrawableOfSelf->getMesh()->indices.insert(firstDrawableOfSelf->getMesh()->indices.end(), otherMeshCopy.indices.begin(), otherMeshCopy.indices.end());
+
+    numberOfVerticesBeforeMergingTheDrawable += otherMeshCopy.vertices.size();
+  }
+
+  return numberOfVerticesBeforeMergingTheObject;
 }
 
 void GladeObject::setEnabled(bool enable)

@@ -2,11 +2,11 @@
 
 #include <math.h>
 #include <string.h>
-#include <glade/math/util.h>
 #include "Vector.h"
 
 // Index of the matrix element
 #define  I(_i, _j) ((_j)+ 4*(_i))
+#define PI 3.141592653589793
 
 class Matrix {
 public:
@@ -94,7 +94,7 @@ public:
         float temp[32];
         setRotateM(temp, 0, a, x, y, z);
         multiplyMM(temp, 16, m, mOffset, temp, 0);
-        memcpy(m + mOffset, temp + 16, 16 * sizeof(float)); // System.arraycopy(temp, 16, m, mOffset, 16);
+        memcpy(m + mOffset, temp + 16, 16 * sizeof(float)); // было System.arraycopy(temp, 16, m, mOffset, 16);
     }
   
   static void multiplyMM(float* r, int rOffset, const float* lhs, int lhsOffset, const float* rhs, int rhsOffset);

@@ -18,7 +18,6 @@ PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
 PFNGLDELETESHADERPROC glDeleteShader;
 PFNGLGENBUFFERSPROC glGenBuffers;
 PFNGLBUFFERDATAPROC glBufferData;
-PFNGLBUFFERSUBDATAPROC glBufferSubData;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 PFNGLUNIFORM4FPROC glUniform4f;
@@ -51,7 +50,6 @@ void loadFunctions(void) {
   glDeleteShader = (PFNGLDELETESHADERPROC) wglGetProcAddress("glDeleteShader");
   glGenBuffers = (PFNGLGENBUFFERSPROC) wglGetProcAddress("glGenBuffers");
   glBufferData = (PFNGLBUFFERDATAPROC) wglGetProcAddress("glBufferData");
-  glBufferSubData = (PFNGLBUFFERSUBDATAPROC) wglGetProcAddress("glBufferSubData");
   glDeleteBuffers = (PFNGLDELETEBUFFERSPROC) wglGetProcAddress("glDeleteBuffers");
   glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC) wglGetProcAddress("glUniformMatrix4fv");
   glUniform4f = (PFNGLUNIFORM4FPROC) wglGetProcAddress("glUniform4f");

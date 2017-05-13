@@ -38,12 +38,6 @@ private:
 
 public:
   GladeObject(void);
-
-  // Merges the meshes of another object into the mesh of
-  // the first drawable of this object.
-  // Returns the starting offset (in vertices) of the new mesh part
-  // in the combined mesh's vertex buffer.
-  int merge(GladeObject &object);
   virtual void setEnabled(bool enable);
   virtual bool isEnabled(void) const;
   virtual Behavior* getBehavior(void);

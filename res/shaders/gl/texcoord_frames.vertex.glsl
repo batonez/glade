@@ -1,5 +1,3 @@
-#version 120
-
 const float ZERO = 0.0, ONE = 1.0;
 
 uniform mat4 uProjectionMatrix;
@@ -38,7 +36,6 @@ vec4 transformTexCoords(vec2 texCoord, vec2 offset, vec2 scale) {
 
 void main() {
   gl_Position = uProjectionMatrix * uWorldViewMatrix * aPosition;
-  vec4 transformedCoords = transformTexCoords(aTexCoord0, vec2(uTexCoordOffsetX0, uTexCoordOffsetY0), vec2(uTexCoordScaleX0, uTexCoordScaleY0));
-  vTexCoord0 = transformedCoords.xy;
+  vTexCoord0 = transformTexCoords(aTexCoord0, vec2(uTexCoordOffsetX0, uTexCoordOffsetY0), vec2(uTexCoordScaleX0, uTexCoordScaleY0));
 }
 

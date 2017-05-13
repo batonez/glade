@@ -6,26 +6,45 @@ namespace Glade {
   class Rectangle: public Mesh
   {
     public:
-      Rectangle() : Mesh() {
-        vertices.insert(vertices.begin(), {
-          -1.0, -1.0, 0.0,
-          0.0, 0.0, 0.0, 1.0f,
-          0.0, 0.0,
+      Rectangle() : Mesh() {}
+      
+      virtual float* getVertices()
+      {
+        static float vertices[] = {
+          -1, -1, 0,
+          0, 0, 0,
+          0, 0,
           
-          1.0, -1.0, 0.0,
-          0.0, 0.0, 0.0, 1.0f,
-          1.0, 0.0, 
+          1, -1, 0,
+          0, 0, 0,
+          1, 0, 
           
-          1.0, 1.0, 0.0,
-          0.0, 0.0, 0.0, 1.0f,
-          1.0, 1.0,
+          1, 1, 0,
+          0, 0, 0,
+          1, 1,
           
-          -1.0, 1.0, 0.0,
-          0.0, 0.0, 0.0, 1.0f,
-          0.0, 1.0,   
-        });
+          -1, 1, 0,
+          0, 0, 0,
+          0, 1,   
+        };
+          
+        return vertices;
+      }
 
-        indices.insert(indices.begin(), { 0, 1, 2, 0, 2, 3 });
+      virtual unsigned short* getIndices()
+      {
+        static unsigned short indices[] = { 2, 1, 0, 3, 2, 0 };
+        return indices;
+      }
+
+      virtual unsigned int getVertexBufferSize()
+      {
+        return 48;
+      }
+      
+      virtual unsigned int getIndexBufferSize()
+      {
+        return 6;
       }
   };
 }

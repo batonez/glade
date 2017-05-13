@@ -15,7 +15,6 @@ void DesktopFileManager::getFileContents(const Path &relative_path, std::ifstrea
   }
 
   Path absolutePath = getAbsolutePath(relative_path);
-  log(">>> OPENING RESOURCE: %s", absolutePath.cString());
 
   if (binary_mode) {
     result.open(absolutePath.cString(), std::ifstream::in | std::ifstream::binary);

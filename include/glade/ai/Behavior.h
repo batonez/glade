@@ -1,10 +1,10 @@
 #pragma once
 
-#include "glade/Scene.h"
+#include "glade/State.h"
 #include "glade/GladeObject.h"
 
 class Behavior
 {
   public:
-    virtual void act(Scene &world, GladeObject &self) = 0;
+    virtual void act(State &world, GladeObject &self) = 0;
 };

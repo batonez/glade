@@ -12,7 +12,7 @@
 #include <android/log.h>
 #endif // ANDROID
 
-#include <glade/debug/log.h>
+#include "glade/debug/log.h"
 
 static char buf[5000]; // FIXME buffer overflow
 
@@ -23,7 +23,7 @@ static inline void debugStringOut()
 #elif ANDROID
   __android_log_print(ANDROID_LOG_INFO, "glade", "%s", buf);
 #else
-#warning "Glade logging is not implemented for this platform"
+#error "Glade logging is not implemented for this platform"
 #endif // _WIN32
 }
 

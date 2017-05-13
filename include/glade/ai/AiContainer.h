@@ -14,7 +14,7 @@ class AiContainer
   public:
     AiContainer(): paused(false) {}
 
-    void process(Scene &world)
+    void process(State &world)
     {
       if (paused) {
         return;

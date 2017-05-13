@@ -1,7 +1,7 @@
-#include <glade/render/meshes/Mesh.h>
+#include <glade/render/meshes/DynamicMesh.h>
 #include <glade/math/Vector.h>
 
-void Glade::Mesh::calculateNormals()
+void DynamicMesh::calculateNormals()
 {
   // FIXME everything is bad because a vertex belongs to several triangles
   int numberOfTriangles = indices.size() / 3;
@@ -47,7 +47,7 @@ void Glade::Mesh::calculateNormals()
 }
 
 
-void Glade::Mesh::invertNormals()
+void DynamicMesh::invertNormals()
 {
   int numberOfVertices = vertices.size() / 8;
 

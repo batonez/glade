@@ -4,7 +4,8 @@
 #include <assert.h>
 
 #include "system.h"
-#include "Scene.h"
+#include "render/GladeRenderer.h"
+#include "State.h"
 #include "ui/layout/Layout.h"
 #include "ui/Widget.h"
 #include "controls/VirtualController.h"
@@ -14,10 +15,6 @@
 #include "Timer.h"
 #include "debug/log.h"
 //#include "#audio/SoundPlayer.h"
-
-namespace Glade {
-  class Renderer;
-}
 
 class Context {
 public:
@@ -33,7 +30,7 @@ public:
   bool enableSimulator, enableCollisionDetector, enableAiContainer, enableSoundPlayer;
 
 private:
-  std::unique_ptr<Scene> currentScene, requestedScene;
+  std::unique_ptr<State> currentState, requestedState;
   bool stopRequested, clearRequested;
   VirtualController* controller;
   std::queue<GladeObject*> objectsToAdd;
@@ -54,8 +51,8 @@ public:
   {
   }
 
-  void requestSceneChange(std::unique_ptr<Scene> &state) {
-    requestedScene = std::move(state);
+  void requestStateChange(std::unique_ptr<State> &state) {
+    requestedState = std::move(state);
   }
 
   void requestStop(void) {
@@ -79,8 +76,8 @@ public:
     widgetsToRemove.push(widget);
   }
 
-  Scene* getCurrentScene(void) {
-    return currentScene.get();
+  State* getCurrentState(void) {
+    return currentState.get();
   }
 
   Simulator* getSimulator(void) {
@@ -98,7 +95,72 @@ public:
   /**
    * Should be called only from a rendering thread
    */
-  void processRequests(void);
+  void processRequests(void) {
+    if (stopRequested) {
+      log("Context stop requested");
+      stopRequested = false;
+      clearNowFully();
+
+      if (currentState.get() != nullptr) {
+        currentState->shutdown(*this);
+        currentState.reset();
+      }
+
+      gladen::system::exit();
+
+      return;
+    }
+
+    if (requestedState.get() != nullptr) {
+      log("State switch requested");
+      switchState();
+
+      return;
+    }
+
+    if (clearRequested) {
+      log("Clear requested");
+      clearNowFully();
+    }
+
+    bool gladeObjectsListsChanged = false;
+  
+    if (!objectsToRemove.empty()) {
+      log("Context: some objects will be deleted");
+      gladeObjectsListsChanged = true;
+      
+      while (!objectsToRemove.empty()) {
+        removeNow(objectsToRemove.front());
+        objectsToRemove.pop();
+      }
+    }
+    
+    if (!objectsToAdd.empty()) {
+      log("Context: new objects will be loaded");
+      
+      while (!objectsToAdd.empty()) {
+        addNow(objectsToAdd.front());
+        objectsToAdd.pop();
+      }
+      
+      gladeObjectsListsChanged = true;
+    }
+
+    if (!widgetsToAdd.empty()) {
+      log("Context: new widgets will be loaded");
+      gladeObjectsListsChanged = true;
+      
+      while (!widgetsToAdd.empty()) {
+        addNow(widgetsToAdd.front());
+        widgetsToAdd.pop();
+      }
+    }
+
+    if (gladeObjectsListsChanged) {
+      log("Sorting drawables");
+      renderer->sortDrawables();
+    }
+  }
 
   Glade::Renderer* getRenderer(void) {
     return renderer;
@@ -125,26 +187,26 @@ private:
   /**
    * Should be called only from rendering thread
    */
-  void switchScene(void) {
-    if (currentScene.get() != nullptr) {
-      clearBeforeSceneInit();
+  void switchState(void) {
+    if (currentState.get() != nullptr) {
+      clearBeforeStateInit();
       log("Shutting down current state");
-      currentScene->shutdown(*this);
+      currentState->shutdown(*this);
       log("Current state was shut down");
 
-      if (requestedScene.get() != nullptr) {
+      if (requestedState.get() != nullptr) {
         log("Initializing requested state");
-        currentScene = std::move(requestedScene);
-        currentScene->init(*this);
+        currentState = std::move(requestedState);
+        currentState->init(*this);
       }
 
-      clearAfterSceneInit();
+      clearAfterStateInit();
     } else {
       clearNowFully();
 
-      if (requestedScene.get() != nullptr) {
-        currentScene = std::move(requestedScene);
-        currentScene->init(*this);
+      if (requestedState.get() != nullptr) {
+        currentState = std::move(requestedState);
+        currentState->init(*this);
       }
     }
   }
@@ -152,34 +214,96 @@ private:
   /**
    * Should not be called when containers are iterating
    */
-  void removeNow(GladeObject* object);
+  void removeNow(GladeObject* object) {
+    renderer->remove(object);
+    simulator.remove(object);
+    collisionDetector.remove(object);
+    //aiContainer->remove(object);
+    //soundPlayer->remove(object.getSounds());
+  }
   
   /**
    * Should not be called when containers are iterating
    */
-  void addNow(GladeObject* object);
+  void addNow(GladeObject* object) {
+    renderer->add(object);
+    simulator.add(object);
+    collisionDetector.add(object);
+    //aiContainer->add(object);
+    //soundPlayer->hold(object.getSounds());
+  }
 
   /**
    * Should be called only from rendering thread
    * and not when containers are iterating
    */
-  void addNow(Widget* root);
+  void addNow(Widget* root) {
+    // Consider this a root widget
+    log("Adding root widget '%s'", root->getName()->c_str());
+    Transform rootWidgetTransform = renderer->getTransformForRootWidget();
+    root->getTransform()->set(rootWidgetTransform);
+
+    class CalculateWidgetTransforms : public Widget::WalkFunctor
+    {
+      public:
+        virtual void operator()(Widget &widget)
+        {
+          assert(widget.getLayout() != nullptr);
+          widget.getLayout()->get()->calculateTransformsForDirectChildrenOf(&widget);
+        }
+    } calculateWidgetTransforms;
+
+    class AddWidgetsRecursive : public Widget::WalkFunctor
+    {
+      private:
+        Context &context;
+      public:
+        AddWidgetsRecursive(Context &context): context(context) {}
+
+        virtual void operator()(Widget &widget) {
+          log("Adding widget %s", widget.getName()->c_str());
+          context.renderer->add(&widget);
+        }
+    } addWidgetsRecursive(*this);
+
+    Widget::walkDepthFirstPrefix(*root, calculateWidgetTransforms);
+    Widget::walkDepthFirstPostfix(*root, addWidgetsRecursive);
+  }
 
   /**
    * Should be called only from rendering thread. Unconditionally force clear all resources
    */
-  void clearNowFully(void);
+  void clearNowFully(void) {
+    log("Clearing fully");
+
+    renderer->clear();
+    //soundPlayer->clear(true);
+    simulator.clear();
+    collisionDetector.clear();
+    aiContainer.clear();
+
+    clearRequested = false;
+  }
 
   /**
    * Should be called only from rendering thread. Invoke before state init to clear some resources
    */
-  void clearBeforeSceneInit(void);
+  void clearBeforeStateInit(void) {
+    log("Clearing before state init");
+
+    renderer->clear();
+    simulator.clear();
+    collisionDetector.clear();
+    aiContainer.clear();
+
+    //soundPlayer->unholdAll();
+  }
 
   /**
    * Should be called only from rendering thread.
-   * Invoke after Scene.init() to clear remaining resources that are were not requested to be held in Scene.init()
+   * Invoke after State.init() to clear remaining resources that are were not requested to be held in State.init()
    */
-  void clearAfterSceneInit(void) {
+  void clearAfterStateInit(void) {
     log("Clearing after state init");
     //soundPlayer->clear(false);
   }

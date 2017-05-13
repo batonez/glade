@@ -1,8 +1,6 @@
 #include <stdlib.h>
-#if _WIN32
 #include <windows.h>
-#include <DbgHelp.h>
-#endif // _WIN32
+#include <dbghelp.h>
 #include <glade/debug/log.h>
 #include <glade/debug/crashHandler.h>
 

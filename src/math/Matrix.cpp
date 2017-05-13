@@ -1,4 +1,4 @@
-#include <glade/math/Matrix.h>
+#include "glade/math/Matrix.h"
 
 void Matrix::multiplyMM(float* r, int rOffset, const float* lhs, int lhsOffset, const float* rhs, int rhsOffset)
 {

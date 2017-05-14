@@ -14,13 +14,15 @@ public:
   SharedVector position;
   SharedVector rotation;
   SharedVector scale;
-  
+  bool thirdPerson;
+
 private:
   char invertor;
   
 public:
   Transform(void):
     invertor(1),
+    thirdPerson(false),
     position(new Vector3f()),
     rotation(new Vector3f()),
     scale(new Vector3f(1, 1, 1))
@@ -29,6 +31,7 @@ public:
   
   Transform(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ) :
     invertor(1),
+    thirdPerson(false),
     position(new Vector3f(posX, posY, posZ)),
     rotation(new Vector3f(rotX, rotY, rotZ)),
     scale(new Vector3f(scaleX, scaleY, scaleZ))
@@ -110,6 +113,11 @@ public:
   void getCameraMatrix(float* result) {
     Matrix::setIdentityM(result, 0);
     Matrix::scaleM(result, 0, scale->x, scale->y, scale->z);
+
+    if (thirdPerson) {
+      Matrix::translateM(result, 0, 0, 0, -invertor * 25);
+    }
+
     Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->y), 0, 1, 0);
     Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->x), ::cos(rotation->y), 0, ::sin(rotation->y));
     Matrix::translateM(result, 0, -invertor * position->x, -invertor * position->y, -invertor * position->z);

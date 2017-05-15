@@ -6,11 +6,7 @@ class Perception: public Drawable
 {
   private:
     Vector3f baseLightDirection;
-    Vector3f baseLookVector;
-
-    Vector3f halfplane;
     Vector3f lightDirection;
-    Vector3f lookVector;
 
   public:
     Perception();

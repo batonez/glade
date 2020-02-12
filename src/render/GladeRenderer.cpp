@@ -1,5 +1,6 @@
 #include <math.h>
 #include <assert.h>
+#include <algorithm>
 
 #include "glade/debug/log.h"
 #include "glade/math/util.h"
@@ -19,9 +20,9 @@ const GLuint  Glade::Renderer::POS_OFFSET_FLOATS      = 0;
 const GLuint  Glade::Renderer::NORMAL_OFFSET_FLOATS   = POS_SIZE_FLOATS;
 const GLuint  Glade::Renderer::TEXCOORD_OFFSET_FLOATS = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS;
 const GLuint  Glade::Renderer::VERTEX_STRIDE_FLOATS   = POS_SIZE_FLOATS + NORMAL_SIZE_FLOATS + TEXCOORD_SIZE_FLOATS;
-const GLsizei Glade::Renderer::POS_OFFSET_BYTES       = POS_OFFSET_FLOATS      * sizeof(float);
-const GLsizei Glade::Renderer::NORMAL_OFFSET_BYTES    = NORMAL_OFFSET_FLOATS   * sizeof(float);
-const GLsizei Glade::Renderer::TEXCOORD_OFFSET_BYTES  = TEXCOORD_OFFSET_FLOATS * sizeof(float);
+const GLvoid * Glade::Renderer::POS_OFFSET_BYTES       = (const GLvoid *) (POS_OFFSET_FLOATS      * sizeof(float));
+const GLvoid * Glade::Renderer::NORMAL_OFFSET_BYTES    = (const GLvoid *) (NORMAL_OFFSET_FLOATS   * sizeof(float));
+const GLvoid * Glade::Renderer::TEXCOORD_OFFSET_BYTES  = (const GLvoid *) (TEXCOORD_OFFSET_FLOATS * sizeof(float));
 const GLsizei Glade::Renderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS   * sizeof(float);
 
 Glade::Renderer::Renderer(void):
@@ -422,7 +423,7 @@ void Glade::Renderer::removeFromVideoMemory(Drawable &drawable)
   }
   
   if (mesh->hasVideoBufferHandle()) {
-    GLuint vboIds[1];
+    GLuint vboIds[2];
     vboIds[0] = mesh->vertexVboId;
     vboIds[1] = mesh->indexVboId;
     glDeleteBuffers(2, vboIds);
@@ -514,7 +515,7 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
   glVertexAttribPointer(
     aPosition, POS_SIZE_FLOATS,
     GL_FLOAT, GL_FALSE,
-    VERTEX_STRIDE_BYTES, (const GLvoid *)POS_OFFSET_BYTES
+    VERTEX_STRIDE_BYTES, (const GLvoid *) POS_OFFSET_BYTES
   );
   
   glEnableVertexAttribArray(aPosition);
@@ -527,7 +528,7 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
     glVertexAttribPointer(
       aNormal, NORMAL_SIZE_FLOATS,
       GL_FLOAT, GL_FALSE,
-      VERTEX_STRIDE_BYTES, (const GLvoid *)NORMAL_OFFSET_BYTES
+      VERTEX_STRIDE_BYTES, (const GLvoid *) NORMAL_OFFSET_BYTES
     );
     
     glEnableVertexAttribArray(aNormal);
@@ -564,7 +565,7 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
       glVertexAttribPointer(
         aTexCoord, TEXCOORD_SIZE_FLOATS,
         GL_FLOAT, GL_FALSE,
-        VERTEX_STRIDE_BYTES, (const GLvoid*)TEXCOORD_OFFSET_BYTES
+        VERTEX_STRIDE_BYTES, (const GLvoid*) TEXCOORD_OFFSET_BYTES
       );
 
       if (firstCycle) {

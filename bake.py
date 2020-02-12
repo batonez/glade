@@ -1,14 +1,17 @@
 import os
-import baker
+import importlib.util
+bakerModuleSpec = importlib.util.spec_from_file_location("baker", os.path.join(os.environ['HATCHERY_SOURCES'], 'baker', 'baker.py'))
+baker = importlib.util.module_from_spec(bakerModuleSpec)
+bakerModuleSpec.loader.exec_module(baker)
 
 baker.compilerOutputDir = os.path.join(os.environ['HATCHERY_BUILDS'], 'glade')
 
 baker.compilerIncludes.extend([
-os.path.join(os.environ['HATCHERY_TOOLS'], 'OpenGL', 'include'),
-os.path.join(os.environ['HATCHERY_TOOLS'], 'freetype-2.5.5', 'include', 'freetype2'),
-os.path.join(os.environ['HATCHERY_TOOLS'], 'freetype-2.5.5', 'include'),
-os.path.join(os.environ['HATCHERY_SOURCES'], 'glade', 'include'),
-os.path.join(os.environ['HATCHERY_SOURCES'], 'lodepng'),
+os.path.join(os.environ['HATCHERY_VENDOR'], 'OpenGL', 'include'),
+os.path.join(os.environ['HATCHERY_VENDOR'], 'freetype-2.10.1', 'include', 'freetype2'),
+os.path.join(os.environ['HATCHERY_VENDOR'], 'freetype-2.10.1', 'include'),
+os.path.join(os.environ['HATCHERY_VENDOR'], 'lodepng'),
+os.path.join(os.environ['HATCHERY_SOURCES'], 'glade', 'include'), #wtf
 ])
 
 baker.compilerSources = [

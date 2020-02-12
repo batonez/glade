@@ -38,10 +38,10 @@ namespace Glade {
     static const GLuint NORMAL_OFFSET_FLOATS;
     static const GLuint TEXCOORD_OFFSET_FLOATS;
     static const GLuint VERTEX_STRIDE_FLOATS;
-    static const GLsizei POS_OFFSET_BYTES;
-    static const GLsizei COLOR_OFFSET_BYTES;
-    static const GLsizei NORMAL_OFFSET_BYTES;
-    static const GLsizei TEXCOORD_OFFSET_BYTES;
+    static const GLvoid * POS_OFFSET_BYTES;
+    static const GLvoid * COLOR_OFFSET_BYTES;
+    static const GLvoid * NORMAL_OFFSET_BYTES;
+    static const GLvoid * TEXCOORD_OFFSET_BYTES;
     static const GLsizei VERTEX_STRIDE_BYTES;
     
     typedef std::set<DrawFrameHook*> DrawFrameHooks;

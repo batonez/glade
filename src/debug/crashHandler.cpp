@@ -103,7 +103,7 @@ LONG WINAPI win32CrashHandler(struct _EXCEPTION_POINTERS *crashInfo)
   log("*** A Program Fault occurred:");
   log("*** Error code %08X: %s", errorCode, faultType);
   log("****************************************************");
-  log("***   Address: %08X", (int) codeAddress);
+  log("***   Address: %08X", codeAddress);
   log("***     Flags: %08X",
   crashInfo->ExceptionRecord->ExceptionFlags);
   ::logStackFrames(*crashInfo->ContextRecord);

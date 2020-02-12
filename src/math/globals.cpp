@@ -23,5 +23,5 @@ float radians_to_degrees(float radians)
 
 float simplify_angle_radians(float angle)
 {
-  return abs(angle) < TAU ? angle : ::fmod(angle, TAU);
+  return ::fabs(angle) < TAU ? angle : ::fmod(angle, TAU);
 }

@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <stdexcept>
 
 #include <glade/debug/log.h>
 #include <glade/exception/GladeException.h>

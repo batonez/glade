@@ -4,9 +4,19 @@
 #include <memory>
 #include <set>
 
-#ifndef ANDROID
+#ifdef _WIN32
+// My manual functions file
 #include "glade/opengl/functions.h"
-#else
+#endif
+
+#ifdef GLADE_MACOS
+// Use system headers
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/gl3.h>
+#endif
+
+#ifdef ANDROID
+// Use system headers
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #endif

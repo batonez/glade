@@ -5,7 +5,7 @@
 #include "CollisionEvent.h"
 #include "CollisionEventListener.h"
 #include "PhysicBody.h"
-#include <glade/math/vector.h>
+#include <glade/math/Vector.h>
 #include <glade/debug/log.h>
 
 class RectangleCollisionResolver: public CollisionEventListener

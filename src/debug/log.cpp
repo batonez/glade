@@ -23,7 +23,7 @@ static inline void debugStringOut()
 #elif ANDROID
   __android_log_print(ANDROID_LOG_INFO, "glade", "%s", buf);
 #else
-#error "Glade logging is not implemented for this platform"
+  printf("%s", buf);
 #endif // _WIN32
 }
 
@@ -77,6 +77,5 @@ void backtrace(void)
 
    free(symbol);
 #else
-#warning "Glade log stack trace is not implemented for this platform"
 #endif // _WIN32
 }

@@ -141,21 +141,30 @@ void Glade::Renderer::onDrawFrame(void)
     (*hook)->onBeforeDraw();
   }
 
-  glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
+  log("Render start\n");
+  //glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
+  glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  switchProjectionMode(sceneProjectionMode);
-  getCamera()->getCameraMatrix(viewMatrix);
-  
-  drawAll(sceneObjects.begin(), sceneObjects.end());
-  
-  switchProjectionMode(ORTHO);
+/*
+  if (getCamera()) {
+    getCamera()->getCameraMatrix(viewMatrix);
+    switchProjectionMode(sceneProjectionMode);
+    drawAll(sceneObjects.begin(), sceneObjects.end());
+  } else {
+    log("Warning: no active camera, cannot render the scene");
+  }
+
   Matrix::setIdentityM(viewMatrix, 0);
-  
+  switchProjectionMode(ORTHO);
+
   drawAll(uiElements.begin(), uiElements.end());
-  
+*/ 
   for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
     (*hook)->onAfterDraw();
   }
+
+  glFlush();
+  log("Render end\n");
 }
 
 void Glade::Renderer::setSceneProjectionMode(ProjectionMode projectionMode)

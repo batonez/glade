@@ -51,6 +51,8 @@ class Layout
     {
     }
 
+    virtual ~Layout() {};
+
     virtual void calculateTransformsForDirectChildrenOf(Widget* widget) const  = 0;
 
     void setVerticalAlign(VerticalAlign verticalAlign)

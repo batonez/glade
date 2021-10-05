@@ -47,7 +47,7 @@ public:
     preserveScale(false)
   {}
 
-  Drawable(std::shared_ptr<Glade::Mesh> &mesh, std::shared_ptr<ShaderProgram> &shaderProgram):
+  Drawable(std::shared_ptr<Glade::Mesh> mesh, std::shared_ptr<ShaderProgram> shaderProgram):
     mesh(mesh),
     shaderProgram(shaderProgram),
     preservePosition(false),
@@ -136,7 +136,7 @@ public:
     return shaderProgram;
   }
   
-  void setTexture(std::shared_ptr<Texture> &texture) {
+  void setTexture(std::shared_ptr<Texture> texture) {
     this->texture = texture;
   }
   

@@ -237,7 +237,7 @@ std::shared_ptr<Font> Glade::ResourceManager::loadBitmapFont(const Path &atlas_f
     throw GladeException("CSV data doesn't match atlas data");
   }
   
-  if (cellWidth == 0 || cellHeight == 0 || atlas == NULL || cellWidth > atlas->textureWidth || cellHeight > atlas->textureHeight) {
+  if (cellWidth == 0 || cellHeight == 0 || atlas == nullptr || cellWidth > atlas->textureWidth || cellHeight > atlas->textureHeight) {
     throw GladeException("Invalid values for BitmapFont constructor");
   }
   

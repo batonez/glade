@@ -20,6 +20,7 @@ public:
   {
     public:
       virtual int compare(GladeObject &first, GladeObject &second) = 0;
+      virtual ~Comparator() {};
   };
 
 protected:

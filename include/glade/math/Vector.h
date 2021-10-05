@@ -17,6 +17,12 @@ public:
   void dot(const Vector2i &vector) { x *= vector.x; y *= vector.y; }
   void add(const Vector2i &vector, Vector2i &result) { result.x = x + vector.x; result.y = y + vector.y; }
   void dot(const Vector2i &vector, Vector2i &result) { result.x = x * vector.x; result.y = y * vector.y; }
+
+  bool operator<(const Vector2i &rhs) const {
+    int lhsDistSq = this->x * this->x + this->y * this->y;
+    int rhsDistSq = rhs.x * rhs.x + rhs.y * rhs.y;
+    return lhsDistSq < rhsDistSq;
+  }
 };
 
 class Vector3i {

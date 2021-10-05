@@ -51,7 +51,7 @@ public:
   {
   }
 
-  void requestStateChange(std::unique_ptr<State> &state) {
+  void requestStateChange(std::unique_ptr<State> state) {
     requestedState = std::move(state);
   }
 

@@ -24,6 +24,7 @@ void DesktopFileManager::getFileContents(const Path &relative_path, std::ifstrea
 
   if (!result.good()) {
     // TODO make GladeException to recieve varargs just like log
+    log("Error: FileManager::getFileContents() could not open file: %s", absolutePath.cString());
     throw GladeFileNotFoundException("Error: FileManager::getFileContents: Could not open file");
   }
 }

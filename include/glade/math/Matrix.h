@@ -5,8 +5,8 @@
 #include "Vector.h"
 
 // Index of the matrix element
-#define  I(_i, _j) ((_j)+ 4*(_i))
-#define PI 3.141592653589793
+#define  GLADE_I(_i, _j) ((_j)+ 4*(_i))
+#define GLADE_PI 3.141592653589793
 
 class Matrix {
 public:

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cmath>
+#include <ctime>
 #include "DynamicMesh.h"
+#include <PerlinNoise/PerlinNoise.hpp>
 
 class DynamicMeshGenerator
 {
@@ -10,12 +12,14 @@ class DynamicMeshGenerator
 
     float        tileSize;
     unsigned int meshSizeTiles;
+    siv::PerlinNoise perlin { 13250756u };
 
   public:
     DynamicMeshGenerator():
-      tileSize(0.5f),
-      meshSizeTiles(30)
-    {}
+      tileSize(0.3f),
+      meshSizeTiles(255)
+    {
+    }
   
     void extractVertexCoordsFromArray(int vertex_number, DynamicMesh::Vertices &vertices, Vector3f &result)
     {
@@ -23,7 +27,21 @@ class DynamicMeshGenerator
       result.y = vertices[vertex_number * VERTEX_SIZE + 1];
       result.z = vertices[vertex_number * VERTEX_SIZE + 2];
     }
-  
+
+    void extractVertexNormalFromTheMesh(int index, DynamicMesh& mesh, Vector3f &result)
+    {
+      result.x = mesh.vertices[index * VERTEX_SIZE + 3];
+      result.y = mesh.vertices[index * VERTEX_SIZE + 4];
+      result.z = mesh.vertices[index * VERTEX_SIZE + 5];
+    }
+
+    void saveVertexNormalIntoTheMesh(int index, DynamicMesh& mesh, Vector3f &normal)
+    {
+      mesh.vertices[index * VERTEX_SIZE + 3] = normal.x;
+      mesh.vertices[index * VERTEX_SIZE + 4] = normal.y;
+      mesh.vertices[index * VERTEX_SIZE + 5] = normal.z;
+    }
+ 
     void surfaceNormalFromThreeVertices(Vector3f &a, Vector3f &b, Vector3f &c, Vector3f &result)
     {
       Vector3f first, second;
@@ -33,7 +51,280 @@ class DynamicMeshGenerator
       second.subtract(c);
       first.cross(second, result);
     }
-  
+
+    void addFaceNormalComponentToItsVertices(DynamicMesh &mesh, int index1, int index2, int index3)
+    {
+      Vector3f coords1, coords2, coords3;
+      extractVertexCoordsFromArray(index1, mesh.vertices, coords1);
+      extractVertexCoordsFromArray(index2, mesh.vertices, coords2);
+      extractVertexCoordsFromArray(index3, mesh.vertices, coords3);
+
+      Vector3f faceNormal;
+      surfaceNormalFromThreeVertices(coords1, coords2, coords3, faceNormal);
+      
+      Vector3f normal1, normal2, normal3;
+      extractVertexNormalFromTheMesh(index1, mesh, normal1);
+      extractVertexNormalFromTheMesh(index2, mesh, normal2);
+      extractVertexNormalFromTheMesh(index3, mesh, normal3);
+
+      normal1.add(faceNormal);
+      normal1.normalize();
+      normal2.add(faceNormal);
+      normal2.normalize();
+      normal3.add(faceNormal);
+      normal3.normalize();
+
+      saveVertexNormalIntoTheMesh(index1, mesh, normal1);
+      saveVertexNormalIntoTheMesh(index2, mesh, normal2);
+      saveVertexNormalIntoTheMesh(index3, mesh, normal3);
+    }
+
+    float randRange(float from, float to)
+    {
+      return from + (::rand() / (float) RAND_MAX) * (to - from);
+    }
+
+    float heightFunction1(float x, float z)
+    {
+      return randRange(0.0f, 1.0f);
+    }
+
+    float heightFunction2(float x, float z)
+    {
+      float noise = perlin.octave2D_01((x * 0.1), (z * 0.1), 6);
+      return noise * 10.0;
+    }
+
+    float heightFunction3(float x, float z)
+    {
+      float noise = perlin.octave2D_01((x * 0.1), (z * 0.1), 6);
+      float diminisher = std::sin(x / 2.0);
+      return std::pow(noise,diminisher) * 10.0;
+    }
+
+    float heightFunction4(float x, float y, float z)
+    {
+      float freq = 0.2;
+      return 1.0 * perlin.octave3D_01((x * freq), (y * freq), (z * freq), 4);
+    }
+
+    void generateHull(DynamicMesh &mesh)
+    {
+      ::srand(time(NULL));
+      perlin.reseed(time(NULL));
+      mesh.vertices.clear();
+      mesh.indices.clear();
+
+      float theta, phi, r;
+      float x, y, z;
+      int meshSizeVertices = 0;
+
+      int vertsInABelt = 0;
+      int numberOfBelts = 0;
+
+      float phiMin = 0.0f,
+            thetaMin = 0.0f,
+            phiMax = 3.1415f,
+            thetaMax = 2.0f * 3.1415f,
+            phiStep = 0.1f,
+            thetaStep = 0.1f;
+
+      bool addPoles = true;
+
+      for (phi = std::max(phiMin, phiStep); phi < phiMax; phi += phiStep) {
+        vertsInABelt = 0;
+        for (theta = thetaMin; theta < thetaMax; theta += thetaStep) {
+          y = cos(phi);
+          x = cos(theta) * sin(phi);
+          z = sin(theta) * sin(phi);
+          r = 3.0;
+          //r = heightFunction4(x, y, z);
+          //r = heightFunction1(x, z);
+          x *= r; y *= r; z *= r;
+
+          // position
+          mesh.vertices.push_back(x);
+          mesh.vertices.push_back(y);
+          mesh.vertices.push_back(z);
+
+          // normals will be calculated on the second path
+          mesh.vertices.push_back(0.0f);
+          mesh.vertices.push_back(0.0f);
+          mesh.vertices.push_back(0.0f);
+
+          // tex coord (TODO)
+          mesh.vertices.push_back(0.0f);
+          mesh.vertices.push_back(0.0f);
+
+          ++meshSizeVertices;
+          ++vertsInABelt;
+        }
+
+        //log("Verts in a belt: %d", vertsInABelt);
+        ++numberOfBelts;
+      }
+
+      // South pole
+      if (addPoles) {
+        y = cos(phiMax);
+        y *= heightFunction4(0, cos(phiMax), 0);
+        x = 0;
+        z = 0;
+
+        // position
+        mesh.vertices.push_back(x);
+        mesh.vertices.push_back(y);
+        mesh.vertices.push_back(z);
+        // normals
+        mesh.vertices.push_back(0.0f);
+        mesh.vertices.push_back(-1.0f);
+        mesh.vertices.push_back(0.0f);
+        // tex coord
+        mesh.vertices.push_back(0.0f);
+        mesh.vertices.push_back(0.0f);
+
+        ++meshSizeVertices;
+      }
+
+      // North pole
+      if (addPoles) {
+        y = cos(phiMin);
+        y *= heightFunction4(0, y, 0);
+        x = 0;
+        z = 0;
+
+        // position
+        mesh.vertices.push_back(x);
+        mesh.vertices.push_back(y);
+        mesh.vertices.push_back(z);
+        // normals
+        mesh.vertices.push_back(0.0f);
+        mesh.vertices.push_back(1.0f);
+        mesh.vertices.push_back(0.0f);
+        // tex coord
+        mesh.vertices.push_back(0.0f);
+        mesh.vertices.push_back(0.0f);
+
+        ++meshSizeVertices;
+      }
+
+      //log("Number of belts: %d", numberOfBelts);
+      log("Total vertices (including 2 poles): %d", meshSizeVertices);
+
+      int i, belt;
+
+      // fill index array
+      for (belt = 0; belt < numberOfBelts - 1; ++belt) {
+        int beltStart = belt * vertsInABelt;
+        for (i = beltStart; i + 1 < beltStart + vertsInABelt; i += 1)
+        {
+          int index1 = i + vertsInABelt,
+              index2 = i,
+              index3 = i + 1,
+              index4 = i + 1 + vertsInABelt;
+
+          // upper triangle
+          mesh.indices.push_back(index1);
+          mesh.indices.push_back(index2);
+          mesh.indices.push_back(index3);
+
+          addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
+
+          // lower triangle
+          mesh.indices.push_back(index4);
+          mesh.indices.push_back(index1);
+          mesh.indices.push_back(index3);
+
+          addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
+        }
+
+        // Connect the first and the last one in the belt
+        {
+          int index1 = i + vertsInABelt,
+              index2 = i,
+              index3 = beltStart,
+              index4 = beltStart + vertsInABelt;
+
+          // upper triangle
+          mesh.indices.push_back(index1);
+          mesh.indices.push_back(index2);
+          mesh.indices.push_back(index3);
+
+          addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
+
+          // lower triangle
+          mesh.indices.push_back(index4);
+          mesh.indices.push_back(index1);
+          mesh.indices.push_back(index3);
+
+          addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
+        }
+      }
+
+      // Connect last belt vertices with the south pole
+      if (addPoles) {
+        int beltStart = belt * vertsInABelt;
+        for (i = beltStart; i + 1 < beltStart + vertsInABelt; i += 1) {
+          int index1 = meshSizeVertices - 2,
+              index2 = i,
+              index3 = i + 1;
+
+          mesh.indices.push_back(index1);
+          mesh.indices.push_back(index2);
+          mesh.indices.push_back(index3);
+
+          addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
+        }
+
+        // Connect the last and the first triangles in the fan
+        int index1 = meshSizeVertices - 2,
+            index2 = i,
+            index3 = beltStart;
+
+        mesh.indices.push_back(index1);
+        mesh.indices.push_back(index2);
+        mesh.indices.push_back(index3);
+
+        addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
+      }
+
+      // Connect first belt vertices with the north pole
+      if (addPoles) {
+        for (i = 0; i + 1 < vertsInABelt; i += 1) {
+          int index1 = meshSizeVertices - 1,
+              index2 = i,
+              index3 = i + 1;
+
+          mesh.indices.push_back(meshSizeVertices - 1);
+          mesh.indices.push_back(i + 1);
+          mesh.indices.push_back(i);
+
+          addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
+        }
+
+        // Connect the last and the first triangles in the fan
+        int index1 = meshSizeVertices - 1,
+            index2 = 0,
+            index3 = i;
+
+        mesh.indices.push_back(index1);
+        mesh.indices.push_back(index2);
+        mesh.indices.push_back(index3);
+
+        addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
+      }
+    }
+
+    void perlinTest()
+    {
+      for (int x = 0; x < 5; x++) {
+        for (int y = 0; y < 5; y++) {
+          float noise = perlin.octave2D_01(x, y, 6);
+          log("(%d, %d): %f", y, x, noise);
+        }
+      }
+    }
+
     void generate(DynamicMesh &mesh)
     {
       mesh.vertices.clear();
@@ -42,126 +333,29 @@ class DynamicMeshGenerator
       int meshSizeVertices = meshSizeTiles + 1;
       
       // calculate vertex positions
-      float z;
+      float x, y, z;
       
       for (int i = 0; i < meshSizeVertices * meshSizeVertices; ++i)
       {
-        z = 0.0f + (float) (::rand()) / ((float) (RAND_MAX / (1.0f - 0.0f)));
+        x = i % meshSizeVertices;
+        z = -i / meshSizeVertices;
+        y = heightFunction2(x, z);
 
         // position
-        mesh.vertices.push_back(  i % meshSizeVertices);
-        mesh.vertices.push_back(- i / meshSizeVertices);
+        mesh.vertices.push_back(x);
+        mesh.vertices.push_back(y);
         mesh.vertices.push_back(z);
 
-        // normals will be calculated on the second path
+        // normals
         mesh.vertices.push_back(0.0f);
         mesh.vertices.push_back(0.0f);
-        mesh.vertices.push_back(1.0f);
+        mesh.vertices.push_back(0.0f);
 
-        // tex coord (TODO)
+        // tex coord
         mesh.vertices.push_back(0.0f);
         mesh.vertices.push_back(0.0f);
       }
 
-      // calculate normals (TODO border & corner cases)
-
-      for (int i = 0; i < meshSizeVertices * meshSizeVertices; ++i)
-      {
-        bool leftBorder   = false,
-             rightBorder  = false,
-             bottomBorder = false,
-             topBorder    = false;
-        // left border
-        if ((i + 1) % meshSizeVertices == 0)
-          leftBorder = true;
-
-        // right border
-        if (i  % meshSizeVertices == 0)
-          rightBorder = true;
-        
-        // bottom border
-        if (i / meshSizeVertices == meshSizeVertices - 1)
-          bottomBorder = true;
-        
-        // top border
-        if (i / meshSizeVertices == 0)
-          topBorder = true;
-
-       // Triangles adjancent to current vertex
-       // (components are vertex numbers and should be multiplied by the size of the data of one vertex):
-       // A:(i - meshSizeVertices    , i - 1                   , i                       )
-       // B:(i - meshSizeVertices    , i                       , i - meshSizeVertices + 1)
-       // C:(i - meshSizeVertices + 1, i                       , i + 1                   )
-       // D:(i                       , i + meshSizeVertices    , i + 1                   )
-       // E:(i                       , i + meshSizeVertices - 1, i + meshSizeVertices    )
-       // F:(i - 1                   , i + meshSizeVertices - 1, i                       )
-
-        // calculate normals of each adjancent triangle
-        // TODO Optimize, perhaps. Normals are being calculated many times for each triangle
-
-        Vector3f v1, v2, v3, nA, nB, nC, nD, nE, nF;
-        nA.setIdentity();
-        nB.setIdentity();
-        nC.setIdentity();
-        nD.setIdentity();
-        nE.setIdentity();
-        nF.setIdentity();
-
-        if (!leftBorder && !topBorder) {
-          extractVertexCoordsFromArray(i - meshSizeVertices    , mesh.vertices, v1);
-          extractVertexCoordsFromArray(i - 1                   , mesh.vertices, v2);
-          extractVertexCoordsFromArray(i                       , mesh.vertices, v3);
-          surfaceNormalFromThreeVertices(v1, v2, v3, nA);
-        }
-
-        if (!rightBorder && !topBorder) {
-          extractVertexCoordsFromArray(i - meshSizeVertices    , mesh.vertices, v1);
-          extractVertexCoordsFromArray(i                       , mesh.vertices, v2);
-          extractVertexCoordsFromArray(i - meshSizeVertices + 1, mesh.vertices, v3);
-          surfaceNormalFromThreeVertices(v1, v2, v3, nB);
-        
-          extractVertexCoordsFromArray(i - meshSizeVertices + 1, mesh.vertices, v1);
-          extractVertexCoordsFromArray(i                       , mesh.vertices, v2);
-          extractVertexCoordsFromArray(i + 1                   , mesh.vertices, v3);
-          surfaceNormalFromThreeVertices(v1, v2, v3, nC);
-        }
-        
-        if (!rightBorder && !bottomBorder) {
-          extractVertexCoordsFromArray(i                       , mesh.vertices, v1);
-          extractVertexCoordsFromArray(i + meshSizeVertices    , mesh.vertices, v2);
-          extractVertexCoordsFromArray(i + 1                   , mesh.vertices, v3);
-          surfaceNormalFromThreeVertices(v1, v2, v3, nD);
-        }
-        
-        if (!leftBorder && !bottomBorder) {
-          extractVertexCoordsFromArray(i                       , mesh.vertices, v1);
-          extractVertexCoordsFromArray(i + meshSizeVertices - 1, mesh.vertices, v2);
-          extractVertexCoordsFromArray(i + meshSizeVertices    , mesh.vertices, v3);
-          surfaceNormalFromThreeVertices(v1, v2, v3, nE);
-          
-          extractVertexCoordsFromArray(i - 1                   , mesh.vertices, v1);
-          extractVertexCoordsFromArray(i + meshSizeVertices - 1, mesh.vertices, v2);
-          extractVertexCoordsFromArray(i                       , mesh.vertices, v3);
-          surfaceNormalFromThreeVertices(v1, v2, v3, nF);
-        }
-        
-        // sum all triangle normals
-        Vector3f currentVertexNormal;
-        currentVertexNormal.setIdentity();
-        currentVertexNormal.add(nA);
-        currentVertexNormal.add(nB);
-        currentVertexNormal.add(nC);
-        currentVertexNormal.add(nD);
-        currentVertexNormal.add(nE);
-        currentVertexNormal.add(nF);
-        currentVertexNormal.normalize();
-        
-        // set the normal to vertex
-        mesh.vertices[i * VERTEX_SIZE + 3] = currentVertexNormal.x;
-        mesh.vertices[i * VERTEX_SIZE + 4] = currentVertexNormal.y;
-        mesh.vertices[i * VERTEX_SIZE + 5] = currentVertexNormal.z;
-      }
-      
       // fill index array
       int lastVertex = meshSizeVertices * meshSizeVertices - meshSizeVertices;
 
@@ -170,15 +364,24 @@ class DynamicMeshGenerator
         if ((i + 1) % meshSizeVertices == 0)
           continue;
 
+        int index1 = i + 1,
+            index2 = i + meshSizeVertices,
+            index3 = i,
+            index4 = i + meshSizeVertices + 1;
+            
         // upper triangle
-        mesh.indices.push_back(i);
-        mesh.indices.push_back(i + meshSizeVertices);
-        mesh.indices.push_back(i + 1);
+        mesh.indices.push_back(index1);
+        mesh.indices.push_back(index2);
+        mesh.indices.push_back(index3);
+
+        addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
 
         // lower triangle
-        mesh.indices.push_back(i + 1);
-        mesh.indices.push_back(i + meshSizeVertices);
-        mesh.indices.push_back(i + meshSizeVertices + 1);
+        mesh.indices.push_back(index4);
+        mesh.indices.push_back(index2);
+        mesh.indices.push_back(index1);
+
+        addFaceNormalComponentToItsVertices(mesh, index4, index2, index1);
       }
     }
 };

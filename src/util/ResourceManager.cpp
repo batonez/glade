@@ -1,5 +1,6 @@
 #include <glade/util/ResourceManager.h>
 #include <glade/util/Path.h>
+#include <glade/util/DesktopFileManager.h>
 #include <glade/util/WavefrontObjReader.h>
 #include <glade/render/ShaderProgram.h>
 #include <glade/render/Texture.h>
@@ -12,13 +13,12 @@
 #include <glade/ui/font/FreetypeFont.h>
 #include <glade/audio/Sound.h>
 #include <glade/exception/GladeException.h>
-#include <glade/opengl/drivers.h>
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include <lodepng.h>
-
-#ifdef _WIN32 // FIXME these should be crossplatform
-#include <glade/util/RIFFReader.h>
-#endif
 
 Glade::ResourceManager::ResourceManager(FileManager *file_manager):
   fileManager(file_manager)
@@ -56,12 +56,12 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::getMesh(MeshType type)
 std::shared_ptr<Glade::Mesh> Glade::ResourceManager::getMesh(const Path &filename)
 {
   MeshesI i = meshes.find(filename);
-  
+
   if (i != meshes.end()) {
     return i->second;
   }
-  
-  std::shared_ptr<Mesh> mesh = loadMesh(filename);
+
+  std::shared_ptr<Mesh> mesh = loadMeshAssimp(filename);
   meshes[filename] = mesh;
   return mesh;
 }
@@ -84,12 +84,7 @@ std::shared_ptr<ShaderProgram> Glade::ResourceManager::getShaderProgram(const Pa
 
 Path Glade::ResourceManager::getShadersSubfolder() const
 {
-  switch (GLADE_VIDEO_DRIVER) {
-    case VIDEO_DRIVER_OPENGLES2:
-      return Path("shaders/gles2");
-    default: // VIDEO_DRIVER_OPENGL3
-      return Path("shaders/gl");
-  }
+  return Path("shaders/gl");
 }
 
 std::shared_ptr<Sound> Glade::ResourceManager::getSound(const Path &filename)
@@ -213,6 +208,70 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMesh(const Path &filena
   }
 
   return std::shared_ptr<Mesh>(mesh);
+}
+
+std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMeshAssimp(const Path &filename)
+{
+  log("Loading mesh with assimp");
+  Assimp::Importer importer;
+
+  Path filePath = ((DesktopFileManager*)fileManager)->getAbsolutePath(filename);
+  const aiScene* scene = importer.ReadFile(filePath.toString(), 0);
+
+  if (nullptr == scene) {
+    log("Failed to read Wavefront OBJ file with assimp from file %s: %s", filename.toString().c_str(), importer.GetErrorString());
+    return nullptr;
+  }
+
+  if (!scene->HasMeshes()) {
+    log("No mesh found in file %s", filename.toString().c_str());
+    return nullptr;
+  }
+
+  log("Found %d meshes, will take only the first one", scene->mNumMeshes);
+
+  const aiMesh *mesh = scene->mMeshes[0];
+
+  log("Found %d vertices in the mesh", mesh->mNumVertices);
+  log("Found %d faces in the mesh", mesh->mNumFaces);
+
+  std::shared_ptr<DynamicMesh> gladeMesh = std::make_shared<DynamicMesh>();
+
+  for (int i = 0; i < mesh->mNumVertices; ++i) {
+    log("Vertex: %2.1f, %2.1f, %2.1f", mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+    log("Normal: %2.1f, %2.1f, %2.1f", mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+
+    // position
+    gladeMesh->vertices.push_back(mesh->mVertices[i].x);   
+    gladeMesh->vertices.push_back(mesh->mVertices[i].y);   
+    gladeMesh->vertices.push_back(mesh->mVertices[i].z);   
+
+    // normal
+    gladeMesh->vertices.push_back(mesh->mNormals[i].x);   
+    gladeMesh->vertices.push_back(mesh->mNormals[i].y);   
+    gladeMesh->vertices.push_back(mesh->mNormals[i].z);   
+
+    // tex coord
+    gladeMesh->vertices.push_back(0.0f);   
+    gladeMesh->vertices.push_back(0.0f);   
+  }
+
+  for (int i = 0; i < mesh->mNumFaces; ++i) {
+    aiFace& face = mesh->mFaces[i];
+
+    if (face.mNumIndices != 3) {
+      log("Error: non-triangle face found in a mesh");
+      return nullptr;
+    }
+
+    log("Face: %d %d %d", face.mIndices[0], face.mIndices[1], face.mIndices[2]);
+
+    gladeMesh->indices.push_back(face.mIndices[0]);
+    gladeMesh->indices.push_back(face.mIndices[1]);
+    gladeMesh->indices.push_back(face.mIndices[2]);
+  }
+
+  return std::shared_ptr<Glade::Mesh>(gladeMesh);
 }
 
 std::shared_ptr<Font> Glade::ResourceManager::loadBitmapFont(const Path &atlas_filename, const Path &csv_filename, float viewport_width, float viewport_height)

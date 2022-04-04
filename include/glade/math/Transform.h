@@ -28,7 +28,7 @@ public:
     scale(new Vector3f(1, 1, 1))
   {
   }
-  
+
   Transform(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ) :
     invertor(1),
     thirdPerson(false),
@@ -37,7 +37,7 @@ public:
     scale(new Vector3f(scaleX, scaleY, scaleZ))
   {
   }
-  
+
   SharedVector getScale   (void) const { return scale;    }
   SharedVector getPosition(void) const { return position; }
   SharedVector getRotation(void) const { return rotation; }
@@ -115,7 +115,7 @@ public:
     Matrix::scaleM(result, 0, scale->x, scale->y, scale->z);
 
     if (thirdPerson) {
-      Matrix::translateM(result, 0, 0, 0, -invertor * 25);
+      Matrix::translateM(result, 0, 0, 0, -invertor * 15);
     }
 
     Matrix::rotateM(result, 0, ::radians_to_degrees(rotation->y), 0, 1, 0);

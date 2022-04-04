@@ -7,7 +7,7 @@
 namespace Glade {
   class Mesh {
     public:
-      short int vertexVboId, indexVboId;
+      short int vertexVboId, indexVboId, vaoId;
       
       virtual float* getVertices(void) = 0;    
       virtual unsigned short* getIndices(void) = 0;
@@ -31,7 +31,8 @@ namespace Glade {
     protected:
       Mesh() :
         vertexVboId(-1),
-        indexVboId(-1)
+        indexVboId(-1),
+        vaoId(-1)
       {
       }
   };

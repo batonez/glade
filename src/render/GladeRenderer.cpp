@@ -5,11 +5,9 @@
 #include "glade/debug/log.h"
 #include "glade/math/util.h"
 #include "glade/math/Matrix.h"
-#include "glade/ui/Widget.h"
 #include "glade/render/GladeRenderer.h"
 #include "glade/render/Drawable.h"
 #include "glade/render/ShaderProgram.h"
-#include "glade/render/DrawFrameHook.h"
 #include "glade/render/Perception.h"
 #include "glade/math/Vector.h"
 
@@ -25,6 +23,8 @@ const GLvoid * Glade::Renderer::NORMAL_OFFSET_BYTES    = (const GLvoid *) (NORMA
 const GLvoid * Glade::Renderer::TEXCOORD_OFFSET_BYTES  = (const GLvoid *) (TEXCOORD_OFFSET_FLOATS * sizeof(float));
 const GLsizei Glade::Renderer::VERTEX_STRIDE_BYTES    = VERTEX_STRIDE_FLOATS   * sizeof(float);
 
+static bool firstCycle;
+
 Glade::Renderer::Renderer(void):
   perception(NULL),
   initialized(false),
@@ -35,10 +35,12 @@ Glade::Renderer::Renderer(void):
 void Glade::Renderer::onSurfaceCreated()
 {
   glFrontFace(GL_CCW);
+  glCullFace(GL_BACK);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
   glEnable(GL_CULL_FACE);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  //glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
   moveAllObjectsIntoVideoMemory();
   log("Initialized renderer");
   initialized = true;
@@ -62,19 +64,11 @@ void Glade::Renderer::add(GladeObject* pSceneObject)
 {
   if (this->initialized) {
     moveIntoVideoMemory(*pSceneObject);
+  } else {
+    log("Adding scene object, but renderer is not initialised");
   }
   
   sceneObjects.push_back(pSceneObject);
-}
-
-void Glade::Renderer::add(Widget* uiElement)
-{
-  if (this->initialized) {
-    moveIntoVideoMemory(*uiElement);
-    checkGLError();
-  }
-  
-  uiElements.push_back(uiElement);
 }
 
 void Glade::Renderer::remove(GladeObject *sceneObject)
@@ -101,6 +95,7 @@ void Glade::Renderer::remove(GladeObject *sceneObject)
 void Glade::Renderer::clear(void)
 {
   log("Clearing renderer");
+  firstCycle = true;
   removeAllObjectsFromVideoMemory();
 
   GladeObject::Drawables* drawables;
@@ -117,54 +112,25 @@ void Glade::Renderer::clear(void)
   }
 
   checkGLError();
-
-  std::vector<GladeObject*>::iterator wi = uiElements.begin(); // must be a 'set'
-
-  while (wi != uiElements.end()) {
-    drawables = (*wi)->getDrawables();
-    
-    for (GladeObject::DrawablesI di = drawables->begin(); di != drawables->end(); di++) {
-      (*di)->getTextureTransform()->removeAnimationCallbacks();
-    }
-    
-    wi = uiElements.erase(wi);
-  }
-
-  checkGLError();
   
   log("Done clearing renderer");
 }
 
 void Glade::Renderer::onDrawFrame(void)
 {
-  for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
-    (*hook)->onBeforeDraw();
-  }
-
-  log("Render start\n");
-  //glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
-  glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
+  glClearColor(this->backgroundColor.x, this->backgroundColor.y, this->backgroundColor.z, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-/*
+
   if (getCamera()) {
     getCamera()->getCameraMatrix(viewMatrix);
     switchProjectionMode(sceneProjectionMode);
     drawAll(sceneObjects.begin(), sceneObjects.end());
-  } else {
+  } else if (firstCycle) {
     log("Warning: no active camera, cannot render the scene");
   }
 
-  Matrix::setIdentityM(viewMatrix, 0);
-  switchProjectionMode(ORTHO);
-
-  drawAll(uiElements.begin(), uiElements.end());
-*/ 
-  for (DrawFrameHooksI hook = drawFrameHooks.begin(); hook != drawFrameHooks.end(); ++hook) {
-    (*hook)->onAfterDraw();
-  }
-
   glFlush();
-  log("Render end\n");
+  firstCycle = false;
 }
 
 void Glade::Renderer::setSceneProjectionMode(ProjectionMode projectionMode)
@@ -195,15 +161,6 @@ int Glade::Renderer::percentToPixels(float percent)
 float Glade::Renderer::pixelsToPercent(float pixels)
 {
   return pixels / (viewportWidth < viewportHeight ? viewportWidth / 2 : viewportHeight / 2);
-}
-
-Transform Glade::Renderer::getTransformForRootWidget(void)
-{
-  return Transform(
-      0.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 0.0f,
-      getHalfViewportWidthCoords(), getHalfViewportHeightCoords(), 1.0f
-  );
 }
 
 void Glade::Renderer::moveZeroToUpperLeftCorner(void)
@@ -241,11 +198,22 @@ Vector2f Glade::Renderer::getPointCoords(float screenX, float screenY)
   return result;
 }
 
+Vector3f Glade::Renderer::unprojectPoint(float x, float y, float z)
+{
+  float invViewMatrix[16];
+  float invProjMatrix[16];
 
-//std::vector<GladeObject>::iterator Glade::Renderer::getWidgets(void)
-//{
-//  return uiElements.begin();
-//}
+  Vector4f point(x, y, z, 1.0);
+  Vector4f resultPoint;
+
+  Matrix::invertM(invViewMatrix, 0, viewMatrix, 0);
+  Matrix::invertM(invProjMatrix, 0, projectionMatrix, 0);
+  Matrix::multiplyMV(resultPoint, invProjMatrix, point); 
+  resultPoint.w = 1.0;
+  Matrix::multiplyMV(resultPoint, invViewMatrix, resultPoint); 
+
+  return Vector3f(resultPoint.x, resultPoint.y, resultPoint.z);
+}
 
 void Glade::Renderer::drawAll(std::vector<GladeObject*>::iterator i, std::vector<GladeObject*>::iterator end)
 {
@@ -293,9 +261,9 @@ void Glade::Renderer::compileShaderProgram(ShaderProgram *program)
   glAttachShader(program->gpuHandle, vertexShaderPointer);
   glAttachShader(program->gpuHandle, fragmentShaderPointer);
   glLinkProgram(program->gpuHandle);
-  
+
   glUseProgram(program->gpuHandle);
-  
+ 
   GLint numberOfUniforms;
   glGetProgramiv(program->gpuHandle, GL_ACTIVE_UNIFORMS, &numberOfUniforms);
   
@@ -312,6 +280,8 @@ void Glade::Renderer::compileShaderProgram(ShaderProgram *program)
     assert(uniformHandle >= 0);
     program->saveUniformHandle(buffer, uniformHandle); //!!!
   }
+
+  getShaderHandles(*program);
 }
 
 
@@ -324,13 +294,6 @@ void Glade::Renderer::moveAllObjectsIntoVideoMemory(void)
     i++;
   }
   
-  std::vector<GladeObject*>::iterator wi = uiElements.begin();
-  
-  while (wi != uiElements.end()) {
-    moveIntoVideoMemory(**wi);
-    wi++;
-  }
-
   checkGLError();
 }
 
@@ -351,21 +314,51 @@ void Glade::Renderer::moveIntoVideoMemory(GladeObject &sceneObject)
 void Glade::Renderer::moveIntoVideoMemory(std::shared_ptr<Mesh> mesh)
 {
   if (nullptr == mesh || mesh->hasVideoBufferHandle()) {
-    return;
+    if (nullptr == mesh) {
+      log("No mesh");
+      return;
+    }
+    if (mesh->hasVideoBufferHandle())
+      log("WARNING: Attempting to load mesh which already has a VBO handle, will reload it!");
   }
   
-  log("Creating VBO");
-  GLuint vboIds[2];
-  glGenBuffers(2, vboIds);
-  mesh->vertexVboId = vboIds[0];
-  mesh->indexVboId = vboIds[1];
-    
-  bindBuffers(*mesh);
+  if (!mesh->hasVideoBufferHandle()) {
+    log("Creating VBO");
+
+    GLuint vboIds[2];
+    glGenBuffers(2, vboIds);
+    mesh->vertexVboId = vboIds[0];
+    mesh->indexVboId = vboIds[1];
+  }
+
+  bindBuffers(mesh.get());
   
   glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->getVertexBufferSize(), mesh->getVertices(), GL_STATIC_DRAW);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * mesh->getIndexBufferSize(), mesh->getIndices(), GL_STATIC_DRAW);
-  
-  mesh->erase();
+
+  if (mesh->vaoId == -1) {
+    GLuint vaoIds[1];
+    glGenVertexArrays(1, vaoIds);
+    mesh->vaoId = vaoIds[0];
+  }
+
+  glBindVertexArray(mesh->vaoId);
+ 
+  glVertexAttribPointer(
+    aPosition, POS_SIZE_FLOATS,
+    GL_FLOAT, GL_FALSE,
+    VERTEX_STRIDE_BYTES, (const GLvoid *) POS_OFFSET_BYTES
+  );
+
+  glVertexAttribPointer(
+    aNormal, NORMAL_SIZE_FLOATS,
+    GL_FLOAT, GL_FALSE,
+    VERTEX_STRIDE_BYTES, (const GLvoid *) NORMAL_OFFSET_BYTES
+  );
+
+  bindBuffers(0);
+
+  //mesh->erase();
 }
 
 void Glade::Renderer::moveIntoVideoMemory(std::shared_ptr<Texture> texturePtr)
@@ -456,34 +449,20 @@ void Glade::Renderer::removeAllObjectsFromVideoMemory(void)
     
     i++;
   }
-
-  std::vector<GladeObject*>::iterator wi = uiElements.begin();
-  
-  while (wi != uiElements.end()) {
-    GladeObject::Drawables* drawables = (*wi)->getDrawables();
-    GladeObject::DrawablesI di = drawables->begin();
-    
-    while (di != drawables->end()) {
-      removeFromVideoMemory(**di);
-      di++;
-    }
-    
-    wi++;
-  }
 }
 
 void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
 {
-  if (!perception)
-    return;
-
-  static bool firstCycle = true;
-
   if (firstCycle) {
     log("Started drawing");
     checkGLError();
   }
-  
+ 
+  if (!perception) {
+    log("No perception - no drawing");
+    return;
+  }
+
   std::shared_ptr<ShaderProgram> program = (*di)->getShaderProgram();
   
   if (nullptr == program) {
@@ -504,18 +483,22 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
   }
   
   static float worldMatrix[16];
-  
+
   transform.getMatrix(worldMatrix);
   Matrix::multiplyMM(worldViewMatrix, 0, viewMatrix, 0, worldMatrix, 0);
-  
+
+  glUniformMatrix4fv(uWorldMatrix, 1, GL_FALSE, worldMatrix);
   glUniformMatrix4fv(uProjectionMatrix, 1, GL_FALSE, projectionMatrix);
   glUniformMatrix4fv(uWorldViewMatrix, 1, GL_FALSE, worldViewMatrix);
+  glUniform3f(uCameraPosition, getCamera()->position->x, getCamera()->position->y, getCamera()->position->z);
   
   if (firstCycle) {
     checkGLError();
   }
   
-  bindBuffers(*(*di)->getMesh());
+  std::shared_ptr<Glade::Mesh> mesh = (*di)->getMesh();
+  bindBuffers(mesh.get());
+  glBindVertexArray(mesh->vaoId);
   
   if (firstCycle) {
     checkGLError();
@@ -527,12 +510,16 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
     VERTEX_STRIDE_BYTES, (const GLvoid *) POS_OFFSET_BYTES
   );
   
+  if (firstCycle) {
+    checkGLError();
+  }
+
   glEnableVertexAttribArray(aPosition);
   
   if (firstCycle) {
     checkGLError();
   }
-  
+
   if (aNormal >= 0) {
     glVertexAttribPointer(
       aNormal, NORMAL_SIZE_FLOATS,
@@ -542,11 +529,11 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
     
     glEnableVertexAttribArray(aNormal);
   }
-  
+
   if (firstCycle) {
     checkGLError();
   }
-  
+
   std::shared_ptr<Texture> texture = (*di)->getTexture();
   
   if (texture != nullptr) {
@@ -557,10 +544,10 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
       if (firstCycle) {
         checkGLError();
       }
-      
+
       TextureTransform* texTransform = (*di)->getTextureTransform();
       texTransform->executeCallbacks();
-      
+
       glUniform1i(uSamplerNumber, 0);
       glUniform1f(uTexScaleX, texTransform->textureScaleX  / (float) texture->numberOfFrames * texTransform->getTextureScaleXModifierForFrame(*texture));
       glUniform1f(uTexScaleY, texTransform->textureScaleY  / (float) texture->numberOfAnimations * texTransform->getTextureScaleYModifierForFrame(*texture));
@@ -588,17 +575,27 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
   perception->adjust();
   writeUniformsToVideoMemory(perception, *program);
   writeUniformsToVideoMemory(*di, *program);
-  glDrawElements(GL_TRIANGLES, (*di)->getMesh()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
-  
-  glDisableVertexAttribArray(aPosition);
-  glDisableVertexAttribArray(aNormal);
-  glDisableVertexAttribArray(aTexCoord);
 
   if (firstCycle) {
     checkGLError();
   }
+
+  glDrawElements(GL_TRIANGLES, (*di)->getMesh()->getIndexBufferSize(), GL_UNSIGNED_SHORT, 0);
   
-  firstCycle = false;
+  if (firstCycle) {
+    checkGLError();
+  }
+
+  glDisableVertexAttribArray(aPosition);
+  glDisableVertexAttribArray(aNormal);
+
+  if (texture != nullptr && texture->hasVideoBufferHandle()) {
+    glDisableVertexAttribArray(aTexCoord);
+  }
+
+  if (firstCycle) {
+    checkGLError();
+  }
 }
 
 void Glade::Renderer::writeUniformsToVideoMemory(Drawable *drawable, ShaderProgram &program)
@@ -648,14 +645,20 @@ void Glade::Renderer::writeUniformsToVideoMemory(Drawable *drawable, ShaderProgr
   }
 }
 
-void Glade::Renderer::bindBuffers(Mesh &mesh)
+void Glade::Renderer::bindBuffers(Mesh *mesh)
 {
-  if (!mesh.hasVideoBufferHandle()) {
+  if (!mesh) {
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    return;
+  }
+
+  if (!mesh->hasVideoBufferHandle()) {
     log("Render error: trying to use a mesh which was not loaded into video buffer");
   }
   
-  glBindBuffer(GL_ARRAY_BUFFER, mesh.vertexVboId);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.indexVboId);
+  glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexVboId);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexVboId);
 }
 
 void Glade::Renderer::switchProjectionMode(ProjectionMode projectionMode, bool force)
@@ -687,6 +690,8 @@ void Glade::Renderer::getShaderHandles(ShaderProgram &program)
 {
   uProjectionMatrix   = glGetUniformLocation(program.gpuHandle, "uProjectionMatrix");
   uWorldViewMatrix  = glGetUniformLocation(program.gpuHandle, "uWorldViewMatrix");
+  uWorldMatrix  = glGetUniformLocation(program.gpuHandle, "uWorldMatrix");
+  uCameraPosition = glGetUniformLocation(program.gpuHandle, "uCameraPosition");
 
   aPosition      = glGetAttribLocation(program.gpuHandle, "aPosition");
   aNormal        = glGetAttribLocation(program.gpuHandle, "aNormal");
@@ -760,22 +765,3 @@ int Glade::Renderer::checkGLError(void)
   return errorCode;
 }
 
-void Glade::Renderer::addDrawFrameHook(DrawFrameHook &hook)
-{
-  drawFrameHooks.insert(&hook);
-}
-
-
-void Glade::Renderer::setDrawingOrderComparator(std::unique_ptr<GladeObject::Comparator> &comparator)
-{
-  this->drawingOrderComparator = std::move(comparator);
-}
-
-void Glade::Renderer::sortDrawables()
-{
-  log("Fixme: Sorting drawables not implemented");
-  
-  //if (drawingOrderComparator != NULL) {
-  //  Collections.sort(sceneObjects, drawingOrderComparator);
-  //}
-}

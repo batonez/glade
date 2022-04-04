@@ -74,7 +74,8 @@ namespace Glade
       std::shared_ptr<ShaderProgram> loadShaderProgram(const Path &vertex_shader_filename, const Path &fragment_shader_filename);
       std::shared_ptr<Texture> loadTexture(const Path &filename, int frameWidth = 0, int frameHeight = 0);
       std::shared_ptr<Mesh> loadMesh(MeshType type);
-      std::shared_ptr<Mesh> loadMesh(const Path &type);
+      std::shared_ptr<Mesh> loadMesh(const Path &filename);
+      std::shared_ptr<Mesh> loadMeshAssimp(const Path &filename);
       std::shared_ptr<Sound> loadSound(const Path &filename);
       std::shared_ptr<Font> loadBitmapFont(const Path &atlas_filename, const Path &csv_filename, float viewport_width, float viewport_height);
       std::shared_ptr<Font> loadDynamicFont(const Path &font_filename, float viewport_width, float viewport_height);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <functional>
 
 // FIXME: make overloaded operators pls
 
@@ -38,7 +39,28 @@ public:
   void dot(const Vector3i &vector) { x *= vector.x; y *= vector.y; z *= vector.z; }
   void add(const Vector3i &vector, Vector3i &result) { result.x = x + vector.x; result.y = y + vector.y; result.z = z + vector.z; }
   void dot(const Vector3i &vector, Vector3i &result) { result.x = x * vector.x; result.y = y * vector.y; result.z = z * vector.z; }
+
+  bool operator==(const Vector3i &rhs) const {
+    return (x == rhs.x && y == rhs.y && z == rhs.z);
+  }
 };
+
+namespace std {
+  template <>
+  struct hash<Vector3i>
+  {
+    size_t operator()(const Vector3i& key) const
+    {
+      //using std::hash;
+      size_t m = 283945;
+      size_t x0 = 0x123456;
+      size_t x1 = (std::hash<int>()(key.x) ^ x0) * m;
+      size_t x2 = (std::hash<int>()(key.y) ^ x1) * m;
+      size_t x3 = (std::hash<int>()(key.z) ^ x2) * m;
+      return x3;
+    }
+  };
+}
 
 class Vector2f {
 public:

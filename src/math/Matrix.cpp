@@ -3,24 +3,24 @@
 void Matrix::multiplyMM(float* r, int rOffset, const float* lhs, int lhsOffset, const float* rhs, int rhsOffset)
 {
   for (int i=0 ; i<4 ; i++) {
-    register const float rhs_i0 = rhs[ I(i,0) + rhsOffset ];
-    register float ri0 = lhs[ I(0,0) + lhsOffset ] * rhs_i0;
-    register float ri1 = lhs[ I(0,1) + lhsOffset ] * rhs_i0;
-    register float ri2 = lhs[ I(0,2) + lhsOffset ] * rhs_i0;
-    register float ri3 = lhs[ I(0,3) + lhsOffset ] * rhs_i0;
+    register const float rhs_i0 = rhs[ GLADE_I(i,0) + rhsOffset ];
+    register float ri0 = lhs[ GLADE_I(0,0) + lhsOffset ] * rhs_i0;
+    register float ri1 = lhs[ GLADE_I(0,1) + lhsOffset ] * rhs_i0;
+    register float ri2 = lhs[ GLADE_I(0,2) + lhsOffset ] * rhs_i0;
+    register float ri3 = lhs[ GLADE_I(0,3) + lhsOffset ] * rhs_i0;
     
     for (int j=1 ; j<4 ; j++) {
-      register const float rhs_ij = rhs[ I(i,j) + rhsOffset ];
-      ri0 += lhs[ I(j,0) + lhsOffset ] * rhs_ij;
-      ri1 += lhs[ I(j,1) + lhsOffset ] * rhs_ij;
-      ri2 += lhs[ I(j,2) + lhsOffset ] * rhs_ij;
-      ri3 += lhs[ I(j,3) + lhsOffset ] * rhs_ij;
+      register const float rhs_ij = rhs[ GLADE_I(i,j) + rhsOffset ];
+      ri0 += lhs[ GLADE_I(j,0) + lhsOffset ] * rhs_ij;
+      ri1 += lhs[ GLADE_I(j,1) + lhsOffset ] * rhs_ij;
+      ri2 += lhs[ GLADE_I(j,2) + lhsOffset ] * rhs_ij;
+      ri3 += lhs[ GLADE_I(j,3) + lhsOffset ] * rhs_ij;
     }
     
-    r[ I(i,0) + rOffset ] = ri0;
-    r[ I(i,1) + rOffset ] = ri1;
-    r[ I(i,2) + rOffset ] = ri2;
-    r[ I(i,3) + rOffset ] = ri3;
+    r[ GLADE_I(i,0) + rOffset ] = ri0;
+    r[ GLADE_I(i,1) + rOffset ] = ri1;
+    r[ GLADE_I(i,2) + rOffset ] = ri2;
+    r[ GLADE_I(i,3) + rOffset ] = ri3;
   }
 }
 
@@ -220,7 +220,7 @@ void frustumM(float m[16], int offset, float left, float right, float bottom, fl
 
 void Matrix::perspectiveM(float m[16], int offset, float fovy, float aspect, float zNear, float zFar)
 {
-  float f = 1.0f / (float) tan(fovy * (PI / 360.0));
+  float f = 1.0f / (float) tan(fovy * (GLADE_PI / 360.0));
   float rangeReciprocal = 1.0f / (zNear - zFar);
 
   m[offset + 0] = f / aspect;
@@ -253,7 +253,7 @@ void Matrix::setRotateM(float rm[16], int rmOffset, float a, float x, float y, f
   rm[rmOffset + 13]= 0;
   rm[rmOffset + 14]= 0;
   rm[rmOffset + 15]= 1;
-  a *= (float) (PI / 180.0f);
+  a *= (float) (GLADE_PI / 180.0f);
   float s = (float) sin(a);
   float c = (float) cos(a);
   if (1.0f == x && 0.0f == y && 0.0f == z) {
@@ -306,9 +306,9 @@ void Matrix::setRotateM(float rm[16], int rmOffset, float a, float x, float y, f
 
 void Matrix::setRotateEulerM(float rm[16], int rmOffset, float x, float y, float z)
 {
-  x *= (float) (PI / 180.0f);
-  y *= (float) (PI / 180.0f);
-  z *= (float) (PI / 180.0f);
+  x *= (float) (GLADE_PI / 180.0f);
+  y *= (float) (GLADE_PI / 180.0f);
+  z *= (float) (GLADE_PI / 180.0f);
   float cx = (float) cos(x);
   float sx = (float) sin(x);
   float cy = (float) cos(y);

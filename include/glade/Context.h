@@ -3,11 +3,9 @@
 #include <queue>
 #include <assert.h>
 
-#include "system.h"
 #include "render/GladeRenderer.h"
 #include "State.h"
 #include "ui/layout/Layout.h"
-#include "ui/Widget.h"
 #include "controls/VirtualController.h"
 #include "physics/Simulator.h"
 #include "physics/CollisionDetector.h"
@@ -34,9 +32,7 @@ private:
   bool stopRequested, clearRequested;
   VirtualController* controller;
   std::queue<GladeObject*> objectsToAdd;
-  std::queue<Widget*> widgetsToAdd;
   std::queue<GladeObject*> objectsToRemove;
-  std::queue<Widget*> widgetsToRemove;
 
 public:
   Context(Glade::Renderer* renderer/*, SoundPlayer* soundPlayer*/):
@@ -63,17 +59,8 @@ public:
     objectsToAdd.push(object);
   }
 
-  void add(Widget* widget) {
-    log("Setting UI");
-    widgetsToAdd.push(widget);
-  }
-
   void remove(GladeObject* object) {
     objectsToRemove.push(object);
-  }
-
-  void remove(Widget* widget) {
-    widgetsToRemove.push(widget);
   }
 
   State* getCurrentState(void) {
@@ -105,8 +92,6 @@ public:
         currentState->shutdown(*this);
         currentState.reset();
       }
-
-      gladen::system::exit();
 
       return;
     }
@@ -145,21 +130,6 @@ public:
       
       gladeObjectsListsChanged = true;
     }
-
-    if (!widgetsToAdd.empty()) {
-      log("Context: new widgets will be loaded");
-      gladeObjectsListsChanged = true;
-      
-      while (!widgetsToAdd.empty()) {
-        addNow(widgetsToAdd.front());
-        widgetsToAdd.pop();
-      }
-    }
-
-    if (gladeObjectsListsChanged) {
-      log("Sorting drawables");
-      renderer->sortDrawables();
-    }
   }
 
   Glade::Renderer* getRenderer(void) {
@@ -175,7 +145,7 @@ public:
   }
 
   void setController(VirtualController &controller) {
-    controller.init();
+    controller.initController();
     this->controller = &controller;
   }
 
@@ -226,48 +196,12 @@ private:
    * Should not be called when containers are iterating
    */
   void addNow(GladeObject* object) {
+    log("Adding now");
     renderer->add(object);
     simulator.add(object);
     collisionDetector.add(object);
     //aiContainer->add(object);
     //soundPlayer->hold(object.getSounds());
-  }
-
-  /**
-   * Should be called only from rendering thread
-   * and not when containers are iterating
-   */
-  void addNow(Widget* root) {
-    // Consider this a root widget
-    log("Adding root widget '%s'", root->getName()->c_str());
-    Transform rootWidgetTransform = renderer->getTransformForRootWidget();
-    root->getTransform()->set(rootWidgetTransform);
-
-    class CalculateWidgetTransforms : public Widget::WalkFunctor
-    {
-      public:
-        virtual void operator()(Widget &widget)
-        {
-          assert(widget.getLayout() != nullptr);
-          widget.getLayout()->get()->calculateTransformsForDirectChildrenOf(&widget);
-        }
-    } calculateWidgetTransforms;
-
-    class AddWidgetsRecursive : public Widget::WalkFunctor
-    {
-      private:
-        Context &context;
-      public:
-        AddWidgetsRecursive(Context &context): context(context) {}
-
-        virtual void operator()(Widget &widget) {
-          log("Adding widget %s", widget.getName()->c_str());
-          context.renderer->add(&widget);
-        }
-    } addWidgetsRecursive(*this);
-
-    Widget::walkDepthFirstPrefix(*root, calculateWidgetTransforms);
-    Widget::walkDepthFirstPostfix(*root, addWidgetsRecursive);
   }
 
   /**

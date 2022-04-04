@@ -5,14 +5,15 @@
 
 class DynamicMeshGenerator;
 
+namespace Glade {
+  class ResourceManager;
+}
+
 // FIXME Melt into Mesh class
 // FIXME Builtin meshes should inherit this class
 class DynamicMesh: public Glade::Mesh
 {
-  friend class DynamicMeshGenerator;
-  friend class WavefrontObjReader;
-
-  private:
+  public:
     typedef std::vector<float> Vertices;
     typedef Vertices::iterator VerticesI;
 
@@ -44,7 +45,4 @@ class DynamicMesh: public Glade::Mesh
     {
       return indices.size();
     }
-
-    virtual void calculateNormals();
-    virtual void invertNormals();
 };

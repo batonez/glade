@@ -9,9 +9,9 @@ Perception::Perception():
   baseLightDirection.normalize();
   lightDirection.set(baseLightDirection);
 
-  setUniform("uLightAmbient",   Vector4f(0.5f, 0.5f, 0.5f, 1.0f));
-  setUniform("uLightDiffuse",   Vector4f(0.5f, 0.5f, 0.5f, 1.0f));
-  setUniform("uLightSpecular",  Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+  setUniform("uLightAmbient",   Glade::Vector4f(0.5f, 0.5f, 0.5f, 1.0f));
+  setUniform("uLightDiffuse",   Glade::Vector4f(0.5f, 0.5f, 0.5f, 1.0f));
+  setUniform("uLightSpecular",  Glade::Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
 
   setUniform("uLightDirection", lightDirection);
   */
@@ -21,8 +21,8 @@ void Perception::adjust()
 {
   /*
   // rotating the light direction vector
-  Vector4f rotatedVector;
-  Vector4f vector(baseLightDirection.x, baseLightDirection.y, baseLightDirection.z, 0.0f); // maybe w should be 1?
+  Glade::Vector4f rotatedVector;
+  Glade::Vector4f vector(baseLightDirection.x, baseLightDirection.y, baseLightDirection.z, 0.0f); // maybe w should be 1?
 
   float matrix[16];
   getTransform()->getCameraMatrix(matrix);

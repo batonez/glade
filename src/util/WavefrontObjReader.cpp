@@ -1,7 +1,7 @@
 #include <map>
 
 #include "glade/util/WavefrontObjReader.h"
-#include "glade/render/meshes/DynamicMesh.h"
+#include "glade/render/meshes/Mesh.h"
 
 static std::vector<char>::const_iterator readPos;
 static int positionInsideTheLine;
@@ -89,7 +89,7 @@ static void parseVertexTexCoord(std::string &line)
   texCoords.push_back(texCoord);
 }
 
-bool WavefrontObjReader::putFace(std::string &face, DynamicMesh *mesh)
+bool WavefrontObjReader::putFace(std::string &face, Glade::Mesh *mesh)
 {
   std::string token;
   positionInsideTheLine = 0;
@@ -172,7 +172,7 @@ bool WavefrontObjReader::putFace(std::string &face, DynamicMesh *mesh)
   return true;
 }
 
-bool WavefrontObjReader::read(const std::vector<char> &in, DynamicMesh *mesh)
+bool WavefrontObjReader::read(const std::vector<char> &in, Glade::Mesh *mesh)
 {
   positions.clear();
   normals.clear();

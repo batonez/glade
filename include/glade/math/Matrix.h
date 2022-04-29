@@ -22,7 +22,7 @@ public:
     mx4transform(rhs[0], rhs[1], rhs[2], rhs[3], lhs, r);
   }
   
-  static void multiplyMV(Vector4f &result, const float* lhs, const Vector4f &rhs) {
+  static void multiplyMV(Glade::Vector4f &result, const float* lhs, const Glade::Vector4f &rhs) {
     float dest[4] = {0};
     mx4transform(rhs.x, rhs.y, rhs.z, rhs.w, lhs, dest);
     result.x = dest[0];

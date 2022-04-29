@@ -2,7 +2,7 @@
 
 #include <cmath>
 #include <ctime>
-#include "DynamicMesh.h"
+#include "Mesh.h"
 #include <PerlinNoise/PerlinNoise.hpp>
 
 class DynamicMeshGenerator
@@ -21,30 +21,30 @@ class DynamicMeshGenerator
     {
     }
   
-    void extractVertexCoordsFromArray(int vertex_number, DynamicMesh::Vertices &vertices, Vector3f &result)
+    void extractVertexCoordsFromArray(int vertex_number, Glade::Mesh::Vertices &vertices, Glade::Vector3f &result)
     {
       result.x = vertices[vertex_number * VERTEX_SIZE + 0];
       result.y = vertices[vertex_number * VERTEX_SIZE + 1];
       result.z = vertices[vertex_number * VERTEX_SIZE + 2];
     }
 
-    void extractVertexNormalFromTheMesh(int index, DynamicMesh& mesh, Vector3f &result)
+    void extractVertexNormalFromTheMesh(int index, Glade::Mesh& mesh, Glade::Vector3f &result)
     {
       result.x = mesh.vertices[index * VERTEX_SIZE + 3];
       result.y = mesh.vertices[index * VERTEX_SIZE + 4];
       result.z = mesh.vertices[index * VERTEX_SIZE + 5];
     }
 
-    void saveVertexNormalIntoTheMesh(int index, DynamicMesh& mesh, Vector3f &normal)
+    void saveVertexNormalIntoTheMesh(int index, Glade::Mesh& mesh, Glade::Vector3f &normal)
     {
       mesh.vertices[index * VERTEX_SIZE + 3] = normal.x;
       mesh.vertices[index * VERTEX_SIZE + 4] = normal.y;
       mesh.vertices[index * VERTEX_SIZE + 5] = normal.z;
     }
  
-    void surfaceNormalFromThreeVertices(Vector3f &a, Vector3f &b, Vector3f &c, Vector3f &result)
+    void surfaceNormalFromThreeVertices(Glade::Vector3f &a, Glade::Vector3f &b, Glade::Vector3f &c, Glade::Vector3f &result)
     {
-      Vector3f first, second;
+      Glade::Vector3f first, second;
       first.set(a);
       first.subtract(b);
       second.set(a);
@@ -52,17 +52,17 @@ class DynamicMeshGenerator
       first.cross(second, result);
     }
 
-    void addFaceNormalComponentToItsVertices(DynamicMesh &mesh, int index1, int index2, int index3)
+    void addFaceNormalComponentToItsVertices(Glade::Mesh &mesh, int index1, int index2, int index3)
     {
-      Vector3f coords1, coords2, coords3;
+      Glade::Vector3f coords1, coords2, coords3;
       extractVertexCoordsFromArray(index1, mesh.vertices, coords1);
       extractVertexCoordsFromArray(index2, mesh.vertices, coords2);
       extractVertexCoordsFromArray(index3, mesh.vertices, coords3);
 
-      Vector3f faceNormal;
+      Glade::Vector3f faceNormal;
       surfaceNormalFromThreeVertices(coords1, coords2, coords3, faceNormal);
       
-      Vector3f normal1, normal2, normal3;
+      Glade::Vector3f normal1, normal2, normal3;
       extractVertexNormalFromTheMesh(index1, mesh, normal1);
       extractVertexNormalFromTheMesh(index2, mesh, normal2);
       extractVertexNormalFromTheMesh(index3, mesh, normal3);
@@ -108,7 +108,7 @@ class DynamicMeshGenerator
       return 1.0 * perlin.octave3D_01((x * freq), (y * freq), (z * freq), 4);
     }
 
-    void generateHull(DynamicMesh &mesh)
+    void generateHull(Glade::Mesh &mesh, float radius = 3.0, bool sphere = false)
     {
       ::srand(time(NULL));
       perlin.reseed(time(NULL));
@@ -137,8 +137,7 @@ class DynamicMeshGenerator
           y = cos(phi);
           x = cos(theta) * sin(phi);
           z = sin(theta) * sin(phi);
-          r = 3.0;
-          //r = heightFunction4(x, y, z);
+          r = sphere ? radius : heightFunction4(x, y, z);
           //r = heightFunction1(x, z);
           x *= r; y *= r; z *= r;
 
@@ -167,7 +166,7 @@ class DynamicMeshGenerator
       // South pole
       if (addPoles) {
         y = cos(phiMax);
-        y *= heightFunction4(0, cos(phiMax), 0);
+        y *= sphere ? radius : heightFunction4(0, cos(phiMax), 0);
         x = 0;
         z = 0;
 
@@ -189,7 +188,7 @@ class DynamicMeshGenerator
       // North pole
       if (addPoles) {
         y = cos(phiMin);
-        y *= heightFunction4(0, y, 0);
+        y *= sphere ? radius : heightFunction4(0, y, 0);
         x = 0;
         z = 0;
 
@@ -325,7 +324,67 @@ class DynamicMeshGenerator
       }
     }
 
-    void generate(DynamicMesh &mesh)
+    void generatePlane(Glade::Mesh &mesh)
+    {
+      mesh.vertices.clear();
+      mesh.indices.clear();
+      
+      int meshSizeVertices = meshSizeTiles + 1;
+      
+      // calculate vertex positions
+      float x, y, z;
+      
+      for (int i = 0; i < meshSizeVertices * meshSizeVertices; ++i)
+      {
+        x = i % meshSizeVertices;
+        z = -i / meshSizeVertices;
+        y = heightFunction2(x, z);
+
+        // position
+        mesh.vertices.push_back(x);
+        mesh.vertices.push_back(y);
+        mesh.vertices.push_back(z);
+
+        // normals
+        mesh.vertices.push_back(0.0f);
+        mesh.vertices.push_back(0.0f);
+        mesh.vertices.push_back(0.0f);
+
+        // tex coord
+        mesh.vertices.push_back(0.0f);
+        mesh.vertices.push_back(0.0f);
+      }
+
+      // fill index array
+      int lastVertex = meshSizeVertices * meshSizeVertices - meshSizeVertices;
+
+      for (int i = 0; i < lastVertex; ++i)
+      {
+        if ((i + 1) % meshSizeVertices == 0)
+          continue;
+
+        int index1 = i + 1,
+            index2 = i + meshSizeVertices,
+            index3 = i,
+            index4 = i + meshSizeVertices + 1;
+            
+        // upper triangle
+        mesh.indices.push_back(index1);
+        mesh.indices.push_back(index2);
+        mesh.indices.push_back(index3);
+
+        addFaceNormalComponentToItsVertices(mesh, index1, index2, index3);
+
+        // lower triangle
+        mesh.indices.push_back(index4);
+        mesh.indices.push_back(index2);
+        mesh.indices.push_back(index1);
+
+        addFaceNormalComponentToItsVertices(mesh, index4, index2, index1);
+      }
+    }
+
+    void generate(Glade::Mesh &mesh)
     {
       mesh.vertices.clear();
       mesh.indices.clear();

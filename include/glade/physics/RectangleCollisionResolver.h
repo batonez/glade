@@ -22,8 +22,8 @@ class RectangleCollisionResolver: public CollisionEventListener
       RectangleCollisionShape* firstColShape = dynamic_cast<RectangleCollisionShape*>(collisionEvent.firstObject->getCollisionShape());
       RectangleCollisionShape* secondColShape = dynamic_cast<RectangleCollisionShape*>(collisionEvent.secondObject->getCollisionShape());
           
-      Vector3f firstCorrection;
-      Vector3f secondCorrection;
+      Glade::Vector3f firstCorrection;
+      Glade::Vector3f secondCorrection;
       
       determinePushDirections(collisionEvent);
       

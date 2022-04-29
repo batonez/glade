@@ -9,7 +9,7 @@
 
 class Transform {
 public:
-  typedef std::shared_ptr<Vector3f> SharedVector;
+  typedef std::shared_ptr<Glade::Vector3f> SharedVector;
   
   SharedVector position;
   SharedVector rotation;
@@ -23,18 +23,18 @@ public:
   Transform(void):
     invertor(1),
     thirdPerson(false),
-    position(new Vector3f()),
-    rotation(new Vector3f()),
-    scale(new Vector3f(1, 1, 1))
+    position(new Glade::Vector3f()),
+    rotation(new Glade::Vector3f()),
+    scale(new Glade::Vector3f(1, 1, 1))
   {
   }
 
   Transform(float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ) :
     invertor(1),
     thirdPerson(false),
-    position(new Vector3f(posX, posY, posZ)),
-    rotation(new Vector3f(rotX, rotY, rotZ)),
-    scale(new Vector3f(scaleX, scaleY, scaleZ))
+    position(new Glade::Vector3f(posX, posY, posZ)),
+    rotation(new Glade::Vector3f(rotX, rotY, rotZ)),
+    scale(new Glade::Vector3f(scaleX, scaleY, scaleZ))
   {
   }
 

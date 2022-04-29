@@ -5,12 +5,12 @@
 class PhysicBody
 {
   public:
-    Vector3f velocity;
-    Vector3f maxSpeed;
-    Vector3f minSpeed;
+    Glade::Vector3f velocity;
+    Glade::Vector3f maxSpeed;
+    Glade::Vector3f minSpeed;
     
-    Vector3f acceleration;
-    Vector3f slowDown;
+    Glade::Vector3f acceleration;
+    Glade::Vector3f slowDown;
     
     bool affectedByGravity;
     

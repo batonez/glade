@@ -10,7 +10,6 @@
 #include "glade/math/Transform.h"
 #include "glade/GladeObject.h"
 
-class Vector3f;
 class DrawFrameHook;
 class ShaderProgram;
 class Texture;
@@ -18,6 +17,7 @@ class Perception;
 
 namespace Glade {
   class Mesh;
+  class Vector3f;
 
   class Renderer {
   public:
@@ -55,7 +55,7 @@ namespace Glade {
     ProjectionMode currentProjectionMode, sceneProjectionMode;
  
     float projectionMatrix[16], viewMatrix[16], worldViewMatrix[16];
-    Vector3f backgroundColor;
+    Glade::Vector3f backgroundColor;
  
     std::vector<GladeObject*> sceneObjects; // maybe set?
 
@@ -80,8 +80,8 @@ namespace Glade {
     float getHalfViewportHeightCoords(void);
     float getViewportWidthCoords(void);
     float getViewportHeightCoords(void);
-    Vector2f getPointCoords(float screenX, float screenY);
-    Vector3f unprojectPoint(float x, float y, float z);
+    Glade::Vector2f getPointCoords(float screenX, float screenY);
+    Glade::Vector3f unprojectPoint(float x, float y, float z);
 
     Transform *getCamera()
     {

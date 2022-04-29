@@ -3,12 +3,14 @@
 #include <vector>
 #include <string>
 
-class DynamicMesh;
+namespace Glade {
+  class Mesh;
+}
 
 class WavefrontObjReader
 {
   private:
-    static bool putFace(std::string &face, DynamicMesh *mesh);
+    static bool putFace(std::string &face, Glade::Mesh *mesh);
   public:
-    static bool read(const std::vector<char> &in, DynamicMesh *mesh);
+    static bool read(const std::vector<char> &in, Glade::Mesh *mesh);
 };

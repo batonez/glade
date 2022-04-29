@@ -9,7 +9,7 @@ class PhysicBody;
 class Simulator
 {
   public:
-    Vector3f gravity;
+    Glade::Vector3f gravity;
   private:
     std::set<GladeObject*> dynamicObjects;
     bool paused;

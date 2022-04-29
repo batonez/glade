@@ -5,8 +5,8 @@
 class Perception: public Drawable
 {
   private:
-    Vector3f baseLightDirection;
-    Vector3f lightDirection;
+    Glade::Vector3f baseLightDirection;
+    Glade::Vector3f lightDirection;
 
   public:
     Perception();

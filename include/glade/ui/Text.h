@@ -28,7 +28,7 @@ class Text: public Widget
       setFocusable(false);
       /*
       Drawable *debug = new Drawable(Rectangle::INSTANCE, resource_manager->getShaderProgram("texcoord_frames.vertex.glsl", "constant.fragment.glsl"));
-      debug->setUniform("uColor", Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
+      debug->setUniform("uColor", Glade::Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
       addDrawable(debug);
       debug->preserveScale = false;
       */
@@ -58,7 +58,7 @@ class Text: public Widget
     void setTextColor(float r, float g, float b)
     {
       for (DrawablesI di = drawables.begin(); di != drawables.end(); ++di) {
-        (*di)->setUniform("uColor", Vector4f(r, g, b, 1.0f));
+        (*di)->setUniform("uColor", Glade::Vector4f(r, g, b, 1.0f));
       }
     }
     

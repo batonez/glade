@@ -5,6 +5,9 @@
 
 // FIXME: make overloaded operators pls
 
+namespace Glade
+{
+
 class Vector2i {
 public:
   int x, y;
@@ -44,23 +47,6 @@ public:
     return (x == rhs.x && y == rhs.y && z == rhs.z);
   }
 };
-
-namespace std {
-  template <>
-  struct hash<Vector3i>
-  {
-    size_t operator()(const Vector3i& key) const
-    {
-      //using std::hash;
-      size_t m = 283945;
-      size_t x0 = 0x123456;
-      size_t x1 = (std::hash<int>()(key.x) ^ x0) * m;
-      size_t x2 = (std::hash<int>()(key.y) ^ x1) * m;
-      size_t x3 = (std::hash<int>()(key.z) ^ x2) * m;
-      return x3;
-    }
-  };
-}
 
 class Vector2f {
 public:
@@ -144,4 +130,23 @@ public:
   void add(const Vector4i &vector, Vector4i &result) { result.x = x + vector.x; result.y = y + vector.y; result.z = z + vector.z; result.w = w + vector.w; }
   void dot(const Vector4i &vector, Vector4i &result) { result.x = x * vector.x; result.y = y * vector.y; result.z = z * vector.z; result.w = w * vector.w; }
 };
+
+} // namespace Glade
+
+namespace std {
+  template <>
+  struct hash<Glade::Vector3i>
+  {
+    size_t operator()(const Glade::Vector3i& key) const
+    {
+      //using std::hash;
+      size_t m = 283945;
+      size_t x0 = 0x123456;
+      size_t x1 = (std::hash<int>()(key.x) ^ x0) * m;
+      size_t x2 = (std::hash<int>()(key.y) ^ x1) * m;
+      size_t x3 = (std::hash<int>()(key.z) ^ x2) * m;
+      return x3;
+    }
+  };
+}
 

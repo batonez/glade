@@ -31,10 +31,10 @@ class Layout
     };
 
   protected:
-    Vector2f minContentPosition;
-    Vector2f maxContentPosition;
-    Vector4f padding;
-    Vector4f margin;
+    Glade::Vector2f minContentPosition;
+    Glade::Vector2f maxContentPosition;
+    Glade::Vector4f padding;
+    Glade::Vector4f margin;
     HorizontalAlign horizontalAlign;
     VerticalAlign verticalAlign;
     float horizontalSizePercent;
@@ -65,7 +65,7 @@ class Layout
       this->horizontalAlign = horizontalAlign;
     }
 
-    const Vector4f* getPadding() const
+    const Glade::Vector4f* getPadding() const
     {
       return &padding;
     }
@@ -75,7 +75,7 @@ class Layout
       padding.set(top, right, bottom, left);
     }
 
-    const Vector4f* getMargin() const
+    const Glade::Vector4f* getMargin() const
     {
       return &margin;
     }

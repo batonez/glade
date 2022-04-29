@@ -15,8 +15,8 @@ public:
   typedef std::map<std::string, float>    ShaderFloatUniforms;
   typedef std::map<std::string, bool>     ShaderBoolUniforms;
   typedef std::map<std::string, int>      ShaderIntUniforms;
-  typedef std::map<std::string, Vector3f> ShaderVec3Uniforms;
-  typedef std::map<std::string, Vector4f> ShaderVec4Uniforms;
+  typedef std::map<std::string, Glade::Vector3f> ShaderVec3Uniforms;
+  typedef std::map<std::string, Glade::Vector4f> ShaderVec4Uniforms;
   
   typedef ShaderFloatUniforms::const_iterator ShaderFloatUniformsCI;
   typedef ShaderBoolUniforms::const_iterator ShaderBoolUniformsCI;
@@ -121,12 +121,12 @@ public:
     shaderIntUniforms[name] = val;
   }
   
-  void setUniform(const std::string &name, const Vector3f &val)
+  void setUniform(const std::string &name, const Glade::Vector3f &val)
   {
     shaderVec3Uniforms[name] = val;
   }
   
-  void setUniform(const std::string &name, const Vector4f val)
+  void setUniform(const std::string &name, const Glade::Vector4f val)
   {
     shaderVec4Uniforms[name] = val;
   }

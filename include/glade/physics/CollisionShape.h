@@ -24,14 +24,14 @@ public:
     const CollisionShape* targetShape,
     const Transform* selfTransform,
     const Transform* targetTransform,
-    Vector3f &overlap /*out*/
+    Glade::Vector3f &overlap /*out*/
   ) const = 0;
 
   virtual bool testCollisionWith(
     const RectangleCollisionShape* targetShape,
     const Transform* selfTransform,
     const Transform* targetTransform,
-    Vector3f &overlap /*out*/
+    Glade::Vector3f &overlap /*out*/
   ) const = 0;
 
   CollisionType getType() const

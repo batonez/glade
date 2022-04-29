@@ -1,18 +1,48 @@
 #pragma once
 
 #include <assert.h>
+#include <vector>
 #include "glade/debug/log.h"
 
-// FIXME Melt into DynamicMesh class
 namespace Glade {
   class Mesh {
     public:
+      Mesh() :
+        vertexVboId(-1),
+        indexVboId(-1),
+        vaoId(-1)
+      {
+      }
+
+      typedef std::vector<float> Vertices;
+      typedef Vertices::iterator VerticesI;
+
+      typedef std::vector<unsigned short> Indices;
+      typedef Indices::iterator           IndicesI;
+
       short int vertexVboId, indexVboId, vaoId;
+      Vertices vertices;
+      Indices indices;
       
-      virtual float* getVertices(void) = 0;    
-      virtual unsigned short* getIndices(void) = 0;
-      virtual unsigned int getIndexBufferSize(void) = 0;
-      virtual unsigned int getVertexBufferSize(void) = 0;
+      virtual float* getVertices()
+      {
+        return vertices.data();
+      }
+
+      virtual unsigned short* getIndices()
+      {
+        return indices.data();
+      }
+
+      virtual unsigned int getVertexBufferSize()
+      {
+        return vertices.size();
+      }
+
+      virtual unsigned int getIndexBufferSize()
+      {
+        return indices.size();
+      }
       
       virtual void erase(void) {
         log("FIXME: Not erasing mesh for no reason");
@@ -28,12 +58,5 @@ namespace Glade {
         return true;
       }
     
-    protected:
-      Mesh() :
-        vertexVboId(-1),
-        indexVboId(-1),
-        vaoId(-1)
-      {
-      }
   };
 }

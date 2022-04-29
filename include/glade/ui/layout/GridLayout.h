@@ -23,7 +23,7 @@ class GridLayout : public Layout
       cellWidth = cellHeight = 2 * widget->getTransform()->getScale()->x / rowLength;
       
       Transform *parentTransform = widget->getTransform();
-      const Vector4f *padding = getPadding();
+      const Glade::Vector4f *padding = getPadding();
       
       float  homeX   = parentTransform->getPosition()->x + padding->w,
           currentX = homeX,

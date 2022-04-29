@@ -17,7 +17,7 @@ class RectangleCollisionShape : public CollisionShape
     const CollisionShape* target,
     const Transform* selfTransform,
     const Transform* targetTransform,
-    Vector3f &overlap
+    Glade::Vector3f &overlap
   ) const
   {
     return target->testCollisionWith(this, targetTransform, selfTransform, overlap);
@@ -27,7 +27,7 @@ class RectangleCollisionShape : public CollisionShape
     const RectangleCollisionShape* target,
     const Transform* selfTransform,
     const Transform* targetTransform,
-    Vector3f &overlap
+    Glade::Vector3f &overlap
   ) const
   {
     float overlapX = abs(targetTransform->getScale()->x) + abs(selfTransform->getScale()->x) - abs(targetTransform->getPosition()->x - selfTransform->getPosition()->x);

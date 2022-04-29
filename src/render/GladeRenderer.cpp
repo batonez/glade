@@ -38,7 +38,7 @@ void Glade::Renderer::onSurfaceCreated()
   glCullFace(GL_BACK);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
-  glEnable(GL_CULL_FACE);
+  //glEnable(GL_CULL_FACE);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   //glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
   moveAllObjectsIntoVideoMemory();
@@ -188,9 +188,9 @@ float Glade::Renderer::getViewportHeightCoords(void)
   return 2;
 }
 
-Vector2f Glade::Renderer::getPointCoords(float screenX, float screenY)
+Glade::Vector2f Glade::Renderer::getPointCoords(float screenX, float screenY)
 {
-  Vector2f result;
+  Glade::Vector2f result;
   
   result.x = screenX / viewportWidth * 2 * aspectRatio - aspectRatio;
   result.y = screenY / viewportHeight * 2 - 1;
@@ -198,13 +198,13 @@ Vector2f Glade::Renderer::getPointCoords(float screenX, float screenY)
   return result;
 }
 
-Vector3f Glade::Renderer::unprojectPoint(float x, float y, float z)
+Glade::Vector3f Glade::Renderer::unprojectPoint(float x, float y, float z)
 {
   float invViewMatrix[16];
   float invProjMatrix[16];
 
-  Vector4f point(x, y, z, 1.0);
-  Vector4f resultPoint;
+  Glade::Vector4f point(x, y, z, 1.0);
+  Glade::Vector4f resultPoint;
 
   Matrix::invertM(invViewMatrix, 0, viewMatrix, 0);
   Matrix::invertM(invProjMatrix, 0, projectionMatrix, 0);
@@ -212,7 +212,7 @@ Vector3f Glade::Renderer::unprojectPoint(float x, float y, float z)
   resultPoint.w = 1.0;
   Matrix::multiplyMV(resultPoint, invViewMatrix, resultPoint); 
 
-  return Vector3f(resultPoint.x, resultPoint.y, resultPoint.z);
+  return Glade::Vector3f(resultPoint.x, resultPoint.y, resultPoint.z);
 }
 
 void Glade::Renderer::drawAll(std::vector<GladeObject*>::iterator i, std::vector<GladeObject*>::iterator end)
@@ -321,28 +321,35 @@ void Glade::Renderer::moveIntoVideoMemory(std::shared_ptr<Mesh> mesh)
     if (mesh->hasVideoBufferHandle())
       log("WARNING: Attempting to load mesh which already has a VBO handle, will reload it!");
   }
-  
-  if (!mesh->hasVideoBufferHandle()) {
-    log("Creating VBO");
 
+  // Creating VBOs
+  if (!mesh->hasVideoBufferHandle()) {
     GLuint vboIds[2];
     glGenBuffers(2, vboIds);
     mesh->vertexVboId = vboIds[0];
     mesh->indexVboId = vboIds[1];
+    log("Created VBOs %d, %d", mesh->vertexVboId, mesh->indexVboId);
   }
 
+  // Loading data into VBOs
   bindBuffers(mesh.get());
-  
   glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mesh->getVertexBufferSize(), mesh->getVertices(), GL_STATIC_DRAW);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * mesh->getIndexBufferSize(), mesh->getIndices(), GL_STATIC_DRAW);
+  bindBuffers(0);
 
+  // Creating VAO
   if (mesh->vaoId == -1) {
     GLuint vaoIds[1];
     glGenVertexArrays(1, vaoIds);
     mesh->vaoId = vaoIds[0];
+    log("Created VAO %d", mesh->vaoId);
   }
 
   glBindVertexArray(mesh->vaoId);
+
+  glEnableVertexAttribArray(aPosition);
+  glEnableVertexAttribArray(aNormal);
+  glEnableVertexAttribArray(aTexCoord);
  
   glVertexAttribPointer(
     aPosition, POS_SIZE_FLOATS,
@@ -356,6 +363,15 @@ void Glade::Renderer::moveIntoVideoMemory(std::shared_ptr<Mesh> mesh)
     VERTEX_STRIDE_BYTES, (const GLvoid *) NORMAL_OFFSET_BYTES
   );
 
+  glVertexAttribPointer(
+    aTexCoord, TEXCOORD_SIZE_FLOATS,
+    GL_FLOAT, GL_FALSE,
+    VERTEX_STRIDE_BYTES, (const GLvoid*) TEXCOORD_OFFSET_BYTES
+  );
+
+  bindBuffers(mesh.get());
+
+  glBindVertexArray(0);
   bindBuffers(0);
 
   //mesh->erase();
@@ -498,18 +514,19 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
   
   std::shared_ptr<Glade::Mesh> mesh = (*di)->getMesh();
   bindBuffers(mesh.get());
+  //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexVboId);
   glBindVertexArray(mesh->vaoId);
   
   if (firstCycle) {
     checkGLError();
   }
-  
+
   glVertexAttribPointer(
     aPosition, POS_SIZE_FLOATS,
     GL_FLOAT, GL_FALSE,
     VERTEX_STRIDE_BYTES, (const GLvoid *) POS_OFFSET_BYTES
   );
-  
+
   if (firstCycle) {
     checkGLError();
   }
@@ -526,7 +543,7 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
       GL_FLOAT, GL_FALSE,
       VERTEX_STRIDE_BYTES, (const GLvoid *) NORMAL_OFFSET_BYTES
     );
-    
+
     glEnableVertexAttribArray(aNormal);
   }
 
@@ -557,7 +574,7 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
       if (firstCycle) {
         checkGLError();
       }
-      
+
       glVertexAttribPointer(
         aTexCoord, TEXCOORD_SIZE_FLOATS,
         GL_FLOAT, GL_FALSE,
@@ -571,6 +588,21 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
       glEnableVertexAttribArray(aTexCoord);
     }
   }
+
+  // Always enable for now (as we use texCoord for debugging color)
+  // ---------
+  glVertexAttribPointer(
+    aTexCoord, TEXCOORD_SIZE_FLOATS,
+    GL_FLOAT, GL_FALSE,
+    VERTEX_STRIDE_BYTES, (const GLvoid*) TEXCOORD_OFFSET_BYTES
+  );
+
+  if (firstCycle) {
+    checkGLError();
+  }
+  
+  glEnableVertexAttribArray(aTexCoord);
+  // ---------
 
   perception->adjust();
   writeUniformsToVideoMemory(perception, *program);
@@ -586,16 +618,18 @@ void Glade::Renderer::draw(GladeObject::DrawablesI di, Transform &transform)
     checkGLError();
   }
 
-  glDisableVertexAttribArray(aPosition);
-  glDisableVertexAttribArray(aNormal);
+  //glDisableVertexAttribArray(aPosition);
+  //glDisableVertexAttribArray(aNormal);
 
-  if (texture != nullptr && texture->hasVideoBufferHandle()) {
-    glDisableVertexAttribArray(aTexCoord);
-  }
+  //if (texture != nullptr && texture->hasVideoBufferHandle()) {
+    //glDisableVertexAttribArray(aTexCoord);
+  //}
 
   if (firstCycle) {
     checkGLError();
   }
+
+  glBindVertexArray(0);
 }
 
 void Glade::Renderer::writeUniformsToVideoMemory(Drawable *drawable, ShaderProgram &program)

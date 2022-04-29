@@ -7,11 +7,11 @@ class CollisionEvent
 {
   public:
     GladeObject *firstObject, *secondObject;
-    Vector3f overlap;
+    Glade::Vector3f overlap;
     bool firstIsAtTop;
     bool firstIsAtLeft;
 
-  CollisionEvent(GladeObject* kinematicObject, GladeObject* staticObject, Vector3f &overlap):
+  CollisionEvent(GladeObject* kinematicObject, GladeObject* staticObject, Glade::Vector3f &overlap):
     firstObject(kinematicObject),
     secondObject(staticObject),
     overlap(overlap)

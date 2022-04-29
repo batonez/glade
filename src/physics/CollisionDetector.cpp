@@ -104,7 +104,7 @@ void CollisionDetector::removeListener(CollisionEventListener* listener)
 
 void CollisionDetector::detectAndDispatch(GladeObject &object1, GladeObject &object2)
 {
-  Vector3f overlap;
+  Glade::Vector3f overlap;
   
   if (object2.isCollisionShapeEnabled()) {
      bool collided = object1.getCollisionShape()->testCollisionWith(

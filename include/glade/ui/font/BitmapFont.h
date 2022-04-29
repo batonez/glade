@@ -75,7 +75,7 @@ class BitmapFont: public Font
       GladeObject::Drawables* text = new GladeObject::Drawables(); 
       Drawable* rectangle = NULL;
       int glyphWidth;
-      Vector2i glyphPosition;
+      Glade::Vector2i glyphPosition;
       float nextOffsetX = 0;
       stringScaleX = 0;
       stringScaleY = fontSize;
@@ -161,9 +161,9 @@ class BitmapFont: public Font
       return glyphIndex;
     }
     
-    Vector2i getGlyphPositionForIndex(int glyphIndex) const
+    Glade::Vector2i getGlyphPositionForIndex(int glyphIndex) const
     {
-      Vector2i position;
+      Glade::Vector2i position;
       
       if (glyphIndex < 0 || glyphIndex >= glyphWidths.size()) {
         glyphIndex = glyphWidths.size() - 1;

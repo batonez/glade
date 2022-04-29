@@ -8,7 +8,7 @@
 #include <glade/render/meshes/Rectangle.h>
 #include <glade/render/meshes/Cube.h>
 #include <glade/render/meshes/Square.h>
-#include <glade/render/meshes/DynamicMesh.h>
+#include <glade/render/meshes/Mesh.h>
 #include <glade/ui/font/BitmapFont.h>
 #include <glade/ui/font/FreetypeFont.h>
 #include <glade/audio/Sound.h>
@@ -58,7 +58,7 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::getMesh(const Path &filenam
   MeshesI i = meshes.find(filename);
 
   if (i != meshes.end()) {
-    return i->second;
+    //return i->second;
   }
 
   std::shared_ptr<Mesh> mesh = loadMeshAssimp(filename);
@@ -201,7 +201,7 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMesh(const Path &filena
 {
   std::vector<char> objData;
   fileManager->getFileContents(filename, objData);
-  DynamicMesh *mesh = new DynamicMesh();
+  Mesh *mesh = new Mesh();
 
   if (!WavefrontObjReader::read(objData, mesh)) {
     throw GladeException("Failed to read Wavefront OBJ file");
@@ -216,7 +216,7 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMeshAssimp(const Path &
   Assimp::Importer importer;
 
   Path filePath = ((DesktopFileManager*)fileManager)->getAbsolutePath(filename);
-  const aiScene* scene = importer.ReadFile(filePath.toString(), 0);
+  const aiScene* scene = importer.ReadFile(filePath.toString(), aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
 
   if (nullptr == scene) {
     log("Failed to read Wavefront OBJ file with assimp from file %s: %s", filename.toString().c_str(), importer.GetErrorString());
@@ -235,11 +235,11 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMeshAssimp(const Path &
   log("Found %d vertices in the mesh", mesh->mNumVertices);
   log("Found %d faces in the mesh", mesh->mNumFaces);
 
-  std::shared_ptr<DynamicMesh> gladeMesh = std::make_shared<DynamicMesh>();
+  std::shared_ptr<Mesh> gladeMesh = std::make_shared<Mesh>();
 
   for (int i = 0; i < mesh->mNumVertices; ++i) {
-    log("Vertex: %2.1f, %2.1f, %2.1f", mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-    log("Normal: %2.1f, %2.1f, %2.1f", mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+    //log("Vertex: %2.1f, %2.1f, %2.1f", mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+    //log("Normal: %2.1f, %2.1f, %2.1f", mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 
     // position
     gladeMesh->vertices.push_back(mesh->mVertices[i].x);   
@@ -260,11 +260,11 @@ std::shared_ptr<Glade::Mesh> Glade::ResourceManager::loadMeshAssimp(const Path &
     aiFace& face = mesh->mFaces[i];
 
     if (face.mNumIndices != 3) {
-      log("Error: non-triangle face found in a mesh");
-      return nullptr;
+      log("Warning: non-triangle face found in a mesh");
+      //return nullptr;
     }
 
-    log("Face: %d %d %d", face.mIndices[0], face.mIndices[1], face.mIndices[2]);
+    //log("Face: %d %d %d", face.mIndices[0], face.mIndices[1], face.mIndices[2]);
 
     gladeMesh->indices.push_back(face.mIndices[0]);
     gladeMesh->indices.push_back(face.mIndices[1]);
